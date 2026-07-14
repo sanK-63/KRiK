@@ -4,7 +4,7 @@ export const Codex = () => {
     const [data, setData] = useState({ content: "", version: "" });
 
     useEffect(() => {
-        fetch("http://localhost:5000/api/constitution", {
+        fetch(`${import.meta.env.VITE_API_URL}/api/constitution`, {
             headers: {
                 Authorization: localStorage.getItem("token") || "",
             },

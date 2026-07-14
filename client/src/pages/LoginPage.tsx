@@ -1,20 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 import Input from "../components/UI/Input";
 import Button from "../components/UI/Button";
 
-type LoginState = "idle" | "loading" | "granted";
+type LoginState = "idle" | "loading" | "granted" | "error";
 
 export default function LoginPage() {
     const navigate = useNavigate();
+    const { setUser } = useUser();
     const [key, setKey] = useState("");
     const [state, setState] = useState<LoginState>("idle");
     const [progress, setProgress] = useState(0);
+    const [errorMsg, setErrorMsg] = useState("");
 
     const handleSubmit = async () => {
         if (!key) return;
         setState("loading");
         setProgress(0);
+        setErrorMsg("");
 
         let p = 0;
         const interval = setInterval(async () => {
@@ -25,26 +29,47 @@ export default function LoginPage() {
                 setProgress(100);
 
                 try {
-                    const res = await fetch("http://localhost:5000/api/auth/login", {
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/key-login`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email: "admin@admin.com", password: key }),
+                        body: JSON.stringify({ key }),
                     });
                     const data = await res.json();
-                    if (data.token) {
+                    if (data.token && data.user) {
                         localStorage.setItem("token", data.token);
+                        // Fetch full profile after login
+                        try {
+                            const meRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+                                headers: { Authorization: `Bearer ${data.token}` },
+                            });
+                            if (meRes.ok) {
+                                const profile = await meRes.json();
+                                setUser(profile);
+                            }
+                        } catch {}
                         setState("granted");
                         setTimeout(() => navigate("/"), 1200);
                         return;
+                    } else {
+                        setState("error");
+                        setErrorMsg(data.error || "Неверный ключ");
+                        setProgress(0);
                     }
                 } catch {
-                    setState("idle");
+                    setState("error");
+                    setErrorMsg("Ошибка сети");
                     setProgress(0);
                     return;
                 }
             }
             setProgress(Math.min(p, 100));
         }, 120);
+    };
+
+    const handleReset = () => {
+        setState("idle");
+        setKey("");
+        setErrorMsg("");
     };
 
     return (
@@ -54,15 +79,18 @@ export default function LoginPage() {
                 style={{ background: "#292929", border: "1px solid #3a3a3a", borderRadius: 4 }}
             >
                 <h1
-                    className="text-center text-3xl uppercase mb-10"
+                    className="text-center text-3xl uppercase mb-2"
                     style={{ color: "#FA6814", fontFamily: '"Press Start 2P", system-ui' }}
                 >
                     Контора
                     <br />
                     <span className="whitespace-nowrap">"Рога и Копыта"</span>
                 </h1>
+                <p className="text-center text-[10px] text-gray-500 mb-10 tracking-widest uppercase">
+                    Владку софт
+                </p>
 
-                {state === "idle" && (
+                {(state === "idle" || state === "error") && (
                     <>
                         <p className="text-center text-gray-400 mb-8 text-sm">
                             Введите персональный ключ доступа
@@ -76,6 +104,9 @@ export default function LoginPage() {
                             onChange={(e) => setKey(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                         />
+                        {errorMsg && (
+                            <p className="text-xs text-[#D32F2F] mt-2">{errorMsg}</p>
+                        )}
                         <Button className="mt-8 w-full" onClick={handleSubmit}>
                             Войти
                         </Button>

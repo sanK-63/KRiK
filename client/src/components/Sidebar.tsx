@@ -5,9 +5,12 @@ const links: [string, string][] = [
     ["/forum", "Форум"],
     ["/portal", "Портал"],
     ["/constitution", "Конституция"],
-    ["/violations", "Нарушения"],
-    ["/users", "Пользователи"],
-    ["/logs", "Логи"],
+    ["/tournament", "Турниры"],
+    ["/archive", "Архив"],
+    ["/memes", "Мемы"],
+    ["/tavern", "Таверна"],
+    ["/workers", "Работяги"],
+    ["/software", "Софт"],
 ];
 
 export default function Sidebar() {
