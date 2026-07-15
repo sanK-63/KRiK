@@ -172,7 +172,6 @@ function CommentItem({ comment, postId, depth = 0 }: { comment: CommentData; pos
 export default function ThreadPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { user } = useUser();
     const socket = useSocket();
     const [post, setPost] = useState<PostData | null>(null);
     const [loading, setLoading] = useState(true);

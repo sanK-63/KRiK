@@ -30,7 +30,7 @@ const tabs = [
 ];
 
 export default function MemesPage() {
-    const user = useUser();
+    const { user } = useUser();
     const socket = useSocket();
     const location = useLocation();
     const openId = (location.state as { openId?: number })?.openId;

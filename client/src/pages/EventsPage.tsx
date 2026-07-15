@@ -20,7 +20,7 @@ interface Event {
 const categories = ["Все", "Турнир", "Встреча", "Обновление", "Релиз", "Буткемп", "Попойка", "Рабочая задача", "Другое"];
 
 export default function EventsPage() {
-    const user = useUser();
+    const { user } = useUser();
     const socket = useSocket();
     const location = useLocation();
     const openId = (location.state as { openId?: number })?.openId;

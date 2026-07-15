@@ -7,7 +7,7 @@ import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import ForumPage from "./pages/ForumPage";
 import PortalPage from "./pages/PortalPage";
-import AppealsPage from "./pages/AppealsPage";
+
 import ConstitutionPage from "./pages/ConstitutionPage";
 import ViolationsPage from "./pages/ViolationsPage";
 import UsersPage from "./pages/UsersPage";

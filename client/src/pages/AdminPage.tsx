@@ -602,7 +602,7 @@ function ProbCalc() {
     const total = wins + losses;
     const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
-    constelo = 1500 + 400 * Math.log10(wins / Math.max(losses, 1));
+    const elo = 1500 + 400 * Math.log10(wins / Math.max(losses, 1));
     const wr95 = total > 0 ? Math.round(1.96 * Math.sqrt((winRate / 100) * (1 - winRate / 100) / total) * 100) : 0;
 
     return (
@@ -620,7 +620,7 @@ function ProbCalc() {
                     </div>
                 </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
                 <div className="bg-[#282828] border border-[#3a3a3a] p-4 text-center">
                     <p className="text-3xl font-bold text-[#FA6814]">{winRate}%</p>
                     <p className="text-xs text-gray-500 mt-1">Винрейт</p>
@@ -633,6 +633,10 @@ function ProbCalc() {
                 <div className="bg-[#282828] border border-[#3a3a3a] p-4 text-center">
                     <p className="text-3xl font-bold text-[#4CAF50]">{total > 0 ? Math.round(wins / Math.max(losses, 1) * 100) / 100 : 0}</p>
                     <p className="text-xs text-gray-500 mt-1">K/D Ratio</p>
+                </div>
+                <div className="bg-[#282828] border border-[#3a3a3a] p-4 text-center">
+                    <p className="text-3xl font-bold text-[#FFB020]">{Math.round(elo)}</p>
+                    <p className="text-xs text-gray-500 mt-1">ELO Рейтинг</p>
                 </div>
             </div>
         </div>

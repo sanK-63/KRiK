@@ -172,7 +172,7 @@ export default function TournamentPage() {
     const handleStatusChange = async (status: TournamentStatus) => {
         if (selectedTournamentId === null) return;
         try {
-            const res = await tournamentsApi.setStatus(selectedTournamentId, status);
+            await tournamentsApi.setStatus(selectedTournamentId, status);
             handleRefresh();
         } catch (e: any) {
             alert(e.message || "Ошибка смены статуса");
@@ -182,7 +182,7 @@ export default function TournamentPage() {
     const handleGenerateBracket = async () => {
         if (selectedTournamentId === null) return;
         try {
-            const res = await tournamentsApi.generateBracket(selectedTournamentId);
+            await tournamentsApi.generateBracket(selectedTournamentId);
             handleRefresh();
         } catch (e: any) {
             alert(e.message || "Ошибка генерации сетки");

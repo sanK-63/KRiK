@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../context/UserContext";
 import { useSocket } from "../context/SocketContext";
 
 interface FeedEntry {
@@ -66,14 +65,13 @@ function timeAgo(dateStr: string): string {
 
 export default function FeedPage() {
     const navigate = useNavigate();
-    const { user } = useUser();
     const [entries, setEntries] = useState<FeedEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [liked, setLiked] = useState<Record<string, boolean>>({});
     const socket = useSocket();
 
     const token = localStorage.getItem("token");
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
     const fetchAll = useCallback(async () => {
         setLoading(true);

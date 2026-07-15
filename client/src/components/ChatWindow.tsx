@@ -132,7 +132,7 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
         if (isImage) {
             return (
                 <a href={`${API}${msg.attachmentPath}`} target="_blank" rel="noopener noreferrer" className="block mt-1">
-                    <img src={`${API}${msg.attachmentPath}`} alt={msg.attachmentName} className="max-w-[280px] max-h-[200px] object-cover border border-[#3b3b3b]" />
+                    <img src={`${API}${msg.attachmentPath}`} alt={msg.attachmentName ?? ""} className="max-w-[280px] max-h-[200px] object-cover border border-[#3b3b3b]" />
                 </a>
             );
         }

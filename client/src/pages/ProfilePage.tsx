@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useUser, type UserData } from "../context/UserContext";
+import { useUser } from "../context/UserContext";
 
 const mockLoginHistory = [
     { date: "2026-07-14 11:05", ip: "192.168.1.1", device: "Windows / Chrome" },
@@ -102,7 +102,7 @@ export default function ProfilePage() {
             });
             if (res.ok) {
                 setEmailMessage("✓ Почта изменена");
-                setUser((prev: UserData | null) => prev ? { ...prev, email: newEmail } : prev);
+                if (user) setUser({ ...user, email: newEmail });
                 setNewEmail("");
             } else {
                 const data = await res.json();

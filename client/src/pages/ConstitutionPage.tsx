@@ -57,7 +57,7 @@ function renderMarkdown(md: string): string {
 }
 
 export default function ConstitutionPage() {
-    const user = useUser();
+    const { user } = useUser();
     const token = localStorage.getItem("token");
     const isAdmin = user?.roles?.some((r) => r.priority >= 100) ?? false;
 

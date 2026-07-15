@@ -66,11 +66,6 @@ export default function LoginPage() {
         }, 120);
     };
 
-    const handleReset = () => {
-        setState("idle");
-        setKey("");
-        setErrorMsg("");
-    };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#212121]">

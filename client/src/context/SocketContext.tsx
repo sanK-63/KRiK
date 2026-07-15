@@ -17,7 +17,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
             console.log("[Socket] Connected:", s.id);
         });
 
-        s.on("disconnect", (reason) => {
+        s.on("disconnect", (reason: string) => {
             console.log("[Socket] Disconnected:", reason);
         });
 

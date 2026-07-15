@@ -168,7 +168,7 @@ export default function CinemaPage() {
                 return [...prev, comment];
             });
         });
-        socket.on("movie_comment:deleted", ({ movieId, commentId }: { movieId: number; commentId: number }) => {
+        socket.on("movie_comment:deleted", ({ commentId }: { movieId: number; commentId: number }) => {
             setComments((prev) => prev.filter((c) => c.id !== commentId));
         });
         return () => {

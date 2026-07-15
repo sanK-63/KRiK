@@ -76,13 +76,6 @@ export default function Dashboard() {
         return () => { socket.off("user:online"); };
     }, [socket, founders]);
 
-    const roleColors: Record<string, string> = {
-        Administrator: "#D32F2F",
-        Moderator: "#FFB020",
-        Judge: "#3CB371",
-        Captain: "#FA6814",
-        User: "#A5A5A5",
-    };
 
     const recentPosts = forumData.slice(0, 4);
 
