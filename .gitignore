@@ -7,3 +7,5 @@ dist/
 *.db-shm
 *.db-wal
 data/
+server/test-email.js
+server/check_movies.js
