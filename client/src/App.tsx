@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { UserProvider } from "./context/UserContext";
+import { SocketProvider } from "./context/SocketContext";
 import AuthLayout from "./layouts/AuthLayout";
 import MainLayout from "./layouts/MainLayout";
 import LoginPage from "./pages/LoginPage";
@@ -21,6 +22,12 @@ import WorkersPage from "./pages/WorkersPage";
 import UserPublicProfilePage from "./pages/UserPublicProfilePage";
 import ProfilePage from "./pages/ProfilePage";
 import SoftwarePage from "./pages/SoftwarePage";
+import CinemaPage from "./pages/CinemaPage";
+import EventsPage from "./pages/EventsPage";
+import LeaderboardPage from "./pages/LeaderboardPage";
+import FeedPage from "./pages/FeedPage";
+import LibraryPage from "./pages/LibraryPage";
+import AdminPage from "./pages/AdminPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem("token");
@@ -30,6 +37,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
     return (
+        <SocketProvider>
         <UserProvider>
             <BrowserRouter>
                 <Routes>
@@ -58,7 +66,13 @@ function App() {
                         <Route path="/workers" element={<WorkersPage />} />
                         <Route path="/user/:id" element={<UserPublicProfilePage />} />
                         <Route path="/software" element={<SoftwarePage />} />
+                        <Route path="/cinema" element={<CinemaPage />} />
+                        <Route path="/events" element={<EventsPage />} />
+                        <Route path="/leaderboard" element={<LeaderboardPage />} />
+                        <Route path="/feed" element={<FeedPage />} />
+                        <Route path="/library" element={<LibraryPage />} />
                         <Route path="/logs" element={<LogsPage />} />
+                        <Route path="/admin" element={<AdminPage />} />
                         <Route path="/search" element={<SearchPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                     </Route>
@@ -67,6 +81,7 @@ function App() {
                 </Routes>
             </BrowserRouter>
         </UserProvider>
+        </SocketProvider>
     );
 }
 

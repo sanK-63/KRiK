@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSocket } from "../context/SocketContext";
 
 interface WorkerUser {
     id: number;
@@ -26,6 +27,7 @@ const roleColors: Record<string, string> = {
 
 export default function WorkersPage() {
     const navigate = useNavigate();
+    const socket = useSocket();
     const [users, setUsers] = useState<WorkerUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -41,6 +43,14 @@ export default function WorkersPage() {
             .catch(() => {})
             .finally(() => setLoading(false));
     }, []);
+
+    useEffect(() => {
+        if (!socket) return;
+        socket.on("user:online", ({ userId }: { userId: number }) => {
+            setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, isOnline: true } : u));
+        });
+        return () => { socket.off("user:online"); };
+    }, [socket]);
 
     const filtered = users.filter((u) => {
         const q = search.toLowerCase();
@@ -66,13 +76,13 @@ export default function WorkersPage() {
                 placeholder="Поиск..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-72 bg-[#1e1e1e] border border-[#3a3a3a] text-xs text-gray-300 px-3 py-2 outline-none focus:border-[#FA6814] transition-colors"
+                className="w-full sm:w-72 bg-[#1e1e1e] border border-[#3a3a3a] text-xs text-gray-300 px-3 py-2 outline-none focus:border-[#FA6814] transition-colors"
             />
 
             {loading ? (
                 <p className="text-xs text-gray-500">Загрузка...</p>
             ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     {filtered.map((u) => {
                         const fullName = [u.displayName, u.surname, u.patronymic].filter(Boolean).join(" ");
                         const initial = (u.displayName?.[0] || u.username?.[0] || "?").toUpperCase();

@@ -17,4 +17,12 @@ export const config = {
     jwtSecret: requireEnv("JWT_SECRET"),
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
     apiUrl: process.env.API_URL || "http://localhost:5000",
+    smtp: {
+        host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
+        port: Number(process.env.SMTP_PORT) || 587,
+        user: process.env.SMTP_USER || "",
+        pass: process.env.SMTP_PASS || "",
+    },
+    smtpFrom: process.env.SMTP_FROM || "Kontora@knm.pp.ua",
+    smtpFromName: process.env.SMTP_FROM_NAME || "Corporate Portal",
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser, type UserData } from "../context/UserContext";
 
 const mockLoginHistory = [
@@ -18,7 +18,7 @@ const mockTeams = [
     { name: "Копыта", game: "Dota 2", role: "Участник" },
 ];
 
-type Tab = "Профиль" | "История входов" | "Турниры" | "Команды";
+type Tab = "Профиль" | "История входов" | "Турниры" | "Команды" | "ELO рейтинг";
 
 const roleColors: Record<string, string> = {
     Administrator: "#D32F2F",
@@ -28,12 +28,67 @@ const roleColors: Record<string, string> = {
     User: "#A5A5A5",
 };
 
+interface EloData {
+    elo: number;
+    gamesPlayed: number;
+    wins: number;
+    losses: number;
+    winrate: number;
+    rank: number | null;
+}
+
+interface EloHistoryEntry {
+    id: number;
+    oldElo: number;
+    newElo: number;
+    change: number;
+    reason: string;
+    createdAt: string;
+}
+
+function getEloColor(elo: number): string {
+    if (elo >= 1400) return "#FFD700";
+    if (elo >= 1200) return "#FA6814";
+    if (elo >= 1000) return "#3CB371";
+    if (elo >= 800) return "#5B9BD5";
+    return "#A5A5A5";
+}
+
+function getEloRank(elo: number): string {
+    if (elo >= 1600) return "Гроссмейстер";
+    if (elo >= 1400) return "Мастер";
+    if (elo >= 1200) return "Эксперт";
+    if (elo >= 1000) return "Боец";
+    if (elo >= 800) return "Новичок";
+    return "Рекрут";
+}
+
 export default function ProfilePage() {
     const { user, setUser } = useUser();
     const [tab, setTab] = useState<Tab>("Профиль");
     const [newEmail, setNewEmail] = useState("");
     const [emailMessage, setEmailMessage] = useState("");
-    const tabs: Tab[] = ["Профиль", "История входов", "Турниры", "Команды"];
+    const tabs: Tab[] = ["Профиль", "История входов", "Турниры", "Команды", "ELO рейтинг"];
+    const [elo, setElo] = useState<EloData | null>(null);
+    const [eloHistory, setEloHistory] = useState<EloHistoryEntry[]>([]);
+
+    useEffect(() => {
+        if (!user || tab !== "ELO рейтинг") return;
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        fetch(`${import.meta.env.VITE_API_URL}/api/elo/user/${user.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then((r) => r.json())
+            .then(setElo)
+            .catch(() => {});
+        fetch(`${import.meta.env.VITE_API_URL}/api/elo/history/${user.id}?limit=20`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then((r) => r.json())
+            .then(setEloHistory)
+            .catch(() => {});
+    }, [user, tab]);
 
     const handleChangeEmail = async () => {
         const token = localStorage.getItem("token");
@@ -70,7 +125,7 @@ export default function ProfilePage() {
     const fullName = [user.displayName, user.surname, user.patronymic].filter(Boolean).join(" ");
 
     return (
-        <div className="max-w-3xl space-y-6">
+        <div className="max-w-3xl xl:max-w-5xl space-y-6">
             <h1 className="text-sm text-[#FA6814]" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
                 Личный кабинет
             </h1>
@@ -93,8 +148,8 @@ export default function ProfilePage() {
 
             {tab === "Профиль" && (
                 <div className="space-y-6">
-                    <div className="flex items-start gap-6">
-                        <div className="w-64 h-64 bg-[#2a2a2a] border border-[#3b3b3b] shrink-0 overflow-hidden">
+                    <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
+                        <div className="w-32 h-32 sm:w-48 sm:h-48 lg:w-64 lg:h-64 bg-[#2a2a2a] border border-[#3b3b3b] shrink-0 overflow-hidden">
                             {user.avatar ? (
                                 <img src={user.avatar} alt={user.username} className="w-full h-full object-cover object-top" />
                             ) : (
@@ -293,6 +348,95 @@ export default function ProfilePage() {
                             <span className="text-[10px] text-[#FA6814]">{t.role}</span>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {tab === "ELO рейтинг" && (
+                <div className="space-y-6">
+                    {elo ? (
+                        <>
+                            <div className="p-6" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}>
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+                                    <div className="text-center">
+                                        <div className="text-5xl font-bold" style={{ color: getEloColor(elo.elo), fontFamily: '"Press Start 2P", system-ui' }}>
+                                            {elo.elo}
+                                        </div>
+                                        <div className="text-[10px] text-gray-500 mt-2 uppercase">ELO рейтинг</div>
+                                    </div>
+                                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                                        <div className="text-center p-3" style={{ background: "#1e1e1e", borderRadius: 4 }}>
+                                            <div className="text-lg font-bold text-[#4CAF50]">{elo.wins}</div>
+                                            <div className="text-[10px] text-gray-500">Победы</div>
+                                        </div>
+                                        <div className="text-center p-3" style={{ background: "#1e1e1e", borderRadius: 4 }}>
+                                            <div className="text-lg font-bold text-[#D32F2F]">{elo.losses}</div>
+                                            <div className="text-[10px] text-gray-500">Поражения</div>
+                                        </div>
+                                        <div className="text-center p-3" style={{ background: "#1e1e1e", borderRadius: 4 }}>
+                                            <div className="text-lg font-bold text-white">{elo.gamesPlayed}</div>
+                                            <div className="text-[10px] text-gray-500">Матчей</div>
+                                        </div>
+                                        <div className="text-center p-3" style={{ background: "#1e1e1e", borderRadius: 4 }}>
+                                            <div className="text-lg font-bold text-white">{elo.winrate}%</div>
+                                            <div className="text-[10px] text-gray-500">Winrate</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 mt-4">
+                                    <span
+                                        className="text-[10px] px-2 py-0.5 font-medium"
+                                        style={{ color: getEloColor(elo.elo), border: `1px solid ${getEloColor(elo.elo)}`, borderRadius: 2 }}
+                                    >
+                                        {getEloRank(elo.elo)}
+                                    </span>
+                                    {elo.rank && (
+                                        <span className="text-[10px] text-gray-500">
+                                            Ранг #{elo.rank}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="p-4" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}>
+                                <h3 className="text-xs uppercase text-gray-400 mb-3">История изменений</h3>
+                                {eloHistory.length === 0 ? (
+                                    <p className="text-xs text-gray-500">Пока нет изменений</p>
+                                ) : (
+                                    <div className="space-y-1">
+                                        {eloHistory.map((h) => (
+                                            <div
+                                                key={h.id}
+                                                className="flex items-center justify-between py-1.5"
+                                                style={{ borderBottom: "1px solid #2f2f2f" }}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <span
+                                                        className="text-[10px] font-medium"
+                                                        style={{ color: h.change > 0 ? "#4CAF50" : "#D32F2F", minWidth: 40 }}
+                                                    >
+                                                        {h.change > 0 ? `+${h.change}` : h.change}
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-400">
+                                                        {h.oldElo} → {h.newElo}
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-600">
+                                                        {h.reason === "tournament_bonus" ? "Бонус турнира" : "Матч"}
+                                                    </span>
+                                                </div>
+                                                <span className="text-[10px] text-gray-600">
+                                                    {new Date(h.createdAt).toLocaleDateString("ru-RU")}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-8 text-center">
+                            <p className="text-xs text-gray-500">Загрузка...</p>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

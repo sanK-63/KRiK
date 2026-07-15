@@ -131,6 +131,7 @@ const tables = [
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         template_id INTEGER REFERENCES tournament_templates(id),
         game_id INTEGER NOT NULL REFERENCES games(id),
+        created_by INTEGER REFERENCES users(id),
         title TEXT NOT NULL,
         description TEXT,
         banner TEXT,
@@ -187,6 +188,9 @@ const tables = [
         team1 INTEGER REFERENCES teams(id),
         team2 INTEGER REFERENCES teams(id),
         winner INTEGER REFERENCES teams(id),
+        score1 INTEGER,
+        score2 INTEGER,
+        judge_id INTEGER REFERENCES users(id),
         status TEXT NOT NULL DEFAULT 'scheduled',
         scheduled_at TEXT
     )`,
@@ -342,9 +346,97 @@ const tables = [
         image TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )`,
+    `CREATE TABLE IF NOT EXISTS movies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        year INTEGER,
+        genre TEXT NOT NULL DEFAULT 'Боевик',
+        rating INTEGER,
+        description TEXT,
+        poster TEXT,
+        added_by INTEGER REFERENCES users(id),
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS movie_comments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        movie_id INTEGER NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        content TEXT NOT NULL,
+        rating INTEGER,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        date TEXT NOT NULL,
+        time TEXT,
+        location TEXT,
+        category TEXT NOT NULL DEFAULT 'general',
+        image TEXT,
+        author_id INTEGER REFERENCES users(id),
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS memes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT,
+        image TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'general',
+        author_id INTEGER REFERENCES users(id),
+        likes INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS meme_likes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        meme_id INTEGER NOT NULL REFERENCES memes(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS meme_comments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        meme_id INTEGER NOT NULL REFERENCES memes(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        content TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS user_elo (
+        user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        elo INTEGER NOT NULL DEFAULT 1000,
+        games_played INTEGER NOT NULL DEFAULT 0,
+        wins INTEGER NOT NULL DEFAULT 0,
+        losses INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS elo_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        tournament_id INTEGER REFERENCES tournaments(id),
+        match_id INTEGER REFERENCES matches(id),
+        old_elo INTEGER NOT NULL,
+        new_elo INTEGER NOT NULL,
+        change INTEGER NOT NULL,
+        reason TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS library_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        icon TEXT,
+        order_index INTEGER NOT NULL DEFAULT 0
+    )`,
+    `CREATE TABLE IF NOT EXISTS library_documents (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category_id INTEGER REFERENCES library_categories(id),
+        title TEXT NOT NULL,
+        description TEXT,
+        filename TEXT NOT NULL,
+        original_name TEXT NOT NULL,
+        mime_type TEXT,
+        size INTEGER,
+        uploaded_by INTEGER REFERENCES users(id),
+        downloads INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
 ];
-
-const indexes = [
     `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`,
     `CREATE INDEX IF NOT EXISTS idx_users_uuid ON users(uuid)`,
     `CREATE INDEX IF NOT EXISTS idx_teams_name ON teams(name)`,
@@ -353,6 +445,8 @@ const indexes = [
     `CREATE INDEX IF NOT EXISTS idx_matches_status ON matches(status)`,
     `CREATE INDEX IF NOT EXISTS idx_registrations_tournament_id ON registrations(tournament_id)`,
     `CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_elo_history_user_id ON elo_history(user_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_elo_history_tournament_id ON elo_history(tournament_id)`,
 ];
 
 export function migrate() {
@@ -438,6 +532,132 @@ export function migrate() {
         insertProfile.run(3, null, null, null, null, "Казахстан", null);
     }
 
+    // Seed games
+    const gameCount = sqlite.prepare("SELECT COUNT(*) as c FROM games").get() as { c: number };
+    if (gameCount.c === 0) {
+        const insertGame = sqlite.prepare("INSERT INTO games (name, slug, logo, description) VALUES (?, ?, ?, ?)");
+        const insertPlatform = sqlite.prepare("INSERT INTO game_platforms (game_id, platform) VALUES (?, ?)");
+        const insertMode = sqlite.prepare("INSERT INTO game_modes (game_id, name) VALUES (?, ?)");
+        const insertMap = sqlite.prepare("INSERT INTO game_maps (game_id, name) VALUES (?, ?)");
+
+        const g1 = insertGame.run("Counter-Strike 2", "cs2", "CS2", "Классический тактический шутер от Valve").lastInsertRowid;
+        insertPlatform.run(g1, "PC");
+        insertMode.run(g1, "Competitive");
+        insertMode.run(g1, "Wingman");
+        insertMap.run(g1, "Dust2");
+        insertMap.run(g1, "Mirage");
+        insertMap.run(g1, "Inferno");
+        insertMap.run(g1, "Nuke");
+        insertMap.run(g1, "Overpass");
+        insertMap.run(g1, "Ancient");
+        insertMap.run(g1, "Anubis");
+
+        const g2 = insertGame.run("Dota 2", "dota2", "DOTA", "Многопользовательская онлайн-battlearena от Valve").lastInsertRowid;
+        insertPlatform.run(g2, "PC");
+        insertMode.run(g2, "Ranked");
+        insertMode.run(g2, "Captain's Mode");
+        insertMap.run(g2, "Captain's Mode");
+
+        const g3 = insertGame.run("Valorant", "valorant", "VAL", "Тактический шутер от Riot Games").lastInsertRowid;
+        insertPlatform.run(g3, "PC");
+        insertMode.run(g3, "Competitive");
+        insertMode.run(g3, "Spike Rush");
+        insertMap.run(g3, "Bind");
+        insertMap.run(g3, "Haven");
+        insertMap.run(g3, "Split");
+        insertMap.run(g3, "Ascent");
+        insertMap.run(g3, "Icebox");
+
+        const g4 = insertGame.run("Battlefield 6", "bf6", "BF6", "Масштабные multiplayer бои от EA").lastInsertRowid;
+        insertPlatform.run(g4, "PC");
+        insertPlatform.run(g4, "Xbox");
+        insertPlatform.run(g4, "PlayStation");
+        insertMode.run(g4, "Conquest");
+        insertMode.run(g4, "Breakthrough");
+        insertMap.run(g4, "Firestorm");
+        insertMap.run(g4, "Locker");
+        insertMap.run(g4, "Metro");
+
+        const g5 = insertGame.run("PUBG", "pubg", "PUBG", "Battle Royale от Krafton").lastInsertRowid;
+        insertPlatform.run(g5, "PC");
+        insertMode.run(g5, "Squad");
+        insertMode.run(g5, "Duo");
+        insertMap.run(g5, "Erangel");
+        insertMap.run(g5, "Miramar");
+        insertMap.run(g5, "Sanhok");
+        insertMap.run(g5, "Vikendi");
+
+        const g6 = insertGame.run("Minecraft", "minecraft", "MC", "Креативная песочница от Mojang").lastInsertRowid;
+        insertPlatform.run(g6, "PC");
+        insertPlatform.run(g6, "Xbox");
+        insertPlatform.run(g6, "PlayStation");
+        insertPlatform.run(g6, "Nintendo Switch");
+        insertMode.run(g6, "PvP");
+        insertMode.run(g6, "Bedwars");
+        insertMode.run(g6, "Skywars");
+        insertMode.run(g6, "Hunger Games");
+        insertMap.run(g6, "Hypixel");
+        insertMap.run(g6, "CubeCraft");
+        insertMap.run(g6, "Mineplex");
+
+        const g7 = insertGame.run("World of Tanks", "wot", "WoT", "Танковый MMO-шутер от Wargaming").lastInsertRowid;
+        insertPlatform.run(g7, "PC");
+        insertMode.run(g7, "Random Battle");
+        insertMode.run(g7, "Clan Wars");
+        insertMode.run(g7, "Ranked Battles");
+        insertMap.run(g7, "Himmelsdorf");
+        insertMap.run(g7, "Malinovka");
+        insertMap.run(g7, "Prokhorovka");
+        insertMap.run(g7, "Ruinberg");
+        insertMap.run(g7, "Ensk");
+
+        const g8 = insertGame.run("Battlefield V", "bf5", "BFV", "Военный шутер от EA, Вторая мировая война").lastInsertRowid;
+        insertPlatform.run(g8, "PC");
+        insertPlatform.run(g8, "Xbox");
+        insertPlatform.run(g8, "PlayStation");
+        insertMode.run(g8, "Conquest");
+        insertMode.run(g8, "Breakthrough");
+        insertMode.run(g8, "Frontlines");
+        insertMode.run(g8, "War Stories");
+        insertMap.run(g8, "Twisted Steel");
+        insertMap.run(g8, "Narvik");
+        insertMap.run(g8, "Fjell 652");
+        insertMap.run(g8, "Rotterdam");
+        insertMap.run(g8, "Devastation");
+
+        const g9 = insertGame.run("Assetto Corsa Competizione", "acc", "ACC", "Симулятор гонок от Kunos Simulazioni, официальный GT чемпионат").lastInsertRowid;
+        insertPlatform.run(g9, "PC");
+        insertPlatform.run(g9, "Xbox");
+        insertPlatform.run(g9, "PlayStation");
+        insertMode.run(g9, "Sprint");
+        insertMode.run(g9, "Endurance");
+        insertMode.run(g9, "Custom Race");
+        insertMode.run(g9, "Championship");
+        insertMap.run(g9, "Spa-Francorchamps");
+        insertMap.run(g9, "Monza");
+        insertMap.run(g9, "Silverstone");
+        insertMap.run(g9, "Nurburgring");
+        insertMap.run(g9, "Barcelona");
+        insertMap.run(g9, "Misano");
+        insertMap.run(g9, "Zolder");
+        insertMap.run(g9, "Brands Hatch");
+
+        const g10 = insertGame.run("Assetto Corsa", "ac", "AC", "Симулятор гонок от Kunos Simulazioni, моддинг-сообщество").lastInsertRowid;
+        insertPlatform.run(g10, "PC");
+        insertPlatform.run(g10, "Xbox");
+        insertPlatform.run(g10, "PlayStation");
+        insertMode.run(g10, "Hotlap");
+        insertMode.run(g10, "Sprint");
+        insertMode.run(g10, "Endurance");
+        insertMode.run(g10, "Drift");
+        insertMap.run(g10, "Monza");
+        insertMap.run(g10, "Spa-Francorchamps");
+        insertMap.run(g10, "Nurburgring");
+        insertMap.run(g10, "Silverstone");
+        insertMap.run(g10, "Barcelona");
+        insertMap.run(g10, "Imola");
+    }
+
     // Seed constitution
     const docCount = sqlite.prepare("SELECT COUNT(*) as c FROM constitution_documents").get() as { c: number };
     if (docCount.c === 0) {
@@ -445,6 +665,72 @@ export function migrate() {
         const constitutionPath = path.join(__dirname, "../constitution.md");
         const defaultMarkdown = fs.readFileSync(constitutionPath, "utf-8");
         sqlite.prepare("INSERT INTO constitution_versions (document_id, version, markdown, created_by, published_at) VALUES (?, ?, ?, ?, datetime('now'))").run(1, 1, defaultMarkdown, 1);
+    }
+
+    // Add created_by column to tournaments if missing (for existing DBs)
+    try {
+        sqlite.prepare("SELECT created_by FROM tournaments LIMIT 1").get();
+    } catch {
+        sqlite.exec("ALTER TABLE tournaments ADD COLUMN created_by INTEGER REFERENCES users(id)");
+    }
+
+    // Add registration_form column to tournaments if missing (for existing DBs)
+    try {
+        sqlite.prepare("SELECT registration_form FROM tournaments LIMIT 1").get();
+    } catch {
+        sqlite.exec("ALTER TABLE tournaments ADD COLUMN registration_form TEXT");
+    }
+
+    // Forum tables (drop and recreate if schema changed)
+    sqlite.exec(`DROP TABLE IF EXISTS forum_likes`);
+    sqlite.exec(`DROP TABLE IF EXISTS forum_comments`);
+    sqlite.exec(`DROP TABLE IF EXISTS forum_posts`);
+    sqlite.exec(`CREATE TABLE forum_posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'Форум',
+        author_id INTEGER REFERENCES users(id),
+        pinned INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`);
+    sqlite.exec(`CREATE TABLE IF NOT EXISTS forum_comments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL REFERENCES forum_posts(id) ON DELETE CASCADE,
+        parent_id INTEGER REFERENCES forum_comments(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        content TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`);
+    sqlite.exec(`CREATE TABLE IF NOT EXISTS forum_likes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        comment_id INTEGER NOT NULL REFERENCES forum_comments(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        UNIQUE(comment_id, user_id)
+    )`);
+
+    // Seed forum posts
+    const fpCount = sqlite.prepare("SELECT COUNT(*) as c FROM forum_posts").get() as { c: number };
+    if (fpCount.c === 0) {
+        const insPost = sqlite.prepare("INSERT INTO forum_posts (title, content, category, author_id, pinned, created_at) VALUES (?, ?, ?, ?, ?, datetime('now', ?))");
+        insPost.run("Изменение графика работы", "Начиная с понедельника изменяется порядок смен. Все сотрудники обязаны ознакомиться с новым расписанием в разделе «Документы».\n\nОсновные изменения:\n- Смена А: 08:00 — 16:00\n- Смена Б: 16:00 — 00:00\n- Смена В: 00:00 — 08:00\n\nПросьба подтвердить ознакомление в личном кабинете.", "Объявление", 1, 1, "-2 hours");
+        insPost.run("Приказ №47 — Усиление контроля", "В связи с последними инцидентами вводится усиленный контроль за перемещением сотрудников между корпусами.\n\nС 15 июля:\n1. Все перемещения фиксируются в системе\n2. Пропуска проверяются на каждом блоке\n3. Нарушители направляются на дисциплинарную комиссию\n\nПриказ вступает в силу немедленно.", "Приказ", 1, 1, "-4 hours");
+        insPost.run("Обновление систем безопасности", "Завершена модернизация системы пропусков. Новые карты доступа будут выданы до конца недели.\n\nНовые возможности:\n- Бесконтактное прохождение\n- Автоматическая фиксация входа/выхода\n- Интеграция с системой учёта рабочего времени\n\nВыдача карт — кабинет 105, с 9:00 до 17:00.", "Новость", 2, 0, "-1 days");
+        insPost.run("Обсуждение: условия труда в 3-м корпусе", "Поднимаю вопрос о состоянии вентиляции в серверной. Температура стабильно выше нормы.\n\nЗамерил вчера — 28°C при норме 22-24°C. Кондиционер на 3 этаже работает, но не справляется.\n\nКто-то сталкивался с подобной проблемой? Как решали?", "Форум", 2, 0, "-1 days");
+        insPost.run("Конституция Синдиката v2.1", "Опубликована обновлённая версия Конституции. Основные изменения касаются раздела «Дисциплинарные меры».\n\nКлючевые изменения:\n- Параграф 3.2: уточнены основания для выговора\n- Параграф 5.1: добавлены права сотрудников\n- Приложение Б: новый порядок обжалования\n\nПолный текст доступен в разделе «Конституция».", "Документ", 1, 0, "-2 days");
+
+        const insComment = sqlite.prepare("INSERT INTO forum_comments (post_id, user_id, content, created_at) VALUES (?, ?, ?, datetime('now', ?))");
+        insComment.run(1, 2, "А что с ночными сменами? Будет ли надбавка?", "-1 hours");
+        insComment.run(1, 1, "Надбавка сохраняется в полном объёме. Подробности у начальника смены.", "-50 minutes");
+        insComment.run(1, 3, "Ознакомлена. Спасибо за информацию.", "-45 minutes");
+        insComment.run(2, 2, "А как быть с сотрудниками, у которых пропуска старого образца?", "-3 hours");
+        insComment.run(2, 1, "Обмен пропусков будет проведён до 14 июля в кабинете 312.", "-2 hours");
+        insComment.run(3, 3, "Отлично! А старые карты нужно сдавать?", "-20 hours");
+        insComment.run(3, 2, "Да, старые карты сдаются при получении новых. Спасибо!", "-19 hours");
+        insComment.run(4, 3, "У нас на 2 этаже была похожая проблема. Вызвали сервис — починили заслонку.", "-18 hours");
+        insComment.run(4, 2, "Спасибо, попробую. Куда именно подавать заявку?", "-17 hours");
+        insComment.run(4, 3, "it@company.com или через портал в разделе «Обращения».", "-16 hours");
+        console.log("Seeded 5 forum posts with comments");
     }
 
     console.log("Database migrated successfully");

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { register, login, getProfile, changeEmail, keyLogin } from "../auth";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { getIO } from "../socket";
 
 const router = Router();
 
@@ -32,6 +33,7 @@ router.post("/key-login", async (req: Request, res: Response) => {
             return;
         }
         const result = await keyLogin(key);
+        try { getIO().emit("user:online", { userId: result.user.id, username: result.user.username, displayName: result.user.displayName }); } catch {}
         res.json(result);
     } catch (error: any) {
         res.status(401).json({ error: error.message });

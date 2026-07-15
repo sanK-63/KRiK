@@ -19,6 +19,32 @@ interface PublicProfile {
     profile: { country: string | null; bio: string | null; discord: string | null; steam: string | null; ea: string | null; battleNet: string | null } | null;
 }
 
+interface EloData {
+    elo: number;
+    gamesPlayed: number;
+    wins: number;
+    losses: number;
+    winrate: number;
+    rank: number | null;
+}
+
+function getEloColor(elo: number): string {
+    if (elo >= 1400) return "#FFD700";
+    if (elo >= 1200) return "#FA6814";
+    if (elo >= 1000) return "#3CB371";
+    if (elo >= 800) return "#5B9BD5";
+    return "#A5A5A5";
+}
+
+function getEloRank(elo: number): string {
+    if (elo >= 1600) return "Гроссмейстер";
+    if (elo >= 1400) return "Мастер";
+    if (elo >= 1200) return "Эксперт";
+    if (elo >= 1000) return "Боец";
+    if (elo >= 800) return "Новичок";
+    return "Рекрут";
+}
+
 const roleColors: Record<string, string> = {
     Administrator: "#D32F2F",
     Moderator: "#FFB020",
@@ -37,6 +63,18 @@ export default function UserPublicProfilePage() {
     const [error, setError] = useState("");
     const [tab, setTab] = useState<Tab>("Профиль");
     const tabs: Tab[] = ["Профиль", "Социальные сети"];
+    const [elo, setElo] = useState<EloData | null>(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token || !id) return;
+        fetch(`${import.meta.env.VITE_API_URL}/api/elo/user/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then((r) => r.json())
+            .then(setElo)
+            .catch(() => {});
+    }, [id]);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -82,7 +120,7 @@ export default function UserPublicProfilePage() {
     const fullName = [user.displayName, user.surname, user.patronymic].filter(Boolean).join(" ");
 
     return (
-        <div className="max-w-3xl space-y-6">
+        <div className="max-w-3xl xl:max-w-5xl space-y-6">
             <div className="flex items-center gap-3">
                 <button
                     onClick={() => navigate(-1)}
@@ -113,9 +151,9 @@ export default function UserPublicProfilePage() {
 
             {tab === "Профиль" && (
                 <div className="space-y-6">
-                    <div className="flex items-start gap-6">
+                    <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
                         <div className="relative shrink-0">
-                            <div className="w-64 h-64 bg-[#2a2a2a] border border-[#3b3b3b] overflow-hidden">
+                            <div className="w-32 h-32 sm:w-48 sm:h-48 lg:w-64 lg:h-64 bg-[#2a2a2a] border border-[#3b3b3b] overflow-hidden">
                                 {user.avatar ? (
                                     <img src={user.avatar} alt={user.username} className="w-full h-full object-cover object-top" />
                                 ) : (
@@ -132,7 +170,7 @@ export default function UserPublicProfilePage() {
                         <div className="flex-1">
                             <h2 className="text-lg font-bold text-white">{fullName || user.username}</h2>
                             <p className="text-xs text-gray-500 mt-1">@{user.username}</p>
-                            <div className="flex gap-2 mt-3 flex-wrap">
+                            <div className="flex items-center gap-3 mt-3">
                                 {user.roles.map((r) => (
                                     <span
                                         key={r.roleId}
@@ -146,6 +184,32 @@ export default function UserPublicProfilePage() {
                                     </span>
                                 ))}
                             </div>
+
+                            {elo && elo.gamesPlayed > 0 && (
+                                <div className="mt-4 p-3 flex items-center gap-4" style={{ background: "#1e1e1e", borderRadius: 4, border: "1px solid #3b3b3b" }}>
+                                    <div className="text-center">
+                                        <div className="text-xl font-bold" style={{ color: getEloColor(elo.elo) }}>
+                                            {elo.elo}
+                                        </div>
+                                        <div className="text-[8px] text-gray-500 uppercase">ELO</div>
+                                    </div>
+                                    <div className="flex-1 grid grid-cols-3 gap-2 text-center">
+                                        <div>
+                                            <div className="text-xs font-bold text-[#4CAF50]">{elo.wins}W</div>
+                                            <div className="text-[8px] text-gray-500">{elo.losses}L</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-bold text-white">{elo.winrate}%</div>
+                                            <div className="text-[8px] text-gray-500">Winrate</div>
+                                        </div>
+                                        <div>
+                                            <span className="text-[8px] px-1 py-0.5" style={{ color: getEloColor(elo.elo), border: `1px solid ${getEloColor(elo.elo)}`, borderRadius: 2 }}>
+                                                {getEloRank(elo.elo)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             <p className="text-[10px] mt-3" style={{ color: user.isOnline ? "#4CAF50" : "#666" }}>
                                 {user.isOnline ? "Онлайн" : "Оффлайн"}
                             </p>

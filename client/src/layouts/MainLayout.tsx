@@ -16,8 +16,8 @@ export default function MainLayout() {
                 >
                     <Sidebar />
                 </div>
-                <main className="flex-1 overflow-y-auto p-8" style={{ background: "#212121" }}>
-                    <div className="max-w-[1400px] mx-auto">
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" style={{ background: "#212121" }}>
+                    <div className="max-w-[1600px] 2xl:max-w-[2000px] mx-auto">
                         <Outlet />
                     </div>
                 </main>

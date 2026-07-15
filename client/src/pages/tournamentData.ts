@@ -1,6 +1,6 @@
-export type TournamentStatus = "Регистрация" | "Идёт" | "Завершён" | "Черновик";
-export type ParticipantType = "Игроки" | "Команды";
-export type TournamentFormat = "Single Elimination" | "Double Elimination" | "Round Robin" | "Swiss" | "Groups + Playoff";
+export type TournamentStatus = "draft" | "registration" | "active" | "completed";
+export type ParticipantType = "team" | "player";
+export type TournamentFormat = "single_elimination" | "double_elimination" | "round_robin" | "swiss" | "groups_playoff";
 
 export interface FormField {
     id: string;
@@ -11,75 +11,174 @@ export interface FormField {
     preset?: string;
 }
 
+export interface Game {
+    id: number;
+    name: string;
+    slug: string;
+    logo: string | null;
+    cover: string | null;
+    description: string | null;
+    active: boolean;
+    platforms: string[];
+    maps: { id: number; name: string; image: string | null }[];
+    modes: string[];
+}
+
 export interface Team {
     id: number;
     name: string;
-    captain: string;
-    players: string[];
-    logo?: string;
+    tag: string | null;
+    logo: string | null;
+    captainId: number;
+    members?: { userId: number; role: string }[];
 }
 
 export interface TournamentRegistration {
     id: number;
-    participantName: string;
-    teamId?: number;
-    formData: Record<string, any>;
+    tournamentId: number;
+    userId: number | null;
+    teamId: number | null;
     status: "pending" | "approved" | "rejected";
-    date: string;
+    createdAt: string;
+    team?: Team | null;
+    user?: { id: number; username: string; displayName: string | null; avatar: string | null } | null;
+    answers?: { id: number; field: string; value: string | null }[];
 }
 
-export interface Match {
+export interface BracketMatch {
     id: number;
-    round: number;
-    position: number;
-    player1: string;
-    player2: string;
-    score1: number;
-    score2: number;
-    maps: { name: string; winner: string }[];
-    status: "pending" | "live" | "finished";
-    judge?: string;
-    comment?: string;
+    roundId: number;
+    team1: number | null;
+    team2: number | null;
+    winner: number | null;
+    score1: number | null;
+    score2: number | null;
+    judgeId: number | null;
+    status: string;
+    scheduledAt: string | null;
+    team1Name: string | null;
+    team2Name: string | null;
+}
+
+export interface BracketRound {
+    id: number;
+    bracketId: number;
+    number: number;
+    matches: BracketMatch[];
+}
+
+export interface Bracket {
+    id: number;
     tournamentId: number;
+    type: string;
+    rounds: BracketRound[];
+}
+
+export interface TournamentStanding {
+    id: number;
+    tournamentId: number;
+    teamId: number;
+    wins: number;
+    losses: number;
+    draws: number;
+    points: number;
+    teamName: string | null;
+    teamTag: string | null;
+}
+
+export interface TournamentStats {
+    id: number;
+    tournamentId: number;
+    userId: number;
+    teamId: number | null;
+    matches: number;
+    wins: number;
+    losses: number;
+    username: string | null;
+    displayName: string | null;
+    avatar: string | null;
 }
 
 export interface Tournament {
     id: number;
-    name: string;
-    game: string;
-    description: string;
-    banner?: string;
-    rules?: string;
-    participantType: ParticipantType;
-    format: TournamentFormat;
+    templateId: number | null;
+    gameId: number;
+    createdBy: number | null;
+    title: string;
+    description: string | null;
+    banner: string | null;
     status: TournamentStatus;
-    date: string;
-    time: string;
-    maxParticipants: number;
-    minParticipants: number;
-    currentParticipants: number;
-    registrationOpen: string;
-    registrationClose: string;
-    autoApprove: boolean;
-    formFields: FormField[];
-    teams: Team[];
+    format: TournamentFormat;
+    participantType: ParticipantType;
+    registrationOpen: string | null;
+    registrationClose: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    gameName: string | null;
+    rules: string | null;
+    stages: { id: number; name: string; type: string }[];
     registrations: TournamentRegistration[];
-    matches: Match[];
-    prize: string;
-    organizer: string;
+    matches: BracketMatch[];
+    standings: TournamentStanding[];
+    stats: TournamentStats[];
+    teamsCount: number;
+    registrationCount?: number;
+    matchCount?: number;
+    creatorName: string | null;
+    creatorAvatar: string | null;
+    registrationForm: FormField[];
+}
+
+export interface TournamentListItem {
+    id: number;
+    templateId: number | null;
+    gameId: number;
+    createdBy: number | null;
+    title: string;
+    description: string | null;
+    banner: string | null;
+    status: TournamentStatus;
+    format: TournamentFormat;
+    participantType: ParticipantType;
+    registrationOpen: string | null;
+    registrationClose: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    gameName: string | null;
+    registrationCount: number;
+    matchCount: number;
+    creatorName: string | null;
+    creatorAvatar: string | null;
 }
 
 export interface TournamentTemplate {
     id: number;
+    gameId: number;
     name: string;
-    game: string;
-    participantType: ParticipantType;
-    format: TournamentFormat;
-    maxParticipants: number;
-    minParticipants: number;
-    formFields: FormField[];
-    rules: string;
+    description: string | null;
+    gameName: string | null;
+    config: Record<string, unknown>;
 }
+
+export const STATUS_LABELS: Record<TournamentStatus, string> = {
+    draft: "Черновик",
+    registration: "Регистрация",
+    active: "Идёт",
+    completed: "Завершён",
+};
+
+export const FORMAT_LABELS: Record<TournamentFormat, string> = {
+    single_elimination: "Single Elimination",
+    double_elimination: "Double Elimination",
+    round_robin: "Round Robin",
+    swiss: "Swiss",
+    groups_playoff: "Groups + Playoff",
+};
+
+export const PARTICIPANT_LABELS: Record<ParticipantType, string> = {
+    team: "Команды",
+    player: "Игроки",
+};
 
 export const presetFields: { label: string; value: string }[] = [
     { label: "Discord", value: "discord" },
@@ -91,127 +190,4 @@ export const presetFields: { label: string; value: string }[] = [
     { label: "Country", value: "country" },
     { label: "Team Name", value: "team_name" },
     { label: "Nickname", value: "nickname" },
-];
-
-export const defaultFormFields: FormField[] = [
-    { id: " nickname", type: "text", label: "Nickname", required: true },
-    { id: "discord", type: "text", label: "Discord", required: false },
-];
-
-export const mockTournaments: Tournament[] = [
-    {
-        id: 1,
-        name: "Battlefield 6 Summer Cup",
-        game: "Battlefield 6",
-        description: "Летний кубок по Battlefield 6. Команды 5v5, жёсткая борьба за титул чемпиона Синдиката.",
-        rules: "1. Честь\n2. Без читов\n3. Решения судей окончательны",
-        participantType: "Команды",
-        format: "Single Elimination",
-        status: "Регистрация",
-        date: "15.08.2026",
-        time: "19:00",
-        maxParticipants: 16,
-        minParticipants: 4,
-        currentParticipants: 14,
-        registrationOpen: "01.07.2026",
-        registrationClose: "14.08.2026",
-        autoApprove: true,
-        formFields: [
-            { id: "team_name", type: "text", label: "Название команды", required: true },
-            { id: "ea_id", type: "text", label: "EA ID", required: true },
-            { id: "platform", type: "select", label: "Платформа", options: ["PC", "Xbox", "PlayStation"], required: true },
-        ],
-        teams: [
-            { id: 1, name: "Syndicate", captain: "Александр", players: ["Player2", "Player3", "Player4", "Player5"] },
-            { id: 2, name: "Phantom", captain: "Дмитрий", players: ["Ghost", "Shadow", "Blaze", "Storm"] },
-        ],
-        registrations: [],
-        matches: [],
-        prize: "100 000 ₽",
-        organizer: "Александр",
-    },
-    {
-        id: 2,
-        name: "CS2 Midnight League",
-        game: "CS2",
-        description: "Ночная лига для самых стойких. Матчи начинаются после 22:00.",
-        participantType: "Команды",
-        format: "Double Elimination",
-        status: "Идёт",
-        date: "10.07.2026",
-        time: "22:00",
-        maxParticipants: 8,
-        minParticipants: 4,
-        currentParticipants: 8,
-        registrationOpen: "01.07.2026",
-        registrationClose: "09.07.2026",
-        autoApprove: false,
-        formFields: defaultFormFields,
-        teams: [],
-        registrations: [],
-        matches: [
-            { id: 1, round: 1, position: 0, player1: "Syndicate", player2: "Phantom", score1: 2, score2: 1, maps: [{ name: "Dust2", winner: "Syndicate" }, { name: "Mirage", winner: "Phantom" }, { name: "Inferno", winner: "Syndicate" }], status: "finished", tournamentId: 2 },
-            { id: 2, round: 1, position: 1, player1: "Wolves", player2: "Eagle One", score1: 0, score2: 0, maps: [], status: "pending", tournamentId: 2 },
-        ],
-        prize: "30 000 ₽",
-        organizer: "Дмитрий",
-    },
-    {
-        id: 3,
-        name: "Шахматный блиц",
-        game: "Шахматы",
-        description: "Блиц-турнир. 3 минуты на партию. Без снисхождения.",
-        participantType: "Игроки",
-        format: "Swiss",
-        status: "Завершён",
-        date: "05.07.2026",
-        time: "14:00",
-        maxParticipants: 32,
-        minParticipants: 8,
-        currentParticipants: 24,
-        registrationOpen: "20.06.2026",
-        registrationClose: "04.07.2026",
-        autoApprove: true,
-        formFields: [
-            { id: "nickname", type: "text", label: "Nickname", required: true },
-            { id: "rating", type: "number", label: "Рейтинг", required: false },
-        ],
-        teams: [],
-        registrations: [],
-        matches: [],
-        prize: "Бронза + Грамота",
-        organizer: "Елена",
-    },
-];
-
-export const mockTemplates: TournamentTemplate[] = [
-    {
-        id: 1,
-        name: "CS2 5v5 Standard",
-        game: "CS2",
-        participantType: "Команды",
-        format: "Single Elimination",
-        maxParticipants: 16,
-        minParticipants: 4,
-        formFields: [
-            { id: "team_name", type: "text", label: "Название команды", required: true },
-            { id: "steam", type: "text", label: "Steam ID капитана", required: true },
-            { id: "discord", type: "text", label: "Discord", required: true },
-        ],
-        rules: "Standard CS2 rules",
-    },
-    {
-        id: 2,
-        name: "Dota 2 5v5 Standard",
-        game: "Dota 2",
-        participantType: "Команды",
-        format: "Double Elimination",
-        maxParticipants: 8,
-        minParticipants: 4,
-        formFields: [
-            { id: "team_name", type: "text", label: "Название команды", required: true },
-            { id: "steam", type: "text", label: "Steam ID", required: true },
-        ],
-        rules: "Standard Dota 2 rules",
-    },
 ];

@@ -1,34 +1,44 @@
-import { useState } from "react";
-import type { Tournament, FormField, TournamentFormat, ParticipantType } from "../../pages/tournamentData";
-import { presetFields } from "../../pages/tournamentData";
+import { useState, useEffect } from "react";
+import type { Game, TournamentFormat, ParticipantType } from "../../pages/tournamentData";
+import { FORMAT_LABELS, PARTICIPANT_LABELS } from "../../pages/tournamentData";
+import { gamesApi } from "../../services/tournaments";
 import FormBuilder from "./FormBuilder";
+import type { FormField } from "../../pages/tournamentData";
 
-const games = ["CS2", "Dota 2", "Valorant", "Battlefield 6", "PUBG", "Шахматы", "Tekken 8", "Street Fighter 6", "Другое"];
-const formats: TournamentFormat[] = ["Single Elimination", "Double Elimination", "Round Robin", "Swiss", "Groups + Playoff"];
-const participantTypes: ParticipantType[] = ["Игроки", "Команды"];
+const formatKeys: TournamentFormat[] = ["single_elimination", "double_elimination", "round_robin", "swiss", "groups_playoff"];
+const participantKeys: ParticipantType[] = ["team", "player"];
 
 interface Props {
-    onSubmit: (tournament: Tournament) => void;
+    onSubmit: (data: {
+        gameId: number;
+        title: string;
+        description: string;
+        rules: string;
+        participantType: ParticipantType;
+        format: TournamentFormat;
+        registrationOpen: string;
+        registrationClose: string;
+        startDate: string;
+        endDate: string;
+        registrationForm: FormField[];
+    }) => void;
     onClose: () => void;
 }
 
 export default function TournamentWizard({ onSubmit, onClose }: Props) {
     const [step, setStep] = useState(1);
+    const [games, setGames] = useState<Game[]>([]);
     const [form, setForm] = useState({
-        name: "",
-        game: "CS2",
+        title: "",
+        gameId: 0,
         description: "",
         rules: "",
-        participantType: "Команды" as ParticipantType,
-        format: "Single Elimination" as TournamentFormat,
-        date: "",
-        time: "",
-        maxParticipants: 16,
-        minParticipants: 4,
+        participantType: "team" as ParticipantType,
+        format: "single_elimination" as TournamentFormat,
+        startDate: "",
+        endDate: "",
         registrationOpen: "",
         registrationClose: "",
-        autoApprove: true,
-        prize: "",
     });
     const [formFields, setFormFields] = useState<FormField[]>([
         { id: "name", type: "text", label: "Nickname", required: true },
@@ -36,6 +46,10 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
     ]);
 
     const steps = ["Основная информация", "Формат", "Регистрация", "Форма"];
+
+    useEffect(() => {
+        gamesApi.list().then(setGames).catch(() => {});
+    }, []);
 
     const handleNext = () => {
         if (step < 4) setStep(step + 1);
@@ -46,31 +60,19 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
     };
 
     const handleSubmit = () => {
-        const tournament: Tournament = {
-            id: Date.now(),
-            name: form.name,
-            game: form.game,
+        onSubmit({
+            gameId: form.gameId,
+            title: form.title,
             description: form.description,
             rules: form.rules,
             participantType: form.participantType,
             format: form.format,
-            status: "Черновик",
-            date: form.date,
-            time: form.time,
-            maxParticipants: form.maxParticipants,
-            minParticipants: form.minParticipants,
-            currentParticipants: 0,
             registrationOpen: form.registrationOpen,
             registrationClose: form.registrationClose,
-            autoApprove: form.autoApprove,
-            formFields,
-            teams: [],
-            registrations: [],
-            matches: [],
-            prize: form.prize,
-            organizer: "Александр",
-        };
-        onSubmit(tournament);
+            startDate: form.startDate,
+            endDate: form.endDate,
+            registrationForm: formFields,
+        });
     };
 
     return (
@@ -83,7 +85,6 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
                 className="w-[700px] max-h-[90vh] overflow-y-auto bg-[#2a2a2a] border border-[#3b3b3b]"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Header */}
                 <div className="p-6 border-b border-[#3b3b3b]">
                     <h3 className="text-lg font-semibold mb-4">Новый турнир</h3>
                     <div className="flex gap-2">
@@ -108,7 +109,6 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
                     </div>
                 </div>
 
-                {/* Step content */}
                 <div className="p-6">
                     {step === 1 && (
                         <div>
@@ -118,18 +118,19 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
                             <input
                                 type="text"
                                 placeholder="Battlefield 6 Summer Cup"
-                                value={form.name}
-                                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                value={form.title}
+                                onChange={(e) => setForm({ ...form, title: e.target.value })}
                                 className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors mb-4"
                             />
 
                             <label className="block text-xs uppercase text-gray-400 mb-2">Игра *</label>
                             <select
-                                value={form.game}
-                                onChange={(e) => setForm({ ...form, game: e.target.value })}
+                                value={form.gameId}
+                                onChange={(e) => setForm({ ...form, gameId: Number(e.target.value) })}
                                 className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors cursor-pointer mb-4"
                             >
-                                {games.map((g) => <option key={g} value={g}>{g}</option>)}
+                                <option value={0}>Выберите игру</option>
+                                {games.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
                             </select>
 
                             <label className="block text-xs uppercase text-gray-400 mb-2">Описание</label>
@@ -156,7 +157,7 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
 
                             <label className="block text-xs uppercase text-gray-400 mb-2">Тип участников</label>
                             <div className="flex gap-3 mb-6">
-                                {participantTypes.map((pt) => (
+                                {participantKeys.map((pt) => (
                                     <button
                                         key={pt}
                                         onClick={() => setForm({ ...form, participantType: pt })}
@@ -167,7 +168,7 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
                                             border: `1px solid ${form.participantType === pt ? "#FA6814" : "#3a3a3a"}`,
                                         }}
                                     >
-                                        {pt}
+                                        {PARTICIPANT_LABELS[pt]}
                                     </button>
                                 ))}
                             </div>
@@ -176,19 +177,10 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
                             <select
                                 value={form.format}
                                 onChange={(e) => setForm({ ...form, format: e.target.value as TournamentFormat })}
-                                className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors cursor-pointer mb-4"
+                                className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors cursor-pointer"
                             >
-                                {formats.map((f) => <option key={f} value={f}>{f}</option>)}
+                                {formatKeys.map((f) => <option key={f} value={f}>{FORMAT_LABELS[f]}</option>)}
                             </select>
-
-                            <label className="block text-xs uppercase text-gray-400 mb-2">Приз</label>
-                            <input
-                                type="text"
-                                placeholder="50 000 ₽"
-                                value={form.prize}
-                                onChange={(e) => setForm({ ...form, prize: e.target.value })}
-                                className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors"
-                            />
                         </div>
                     )}
 
@@ -198,33 +190,9 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
 
                             <div className="grid grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <label className="block text-xs uppercase text-gray-400 mb-2">Дата турнира</label>
-                                    <input
-                                        type="text"
-                                        placeholder="15.08.2026"
-                                        value={form.date}
-                                        onChange={(e) => setForm({ ...form, date: e.target.value })}
-                                        className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs uppercase text-gray-400 mb-2">Время</label>
-                                    <input
-                                        type="text"
-                                        placeholder="19:00"
-                                        value={form.time}
-                                        onChange={(e) => setForm({ ...form, time: e.target.value })}
-                                        className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div>
                                     <label className="block text-xs uppercase text-gray-400 mb-2">Открытие регистрации</label>
                                     <input
-                                        type="text"
-                                        placeholder="01.07.2026"
+                                        type="datetime-local"
                                         value={form.registrationOpen}
                                         onChange={(e) => setForm({ ...form, registrationOpen: e.target.value })}
                                         className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors"
@@ -233,8 +201,7 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
                                 <div>
                                     <label className="block text-xs uppercase text-gray-400 mb-2">Закрытие регистрации</label>
                                     <input
-                                        type="text"
-                                        placeholder="14.08.2026"
+                                        type="datetime-local"
                                         value={form.registrationClose}
                                         onChange={(e) => setForm({ ...form, registrationClose: e.target.value })}
                                         className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors"
@@ -242,38 +209,26 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs uppercase text-gray-400 mb-2">Макс. участников</label>
+                                    <label className="block text-xs uppercase text-gray-400 mb-2">Дата начала</label>
                                     <input
-                                        type="number"
-                                        min={2}
-                                        value={form.maxParticipants}
-                                        onChange={(e) => setForm({ ...form, maxParticipants: Number(e.target.value) })}
+                                        type="datetime-local"
+                                        value={form.startDate}
+                                        onChange={(e) => setForm({ ...form, startDate: e.target.value })}
                                         className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs uppercase text-gray-400 mb-2">Мин. участников</label>
+                                    <label className="block text-xs uppercase text-gray-400 mb-2">Дата окончания</label>
                                     <input
-                                        type="number"
-                                        min={2}
-                                        value={form.minParticipants}
-                                        onChange={(e) => setForm({ ...form, minParticipants: Number(e.target.value) })}
+                                        type="datetime-local"
+                                        value={form.endDate}
+                                        onChange={(e) => setForm({ ...form, endDate: e.target.value })}
                                         className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors"
                                     />
                                 </div>
                             </div>
-
-                            <label className="flex items-center gap-3 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={form.autoApprove}
-                                    onChange={(e) => setForm({ ...form, autoApprove: e.target.checked })}
-                                    className="w-4 h-4 accent-[#FA6814]"
-                                />
-                                <span className="text-sm text-gray-300">Автоматическое подтверждение заявок</span>
-                            </label>
                         </div>
                     )}
 
@@ -285,7 +240,6 @@ export default function TournamentWizard({ onSubmit, onClose }: Props) {
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="p-6 border-t border-[#3b3b3b] flex justify-between">
                     <button
                         onClick={onClose}

@@ -3,19 +3,21 @@ import { db } from "../database";
 import { recipes, users } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { getIO } from "../socket";
 
 const router = Router();
 
+function enrichRecipe(r: any) {
+    const author = db.select().from(users).where(eq(users.id, r.authorId || 0)).get();
+    return {
+        ...r,
+        author: author ? { id: author.id, displayName: author.displayName, username: author.username, avatar: author.avatar } : null,
+    };
+}
+
 router.get("/", authMiddleware, (_req: AuthRequest, res: Response) => {
     const all = db.select().from(recipes).all();
-    const result = all.map((r) => {
-        const author = db.select().from(users).where(eq(users.id, r.authorId || 0)).get();
-        return {
-            ...r,
-            author: author ? { id: author.id, displayName: author.displayName, username: author.username, avatar: author.avatar } : null,
-        };
-    });
-    res.json(result);
+    res.json(all.map(enrichRecipe));
 });
 
 router.get("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
@@ -25,11 +27,7 @@ router.get("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         res.status(404).json({ error: "Рецепт не найден" });
         return;
     }
-    const author = db.select().from(users).where(eq(users.id, recipe.authorId || 0)).get();
-    res.json({
-        ...recipe,
-        author: author ? { id: author.id, displayName: author.displayName, username: author.username, avatar: author.avatar } : null,
-    });
+    res.json(enrichRecipe(recipe));
 });
 
 router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
@@ -51,6 +49,9 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
         authorId: req.userId,
         image: image || null,
     }).returning().get();
+
+    try { getIO().emit("recipe:created", enrichRecipe(result)); } catch {}
+
     res.json(result);
 });
 
@@ -62,6 +63,9 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         return;
     }
     db.delete(recipes).where(eq(recipes.id, id)).run();
+
+    try { getIO().emit("recipe:deleted", { id }); } catch {}
+
     res.json({ ok: true });
 });
 

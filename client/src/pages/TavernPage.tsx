@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useSocket } from "../context/SocketContext";
 
 interface Recipe {
     id: number;
@@ -15,6 +17,8 @@ interface Recipe {
 const categories = ["Все", "Блюдо", "Напиток", "Закуска", "Десерт", "Соус"];
 
 export default function TavernPage() {
+    const location = useLocation();
+    const openId = (location.state as { openId?: number })?.openId;
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState<Recipe | null>(null);
@@ -41,7 +45,37 @@ export default function TavernPage() {
             .finally(() => setLoading(false));
     };
 
+    const socket = useSocket();
+
     useEffect(() => { load(); }, []);
+
+    useEffect(() => {
+        if (openId && recipes.length > 0 && !selected) {
+            const recipe = recipes.find((r) => r.id === openId);
+            if (recipe) {
+                setSelected(recipe);
+                window.history.replaceState({}, "");
+            }
+        }
+    }, [openId, recipes, selected]);
+
+    useEffect(() => {
+        if (!socket) return;
+        socket.on("recipe:created", (recipe: Recipe) => {
+            setRecipes((prev) => {
+                if (prev.some((r) => r.id === recipe.id)) return prev;
+                return [recipe, ...prev];
+            });
+        });
+        socket.on("recipe:deleted", ({ id }: { id: number }) => {
+            setRecipes((prev) => prev.filter((r) => r.id !== id));
+            setSelected((prev) => prev?.id === id ? null : prev);
+        });
+        return () => {
+            socket.off("recipe:created");
+            socket.off("recipe:deleted");
+        };
+    }, [socket]);
 
     const handleCreate = async () => {
         if (!form.name || !form.ingredients || !form.instructions || !token) return;
@@ -89,12 +123,12 @@ export default function TavernPage() {
                 </button>
             </div>
 
-            <div className="flex gap-1 border-b border-[#3b3b3b]">
+            <div className="flex gap-1 border-b border-[#3b3b3b] overflow-x-auto">
                 {categories.map((c) => (
                     <button
                         key={c}
                         onClick={() => setFilter(c)}
-                        className="px-4 py-2.5 text-xs uppercase transition-colors cursor-pointer"
+                        className="px-3 sm:px-4 py-2.5 text-[10px] sm:text-xs uppercase transition-colors cursor-pointer whitespace-nowrap"
                         style={{
                             color: filter === c ? "#FA6814" : "#6b7280",
                             borderBottom: filter === c ? "2px solid #FA6814" : "2px solid transparent",
@@ -164,8 +198,8 @@ export default function TavernPage() {
                 </div>
             )}
 
-            <div className="grid grid-cols-12 gap-6">
-                <div className="col-span-5 space-y-2">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+                <div className="lg:col-span-5 space-y-2">
                     {loading ? (
                         <p className="text-xs text-gray-500">Загрузка...</p>
                     ) : filtered.length === 0 ? (
@@ -217,7 +251,7 @@ export default function TavernPage() {
                     )}
                 </div>
 
-                <div className="col-span-7">
+                <div className="lg:col-span-7">
                     {selected ? (
                         <div className="p-5 space-y-4" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b" }}>
                             {selected.image && (

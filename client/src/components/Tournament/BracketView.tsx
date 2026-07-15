@@ -1,10 +1,13 @@
-import type { Match } from "../../pages/tournamentData";
+import type { BracketMatch } from "../../pages/tournamentData";
+import MatchCard from "./MatchCard";
 
 interface Props {
-    matches: Match[];
+    matches: BracketMatch[];
+    tournamentId: number;
+    onRefresh?: () => void;
 }
 
-export default function BracketView({ matches }: Props) {
+export default function BracketView({ matches, tournamentId, onRefresh }: Props) {
     if (matches.length === 0) {
         return (
             <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-8 text-center">
@@ -13,60 +16,42 @@ export default function BracketView({ matches }: Props) {
         );
     }
 
-    const rounds = matches.reduce<Record<number, Match[]>>((acc, m) => {
-        if (!acc[m.round]) acc[m.round] = [];
-        acc[m.round].push(m);
+    const rounds = matches.reduce<Record<number, BracketMatch[]>>((acc, m) => {
+        if (!acc[m.roundId]) acc[m.roundId] = [];
+        acc[m.roundId].push(m);
         return acc;
     }, {});
 
+    const sortedRoundIds = Object.keys(rounds).map(Number).sort((a, b) => a - b);
+    const totalRounds = sortedRoundIds.length;
+
     const roundNames: Record<number, string> = {};
-    const totalRounds = Math.max(...Object.keys(rounds).map(Number));
-    Object.keys(rounds).forEach((r) => {
-        const rn = Number(r);
-        if (rn === totalRounds) roundNames[rn] = "Финал";
-        else if (rn === totalRounds - 1) roundNames[rn] = "Полуфинал";
-        else roundNames[rn] = `Раунд ${rn}`;
+    sortedRoundIds.forEach((id, i) => {
+        if (i === totalRounds - 1) roundNames[id] = "Финал";
+        else if (i === totalRounds - 2) roundNames[id] = "Полуфинал";
+        else roundNames[id] = `Раунд ${i + 1}`;
     });
 
     return (
         <div className="overflow-x-auto">
             <div className="flex gap-8 min-w-max pb-4">
-                {Object.entries(rounds)
-                    .sort(([a], [b]) => Number(a) - Number(b))
-                    .map(([round, roundMatches]) => (
-                        <div key={round} className="flex flex-col gap-4">
-                            <h4 className="text-xs uppercase text-gray-400 text-center mb-2">
-                                {roundNames[Number(round)] || `Раунд ${round}`}
-                            </h4>
-                            <div className="flex flex-col gap-4" style={{ marginTop: `${Number(round) * 20}px` }}>
-                                {roundMatches.map((m) => (
-                                    <div
-                                        key={m.id}
-                                        className="bg-[#2a2a2a] border border-[#3b3b3b] w-56"
-                                    >
-                                        <div
-                                            className="flex items-center justify-between px-3 py-2 border-b border-[#3b3b3b]"
-                                            style={{
-                                                color: m.status === "finished" && m.score1 > m.score2 ? "#FA6814" : "#9ca3af",
-                                            }}
-                                        >
-                                            <span className="text-xs truncate">{m.player1}</span>
-                                            <span className="text-xs font-semibold">{m.score1}</span>
-                                        </div>
-                                        <div
-                                            className="flex items-center justify-between px-3 py-2"
-                                            style={{
-                                                color: m.status === "finished" && m.score2 > m.score1 ? "#FA6814" : "#9ca3af",
-                                            }}
-                                        >
-                                            <span className="text-xs truncate">{m.player2}</span>
-                                            <span className="text-xs font-semibold">{m.score2}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                {sortedRoundIds.map((roundId) => (
+                    <div key={roundId} className="flex flex-col gap-4">
+                        <h4 className="text-xs uppercase text-gray-400 text-center mb-2">
+                            {roundNames[roundId] || `Раунд ${roundId}`}
+                        </h4>
+                        <div className="flex flex-col gap-4" style={{ marginTop: `${sortedRoundIds.indexOf(roundId) * 20}px` }}>
+                            {rounds[roundId].map((m) => (
+                                <MatchCard
+                                    key={m.id}
+                                    match={m}
+                                    tournamentId={tournamentId}
+                                    onRefresh={onRefresh}
+                                />
+                            ))}
                         </div>
-                    ))}
+                    </div>
+                ))}
             </div>
         </div>
     );

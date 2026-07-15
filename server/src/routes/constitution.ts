@@ -3,6 +3,7 @@ import { db } from "../database";
 import { constitutionDocuments, constitutionVersions, users } from "../database/schema";
 import { eq, desc } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { getIO } from "../socket";
 import PDFDocument from "pdfkit";
 
 const router = Router();
@@ -209,6 +210,8 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
         .set({ activeVersion: newVersionNum })
         .where(eq(constitutionDocuments.id, doc.id))
         .run();
+
+    try { getIO().emit("constitution:updated", { version: newVersionNum }); } catch {}
 
     res.json({ id: version.id, version: newVersionNum });
 });

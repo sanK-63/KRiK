@@ -170,6 +170,7 @@ export const tournaments = sqliteTable("tournaments", {
     id: integer("id").primaryKey({ autoIncrement: true }),
     templateId: integer("template_id").references(() => tournamentTemplates.id),
     gameId: integer("game_id").notNull().references(() => games.id),
+    createdBy: integer("created_by").references(() => users.id),
     title: text("title").notNull(),
     description: text("description"),
     banner: text("banner"),
@@ -180,6 +181,7 @@ export const tournaments = sqliteTable("tournaments", {
     registrationClose: text("registration_close"),
     startDate: text("start_date"),
     endDate: text("end_date"),
+    registrationForm: text("registration_form"),
 });
 
 export const tournamentRules = sqliteTable("tournament_rules", {
@@ -233,6 +235,9 @@ export const matches = sqliteTable("matches", {
     team1: integer("team1").references(() => teams.id),
     team2: integer("team2").references(() => teams.id),
     winner: integer("winner").references(() => teams.id),
+    score1: integer("score1"),
+    score2: integer("score2"),
+    judgeId: integer("judge_id").references(() => users.id),
     status: text("status").notNull().default("scheduled"),
     scheduledAt: text("scheduled_at"),
 });
@@ -263,6 +268,31 @@ export const playerStatistics = sqliteTable("statistics", {
     matches: integer("matches").notNull().default(0),
     wins: integer("wins").notNull().default(0),
     losses: integer("losses").notNull().default(0),
+});
+
+// ──────────────────────────────────────────────
+//  ELO MODULE
+// ──────────────────────────────────────────────
+
+export const userElo = sqliteTable("user_elo", {
+    userId: integer("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+    elo: integer("elo").notNull().default(1000),
+    gamesPlayed: integer("games_played").notNull().default(0),
+    wins: integer("wins").notNull().default(0),
+    losses: integer("losses").notNull().default(0),
+    updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export const eloHistory = sqliteTable("elo_history", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    tournamentId: integer("tournament_id").references(() => tournaments.id),
+    matchId: integer("match_id").references(() => matches.id),
+    oldElo: integer("old_elo").notNull(),
+    newElo: integer("new_elo").notNull(),
+    change: integer("change").notNull(),
+    reason: text("reason").notNull(),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
 // ──────────────────────────────────────────────
@@ -419,5 +449,96 @@ export const recipes = sqliteTable("recipes", {
     category: text("category").notNull().default("Блюдо"),
     authorId: integer("author_id").references(() => users.id),
     image: text("image"),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+// ──────────────────────────────────────────────
+//  MEMES MODULE
+// ──────────────────────────────────────────────
+
+export const memes = sqliteTable("memes", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    title: text("title"),
+    image: text("image").notNull(),
+    category: text("category").notNull().default("general"),
+    authorId: integer("author_id").references(() => users.id),
+    likes: integer("likes").notNull().default(0),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export const memeLikes = sqliteTable("meme_likes", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    memeId: integer("meme_id").notNull().references(() => memes.id, { onDelete: "cascade" }),
+    userId: integer("user_id").notNull().references(() => users.id),
+});
+
+export const memeComments = sqliteTable("meme_comments", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    memeId: integer("meme_id").notNull().references(() => memes.id, { onDelete: "cascade" }),
+    userId: integer("user_id").notNull().references(() => users.id),
+    content: text("content").notNull(),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+// ──────────────────────────────────────────────
+//  EVENTS MODULE
+// ──────────────────────────────────────────────
+
+export const events = sqliteTable("events", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    title: text("title").notNull(),
+    description: text("description"),
+    date: text("date").notNull(),
+    time: text("time"),
+    location: text("location"),
+    category: text("category").notNull().default("general"),
+    image: text("image"),
+    authorId: integer("author_id").references(() => users.id),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+// ──────────────────────────────────────────────
+//  CINEMA MODULE
+// ──────────────────────────────────────────────
+
+export const movies = sqliteTable("movies", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    title: text("title").notNull(),
+    year: integer("year"),
+    genre: text("genre").notNull().default("Боевик"),
+    rating: integer("rating"),
+    description: text("description"),
+    poster: text("poster"),
+    addedBy: integer("added_by").references(() => users.id),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export const movieComments = sqliteTable("movie_comments", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    movieId: integer("movie_id").notNull().references(() => movies.id, { onDelete: "cascade" }),
+    userId: integer("user_id").notNull().references(() => users.id),
+    content: text("content").notNull(),
+    rating: integer("rating"),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export const libraryCategories = sqliteTable("library_categories", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    name: text("name").notNull(),
+    icon: text("icon"),
+    orderIndex: integer("order_index").notNull().default(0),
+});
+
+export const libraryDocuments = sqliteTable("library_documents", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    categoryId: integer("category_id").references(() => libraryCategories.id),
+    title: text("title").notNull(),
+    description: text("description"),
+    filename: text("filename").notNull(),
+    originalName: text("original_name").notNull(),
+    mimeType: text("mime_type"),
+    size: integer("size"),
+    uploadedBy: integer("uploaded_by").references(() => users.id),
+    downloads: integer("downloads").notNull().default(0),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });

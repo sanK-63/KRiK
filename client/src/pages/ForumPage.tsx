@@ -36,8 +36,8 @@ export default function ForumPage() {
 
     return (
         <>
-            <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl">Форум</h2>
+            <div className="flex items-center justify-between mb-6 sm:mb-8">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl">Форум</h2>
                 <button
                     onClick={() => setShowModal(true)}
                     className="bg-[#FA6814] text-white px-5 py-2.5 text-sm font-semibold uppercase hover:bg-[#ff7a2a] transition-colors cursor-pointer"
@@ -96,7 +96,7 @@ export default function ForumPage() {
                     onClick={() => setShowModal(false)}
                 >
                     <div
-                        className="w-[600px] bg-[#2a2a2a] border border-[#3b3b3b] p-6"
+                        className="w-full max-w-[600px] mx-4 bg-[#2a2a2a] border border-[#3b3b3b] p-5 sm:p-6"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-semibold mb-5">Новая тема</h3>

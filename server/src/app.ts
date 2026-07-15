@@ -7,6 +7,17 @@ import usersRoutes from "./routes/users";
 import templatesRoutes from "./routes/templates";
 import recipesRoutes from "./routes/recipes";
 import constitutionRoutes from "./routes/constitution";
+import moviesRoutes from "./routes/movies";
+import eloRoutes from "./routes/elo";
+import tournamentsRoutes from "./routes/tournaments";
+import gamesRoutes from "./routes/games";
+import tournamentTemplatesRoutes from "./routes/tournamentTemplates";
+import notificationsRoutes from "./routes/notifications";
+import libraryRoutes from "./routes/library";
+import eventsRoutes from "./routes/events";
+import memesRoutes from "./routes/memes";
+import tmdbRoutes from "./routes/tmdb";
+import forumRoutes from "./routes/forum";
 
 const app = express();
 
@@ -24,5 +35,16 @@ app.use("/api/users", usersRoutes);
 app.use("/api/templates", templatesRoutes);
 app.use("/api/recipes", recipesRoutes);
 app.use("/api/constitution", constitutionRoutes);
+app.use("/api/movies", moviesRoutes);
+app.use("/api/elo", eloRoutes);
+app.use("/api/tournaments", tournamentsRoutes);
+app.use("/api/games", gamesRoutes);
+app.use("/api/tournament-templates", tournamentTemplatesRoutes);
+app.use("/api/notifications", notificationsRoutes);
+app.use("/api/library", libraryRoutes);
+app.use("/api/events", eventsRoutes);
+app.use("/api/memes", memesRoutes);
+app.use("/api/tmdb", tmdbRoutes);
+app.use("/api/forum", forumRoutes);
 
 export default app;

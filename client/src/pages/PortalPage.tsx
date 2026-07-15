@@ -79,8 +79,8 @@ export default function PortalPage() {
                 </button>
             </div>
 
-            <div className="grid grid-cols-12 gap-6">
-                <div className="col-span-4 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+                <div className="lg:col-span-4 space-y-4">
                     <div className="p-4 space-y-3" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}>
                         <h3 className="text-[10px] uppercase text-gray-400">Шаблоны документов</h3>
                         {loading ? (
@@ -109,7 +109,7 @@ export default function PortalPage() {
                     </div>
                 </div>
 
-                <div className="col-span-8">
+                <div className="lg:col-span-8">
                     {selected ? (
                         <div className="space-y-4">
                             <div className="p-4 space-y-4" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Card from "../components/UI/Card";
 import AboutSection from "../components/AboutSection";
 import { forumData } from "./forumData";
+import { useSocket } from "../context/SocketContext";
 
 interface Founder {
     id: number;
@@ -39,6 +40,7 @@ const rules = [
 
 export default function Dashboard() {
     const navigate = useNavigate();
+    const socket = useSocket();
     const [founders, setFounders] = useState<Founder[]>([]);
     const [onlineUsers, setOnlineUsers] = useState<Founder[]>([]);
 
@@ -61,6 +63,19 @@ export default function Dashboard() {
             .catch(() => {});
     }, []);
 
+    useEffect(() => {
+        if (!socket) return;
+        socket.on("user:online", ({ userId }: { userId: number }) => {
+            setOnlineUsers((prev) => {
+                if (prev.some((u) => u.id === userId)) return prev;
+                const user = founders.find((f) => f.id === userId);
+                if (user) return [...prev, { ...user, isOnline: true }];
+                return prev;
+            });
+        });
+        return () => { socket.off("user:online"); };
+    }, [socket, founders]);
+
     const roleColors: Record<string, string> = {
         Administrator: "#D32F2F",
         Moderator: "#FFB020",
@@ -72,15 +87,15 @@ export default function Dashboard() {
     const recentPosts = forumData.slice(0, 4);
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 lg:space-y-8">
             <AboutSection />
 
             {founders.length > 0 && (
                 <div className="space-y-4">
-                    <h2 className="text-xs uppercase text-[#FA6814] text-center" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
+                    <h2 className="text-[10px] sm:text-xs uppercase text-[#FA6814] text-center" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
                         Основатели
                     </h2>
-                    <div className="flex justify-center gap-8">
+                    <div className="flex justify-center gap-4 sm:gap-6 lg:gap-8 flex-wrap">
                         {founders.map((f) => {
                             const initial = (f.displayName?.[0] || f.username?.[0] || "?").toUpperCase();
 
@@ -88,21 +103,21 @@ export default function Dashboard() {
                                 <div
                                     key={f.id}
                                     onClick={() => navigate(`/user/${f.id}`)}
-                                    className="p-4 flex flex-col items-center gap-3 cursor-pointer hover:border-[#FA6814] transition-colors group shrink-0"
+                                    className="p-3 sm:p-4 flex flex-col items-center gap-3 cursor-pointer hover:border-[#FA6814] transition-colors group shrink-0"
                                     style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}
                                 >
                                     <div className="relative">
-                                        <div className="w-80 h-80 bg-[#212121] border border-[#3b3b3b] overflow-hidden">
+                                        <div className="w-40 h-40 sm:w-56 sm:h-56 lg:w-72 lg:h-72 xl:w-80 xl:h-80 bg-[#212121] border border-[#3b3b3b] overflow-hidden">
                                             {f.avatar ? (
                                                 <img src={f.avatar} alt={f.username} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-5xl text-[#FA6814] font-bold">
+                                                <div className="w-full h-full flex items-center justify-center text-3xl sm:text-4xl lg:text-5xl text-[#FA6814] font-bold">
                                                     {initial}
                                                 </div>
                                             )}
                                         </div>
                                         <div
-                                            className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-[#2a2a2a]"
+                                            className="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-4 h-4 rounded-full border-2 border-[#2a2a2a]"
                                             style={{ background: f.isOnline ? "#4CAF50" : "#666" }}
                                         />
                                     </div>
@@ -113,30 +128,30 @@ export default function Dashboard() {
                 </div>
             )}
 
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
                 {quickLinks.map((link) => (
                     <div
                         key={link.path}
                         onClick={() => navigate(link.path)}
-                        className="p-4 flex items-center justify-center cursor-pointer hover:border-[#FA6814] transition-colors"
+                        className="p-3 sm:p-4 flex items-center justify-center cursor-pointer hover:border-[#FA6814] transition-colors"
                         style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}
                     >
-                        <span className="text-xs text-white font-medium uppercase" style={{ fontFamily: '"Press Start 2P", system-ui' }}>{link.label}</span>
+                        <span className="text-[9px] sm:text-xs text-white font-medium uppercase text-center" style={{ fontFamily: '"Press Start 2P", system-ui' }}>{link.label}</span>
                     </div>
                 ))}
             </div>
 
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 <Card title="Обращения" value={12} />
                 <Card title="Темы форума" value={64} />
                 <Card title="Нарушения" value={2} />
                 <Card title="Пользователи" value={founders.length} />
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-xs uppercase text-gray-400" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
+                        <h3 className="text-[10px] sm:text-xs uppercase text-gray-400" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
                             Последние темы
                         </h3>
                         <button
@@ -171,22 +186,22 @@ export default function Dashboard() {
                 </div>
 
                 <div className="space-y-3">
-                    <h3 className="text-xs uppercase text-gray-400" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
+                    <h3 className="text-[10px] sm:text-xs uppercase text-gray-400" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
                         Ближайшие события
                     </h3>
                     <div className="space-y-2">
                         {upcomingEvents.map((event, i) => (
                             <div
                                 key={i}
-                                className="p-3 flex items-center justify-between"
+                                className="p-3 flex items-center justify-between gap-3"
                                 style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}
                             >
-                                <div>
-                                    <p className="text-[11px] text-white font-medium">{event.title}</p>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] text-white font-medium truncate">{event.title}</p>
                                     <p className="text-[9px] text-gray-500 mt-0.5">{event.date}</p>
                                 </div>
                                 <span
-                                    className="text-[8px] px-2 py-0.5 border"
+                                    className="text-[8px] px-2 py-0.5 border shrink-0"
                                     style={{ color: event.statusColor, borderColor: event.statusColor }}
                                 >
                                     {event.status}
@@ -197,9 +212,9 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-3">
-                    <h3 className="text-xs uppercase text-gray-400" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
+                    <h3 className="text-[10px] sm:text-xs uppercase text-gray-400" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
                         Основы Конституции
                     </h3>
                     <div
@@ -223,7 +238,7 @@ export default function Dashboard() {
 
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-xs uppercase text-gray-400" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
+                        <h3 className="text-[10px] sm:text-xs uppercase text-gray-400" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
                             Сейчас онлайн
                         </h3>
                         <span className="text-[10px] text-[#4CAF50]">{onlineUsers.length}</span>

@@ -75,7 +75,7 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#212121]">
             <div
-                className="w-[600px] p-10"
+                className="w-full max-w-[600px] mx-4 p-6 sm:p-10"
                 style={{ background: "#292929", border: "1px solid #3a3a3a", borderRadius: 4 }}
             >
                 <h1
