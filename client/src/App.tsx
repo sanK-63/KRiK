@@ -29,6 +29,7 @@ import FeedPage from "./pages/FeedPage";
 import LibraryPage from "./pages/LibraryPage";
 import AdminPage from "./pages/AdminPage";
 import MessagesPage from "./pages/MessagesPage";
+import ResearchPage from "./pages/ResearchPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem("token");
@@ -77,6 +78,7 @@ function App() {
                         <Route path="/search" element={<SearchPage />} />
                         <Route path="/messages" element={<MessagesPage />} />
                         <Route path="/messages/:id" element={<MessagesPage />} />
+                        <Route path="/research" element={<ResearchPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                     </Route>
 

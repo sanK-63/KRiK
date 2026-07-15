@@ -15,6 +15,7 @@ const links: [string, string][] = [
     ["/tavern", "Таверна"],
     ["/memes", "Мемы"],
     ["/leaderboard", "Лидеры"],
+    ["/research", "Исследования"],
     ["/library", "Библиотека"],
     ["/archive", "Архив"],
     ["/messages", "Сообщения"],
