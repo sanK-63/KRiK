@@ -69,4 +69,26 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     res.json({ ok: true });
 });
 
+router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
+    const id = Number(req.params.id);
+    const recipe = db.select().from(recipes).where(eq(recipes.id, id)).get();
+    if (!recipe) {
+        res.status(404).json({ error: "Рецепт не найден" });
+        return;
+    }
+    const { name, description, ingredients, instructions, category, image } = req.body;
+    const updated = db.update(recipes).set({
+        name: name ?? recipe.name,
+        description: description !== undefined ? description : recipe.description,
+        ingredients: ingredients ?? recipe.ingredients,
+        instructions: instructions ?? recipe.instructions,
+        category: category ?? recipe.category,
+        image: image !== undefined ? image : recipe.image,
+    }).where(eq(recipes.id, id)).returning().get();
+
+    try { getIO().emit("recipe:updated", enrichRecipe(updated)); } catch {}
+
+    res.json(enrichRecipe(updated));
+});
+
 export default router;

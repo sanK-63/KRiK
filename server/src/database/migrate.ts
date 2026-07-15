@@ -436,7 +436,44 @@ const tables = [
         downloads INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )`,
+    `CREATE TABLE IF NOT EXISTS software_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        tags TEXT,
+        version TEXT,
+        download_url TEXT,
+        download_label TEXT,
+        author_id INTEGER NOT NULL REFERENCES users(id),
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS conversations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT,
+        is_group INTEGER NOT NULL DEFAULT 0,
+        created_by INTEGER REFERENCES users(id),
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS conversation_participants (
+        conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        last_read_at TEXT,
+        PRIMARY KEY(conversation_id, user_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+        sender_id INTEGER NOT NULL REFERENCES users(id),
+        content TEXT,
+        attachment_path TEXT,
+        attachment_name TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
 ];
+
+const indexes = [
     `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`,
     `CREATE INDEX IF NOT EXISTS idx_users_uuid ON users(uuid)`,
     `CREATE INDEX IF NOT EXISTS idx_teams_name ON teams(name)`,
@@ -447,6 +484,9 @@ const tables = [
     `CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id)`,
     `CREATE INDEX IF NOT EXISTS idx_elo_history_user_id ON elo_history(user_id)`,
     `CREATE INDEX IF NOT EXISTS idx_elo_history_tournament_id ON elo_history(tournament_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_conv_participants_user ON conversation_participants(user_id)`,
 ];
 
 export function migrate() {
@@ -530,6 +570,26 @@ export function migrate() {
         );
         insertRole.run(3, 5);
         insertProfile.run(3, null, null, null, null, "Казахстан", null);
+
+        // 4. vzhezhevska — User
+        insertUser.run(
+            "d3e4f5a6-b7c8-9012-cdef-123456789012", "vzhezhevska", "Елизавета", "Вжежевская", "Валентиновна",
+            "2006-04-28", "+7 (870) 022-50-42", "vzezevskaaelizaveta@gmail.com", null,
+            "$2b$10$Pq.JhFI1dwAhBXwwicerkeawZ5wnkQgO9GfJeK.SJ2jpsw2YbhaWW",
+            sha256("LKAS8B5g0uSOIfQREhJNJMIzB96PjfPj"), "active"
+        );
+        insertRole.run(4, 5);
+        insertProfile.run(4, "Казахстан");
+
+        // 5. putc — User
+        insertUser.run(
+            "e4f5a6b7-c8d9-0123-defa-234567890123", "putc", "Валерия", "Пуц", "Руслановна",
+            "2004-01-01", "+7 (877) 702-14-85", "vpuc72604@gmail.com", null,
+            "$2b$10$7MlnACKFIkcZpyNFP4GQ0ux46klR.chfNRZEsHKV4hDcEZS7D9q6W",
+            sha256("c77h7GYDQgqgqRHjZ95iZ5D1Edlm0vtF"), "active"
+        );
+        insertRole.run(5, 5);
+        insertProfile.run(5, "Казахстан");
     }
 
     // Seed games
@@ -681,7 +741,15 @@ export function migrate() {
         sqlite.exec("ALTER TABLE tournaments ADD COLUMN registration_form TEXT");
     }
 
+    // Add video column to events if missing
+    try {
+        sqlite.prepare("SELECT video FROM events LIMIT 1").get();
+    } catch {
+        sqlite.exec("ALTER TABLE events ADD COLUMN video TEXT");
+    }
+
     // Forum tables (drop and recreate if schema changed)
+    sqlite.exec(`DROP TABLE IF EXISTS forum_poll_votes`);
     sqlite.exec(`DROP TABLE IF EXISTS forum_likes`);
     sqlite.exec(`DROP TABLE IF EXISTS forum_comments`);
     sqlite.exec(`DROP TABLE IF EXISTS forum_posts`);
@@ -692,9 +760,10 @@ export function migrate() {
         category TEXT NOT NULL DEFAULT 'Форум',
         author_id INTEGER REFERENCES users(id),
         pinned INTEGER NOT NULL DEFAULT 0,
+        poll_options TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )`);
-    sqlite.exec(`CREATE TABLE IF NOT EXISTS forum_comments (
+    sqlite.exec(`CREATE TABLE forum_comments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         post_id INTEGER NOT NULL REFERENCES forum_posts(id) ON DELETE CASCADE,
         parent_id INTEGER REFERENCES forum_comments(id) ON DELETE CASCADE,
@@ -702,7 +771,15 @@ export function migrate() {
         content TEXT NOT NULL,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )`);
-    sqlite.exec(`CREATE TABLE IF NOT EXISTS forum_likes (
+    sqlite.exec(`CREATE TABLE forum_poll_votes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL REFERENCES forum_posts(id) ON DELETE CASCADE,
+        option_index INTEGER NOT NULL,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(post_id, user_id)
+    )`);
+    sqlite.exec(`CREATE TABLE forum_likes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         comment_id INTEGER NOT NULL REFERENCES forum_comments(id) ON DELETE CASCADE,
         user_id INTEGER NOT NULL REFERENCES users(id),
@@ -731,6 +808,21 @@ export function migrate() {
         insComment.run(4, 2, "Спасибо, попробую. Куда именно подавать заявку?", "-17 hours");
         insComment.run(4, 3, "it@company.com или через портал в разделе «Обращения».", "-16 hours");
         console.log("Seeded 5 forum posts with comments");
+    }
+
+    // Seed software items
+    const swCount = sqlite.prepare("SELECT COUNT(*) as c FROM software_items").get() as { c: number };
+    if (swCount.c === 0) {
+        const insSw = sqlite.prepare("INSERT INTO software_items (category, title, description, tags, version, download_url, download_label, author_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now', ?))");
+        insSw.run("софт", "Nox App — v2.0.0", "Полная переработка таймлайна и тепловой карты, добавлены тултипы и демо-данные. Обновлённый интерфейс, исправления ошибок и улучшение производительности.", JSON.stringify(["Nox App", "Релиз", "Обновление"]), "v2.0.0", "https://github.com/sanK-63/nox-app/releases/tag/v2.0.0", "Скачать v2.0.0", 1, "-22 days");
+        insSw.run("инструкции", "Настройка сервера для турниров", "Пошаговая инструкция по настройке выделенного сервера для проведения киберспортивных турниров. Включает оптимизацию сети и параметры запуска.", JSON.stringify(["Сервер", "Турниры", "Настройка"]), null, null, null, 1, "-18 days");
+        insSw.run("оптимизация", "Оптимизация FPS в CS2", "Комплексный гайд по настройке графики и системы для максимального FPS в Counter-Strike 2. Конфиги, параметры запуска, настройки Windows.", JSON.stringify(["CS2", "FPS", "Оптимизация"]), null, null, null, 2, "-15 days");
+        insSw.run("файлы", "Конфиги серверов", "Архив конфигурационных файлов для игровых серверов: CS2, Dota 2, Valorant. Готовые файлы для быстрого развёртывания.", JSON.stringify(["Конфиги", "Серверы"]), null, "#", "Скачать архив", 1, "-12 days");
+        insSw.run("софт", "Nox App — v1.5.0", "Добавлена поддержка Battlefield 6, исправлен баг с отображением тепловой карты, улучшена производительность на больших данных.", JSON.stringify(["Nox App", "Обновление"]), "v1.5.0", "https://github.com/sanK-63/nox-app/releases/tag/v1.5.0", "Скачать v1.5.0", 1, "-5 days");
+        insSw.run("инструкции", "Как создать турнир", "Подробная инструкция по созданию турнира в корпоративном портале: от настройки формата до генерации сетки и подведения итогов.", JSON.stringify(["Турниры", "Инструкция"]), null, null, null, 1, "-1 days");
+        insSw.run("оптимизация", "Настройка Discord бота", "Гайд по развёртыванию и настройке Discord-бота для автоматического создания голосовых каналов для турниров и уведомлений.", JSON.stringify(["Discord", "Бот", "Настройка"]), null, null, null, 2, "-3 days");
+        insSw.run("файлы", "Шаблоны документов", "Готовые шаблоны .docx для внутренних документов: приказы, протоколы, заявки. Автоматическая генерация через портал.", JSON.stringify(["Шаблоны", "Документы"]), null, "#", "Скачать шаблоны", 1, "-10 days");
+        console.log("Seeded 8 software items");
     }
 
     console.log("Database migrated successfully");

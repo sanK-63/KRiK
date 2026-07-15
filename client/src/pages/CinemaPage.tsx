@@ -274,7 +274,7 @@ export default function CinemaPage() {
     return (
         <>
             <div className="flex items-center justify-between mb-6">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl">Кинотека</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl">Кинотека <span className="text-sm text-gray-500 align-middle">({filtered.length})</span></h1>
                 <button
                     onClick={() => setShowForm(!showForm)}
                     className="px-4 py-2 bg-[#fa6814] text-white text-sm hover:bg-[#ff7d30]"

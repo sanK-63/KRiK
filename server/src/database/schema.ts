@@ -428,6 +428,35 @@ export const notifications = sqliteTable("notifications", {
 });
 
 // ──────────────────────────────────────────────
+//  MESSAGES MODULE
+// ──────────────────────────────────────────────
+
+export const conversations = sqliteTable("conversations", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    title: text("title"),
+    isGroup: integer("is_group", { mode: "boolean" }).notNull().default(false),
+    createdBy: integer("created_by").references(() => users.id),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export const conversationParticipants = sqliteTable("conversation_participants", {
+    conversationId: integer("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+    userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    joinedAt: text("joined_at").notNull().default("CURRENT_TIMESTAMP"),
+    lastReadAt: text("last_read_at"),
+});
+
+export const messages = sqliteTable("messages", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    conversationId: integer("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+    senderId: integer("sender_id").notNull().references(() => users.id),
+    content: text("content"),
+    attachmentPath: text("attachment_path"),
+    attachmentName: text("attachment_name"),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+// ──────────────────────────────────────────────
 //  SETTINGS MODULE
 // ──────────────────────────────────────────────
 
@@ -493,6 +522,7 @@ export const events = sqliteTable("events", {
     location: text("location"),
     category: text("category").notNull().default("general"),
     image: text("image"),
+    video: text("video"),
     authorId: integer("author_id").references(() => users.id),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });
@@ -540,5 +570,18 @@ export const libraryDocuments = sqliteTable("library_documents", {
     size: integer("size"),
     uploadedBy: integer("uploaded_by").references(() => users.id),
     downloads: integer("downloads").notNull().default(0),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export const softwareItems = sqliteTable("software_items", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    category: text("category").notNull(),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    tags: text("tags"),
+    version: text("version"),
+    downloadUrl: text("download_url"),
+    downloadLabel: text("download_label"),
+    authorId: integer("author_id").notNull().references(() => users.id),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });

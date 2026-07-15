@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import path from "path";
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
 import templatesRoutes from "./routes/templates";
@@ -18,6 +19,9 @@ import eventsRoutes from "./routes/events";
 import memesRoutes from "./routes/memes";
 import tmdbRoutes from "./routes/tmdb";
 import forumRoutes from "./routes/forum";
+import adminRoutes from "./routes/admin";
+import messagesRoutes from "./routes/messages";
+import softwareRoutes from "./routes/software";
 
 const app = express();
 
@@ -46,5 +50,11 @@ app.use("/api/events", eventsRoutes);
 app.use("/api/memes", memesRoutes);
 app.use("/api/tmdb", tmdbRoutes);
 app.use("/api/forum", forumRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/messages", messagesRoutes);
+
+// Serve uploaded files
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+app.use("/api/software", softwareRoutes);
 
 export default app;

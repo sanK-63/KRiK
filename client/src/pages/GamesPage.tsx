@@ -63,7 +63,7 @@ export default function GamesPage({ embedded = false }: Props) {
 
                 <div className="flex items-center gap-4 mb-6">
                     <div
-                        className="w-16 h-16 flex items-center justify-center text-lg font-bold"
+                        className="w-16 h-16 flex items-center justify-center text-base font-bold overflow-hidden"
                         style={{ background: `${getGameColor(selectedGame.slug)}20`, color: getGameColor(selectedGame.slug), border: `2px solid ${getGameColor(selectedGame.slug)}`, borderRadius: 8 }}
                     >
                         {selectedGame.logo || selectedGame.name.substring(0, 4).toUpperCase()}
@@ -124,7 +124,7 @@ export default function GamesPage({ embedded = false }: Props) {
                                 onClick={() => setSelectedGame(game)}
                             >
                                 <div
-                                    className="w-12 h-12 flex items-center justify-center text-sm font-bold mb-3"
+                                    className="w-12 h-12 flex items-center justify-center text-[11px] font-bold mb-3 overflow-hidden"
                                     style={{ background: `${color}20`, color, border: `2px solid ${color}`, borderRadius: 6 }}
                                 >
                                     {game.logo || game.name.substring(0, 4).toUpperCase()}

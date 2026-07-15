@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import { useSocket } from "../context/SocketContext";
 
 interface FeedEntry {
     id: string;
@@ -13,8 +14,14 @@ interface FeedEntry {
     author: string;
     authorAvatar?: string | null;
     image?: string | null;
+    video?: string | null;
     path: string;
     extraId?: number;
+    likesCount: number;
+    commentsCount: number;
+    pollOptions?: string[] | null;
+    pollResults?: number[] | null;
+    userVote?: number | null;
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -24,6 +31,7 @@ const TYPE_COLORS: Record<string, string> = {
     мем: "#FFB020",
     таверна: "#E63946",
     кино: "#9C27B0",
+    софт: "#5B9BD5",
 };
 
 function parseDate(s: string): Date {
@@ -62,6 +70,7 @@ export default function FeedPage() {
     const [entries, setEntries] = useState<FeedEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [liked, setLiked] = useState<Record<string, boolean>>({});
+    const socket = useSocket();
 
     const token = localStorage.getItem("token");
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -74,13 +83,14 @@ export default function FeedPage() {
             try { const r = await fetch(url, { headers }); return r.ok ? await r.json() : []; } catch { return []; }
         };
 
-        const [forumPosts, events, tournaments, memes, recipes, movies] = await Promise.all([
-            safe(`${import.meta.env.VITE_API_URL}/api/forum`).catch(() => []),
-            safe(`${import.meta.env.VITE_API_URL}/api/events`).catch(() => []),
-            safe(`${import.meta.env.VITE_API_URL}/api/tournaments`).catch(() => []),
-            safe(`${import.meta.env.VITE_API_URL}/api/memes`).catch(() => []),
-            safe(`${import.meta.env.VITE_API_URL}/api/recipes`).catch(() => []),
-            safe(`${import.meta.env.VITE_API_URL}/api/movies`).catch(() => []),
+        const [forumPosts, events, tournaments, memes, recipes, movies, software] = await Promise.all([
+            safe(`${import.meta.env.VITE_API_URL}/api/forum`),
+            safe(`${import.meta.env.VITE_API_URL}/api/events`),
+            safe(`${import.meta.env.VITE_API_URL}/api/tournaments`),
+            safe(`${import.meta.env.VITE_API_URL}/api/memes`),
+            safe(`${import.meta.env.VITE_API_URL}/api/recipes`),
+            safe(`${import.meta.env.VITE_API_URL}/api/movies`),
+            safe(`${import.meta.env.VITE_API_URL}/api/software`),
         ]);
 
         if (Array.isArray(forumPosts)) {
@@ -88,8 +98,12 @@ export default function FeedPage() {
                 all.push({
                     id: `forum-${p.id}`, type: "форум", typeLabel: "Форум", typeColor: TYPE_COLORS.форум,
                     title: p.title || "Тема", description: p.content?.slice(0, 300) || "",
-                    date: p.createdAt || p.created_at || "", author: p.authorName || p.author || "—",
+                    date: p.created_at || "", author: p.authorName || "—",
                     authorAvatar: p.authorAvatar || null, path: `/forum/${p.id}`,
+                    likesCount: 0, commentsCount: p.commentCount || 0,
+                    pollOptions: p.pollOptions || null,
+                    pollResults: p.pollResults || null,
+                    userVote: p.userVote ?? null,
                 });
             }
         }
@@ -100,7 +114,8 @@ export default function FeedPage() {
                     id: `event-${e.id}`, type: "ивент", typeLabel: "Ивент", typeColor: TYPE_COLORS.ивент,
                     title: e.title, description: e.description?.slice(0, 300) || "",
                     date: e.createdAt || e.date || "", author: e.authorName || "—",
-                    image: e.image || null, path: "/events", extraId: e.id,
+                    image: e.image || null, video: e.video || null, path: "/events", extraId: e.id,
+                    likesCount: 0, commentsCount: 0,
                 });
             }
         }
@@ -113,6 +128,7 @@ export default function FeedPage() {
                     title: t.title, description: t.description?.slice(0, 300) || `${t.gameName || ""} · ${t.status}`,
                     date: t.startDate || t.createdAt || "", author: t.creatorName || "—",
                     authorAvatar: t.creatorAvatar || null, path: "/tournament", extraId: t.id,
+                    likesCount: 0, commentsCount: 0,
                 });
             }
         }
@@ -124,6 +140,7 @@ export default function FeedPage() {
                     title: m.title || "Мем", description: "",
                     date: m.createdAt || m.created_at || "", author: m.authorName || m.username || "—",
                     authorAvatar: m.authorAvatar || null, image: m.image || null, path: "/memes", extraId: m.id,
+                    likesCount: m.likes || 0, commentsCount: m.commentCount || 0,
                 });
             }
         }
@@ -135,6 +152,7 @@ export default function FeedPage() {
                     title: r.title || "Рецепт", description: r.description?.slice(0, 300) || r.category || "",
                     date: r.createdAt || r.created_at || "", author: r.authorName || "—",
                     path: "/tavern", extraId: r.id,
+                    likesCount: 0, commentsCount: 0,
                 });
             }
         }
@@ -146,6 +164,19 @@ export default function FeedPage() {
                     title: m.title, description: m.description?.slice(0, 300) || `${m.genre || ""} · ${m.year || ""}`,
                     date: m.createdAt || m.created_at || "", author: m.addedBy?.displayName || m.addedBy?.username || "—",
                     authorAvatar: m.addedBy?.avatar || null, image: m.poster || null, path: "/cinema", extraId: m.id,
+                    likesCount: 0, commentsCount: 0,
+                });
+            }
+        }
+
+        if (Array.isArray(software)) {
+            for (const s of software) {
+                all.push({
+                    id: `software-${s.id}`, type: "софт", typeLabel: "Софт", typeColor: TYPE_COLORS.софт,
+                    title: s.title, description: s.description?.slice(0, 300) || "",
+                    date: s.createdAt || "", author: s.author?.displayName || s.author?.username || "—",
+                    authorAvatar: s.author?.avatar || null, path: "/software", extraId: s.id,
+                    likesCount: 0, commentsCount: 0,
                 });
             }
         }
@@ -157,8 +188,114 @@ export default function FeedPage() {
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("forum:post_created", (p: any) => {
+            const entry: FeedEntry = {
+                id: `forum-${p.id}`, type: "форум", typeLabel: "Форум", typeColor: TYPE_COLORS.форум,
+                title: p.title || "Тема", description: p.content?.slice(0, 300) || "",
+                date: p.created_at || "", author: p.authorName || "—",
+                authorAvatar: p.authorAvatar || null, path: `/forum/${p.id}`,
+                likesCount: 0, commentsCount: p.commentCount || 0,
+                pollOptions: p.pollOptions || null, pollResults: p.pollResults || null, userVote: p.userVote ?? null,
+            };
+            setEntries((prev) => prev.some((e) => e.id === entry.id) ? prev : [entry, ...prev]);
+        });
+
+        socket.on("forum:poll_voted", (p: any) => {
+            setEntries((prev) => prev.map((e) => {
+                if (e.id !== `forum-${p.id}`) return e;
+                return { ...e, pollOptions: p.pollOptions, pollResults: p.pollResults, userVote: p.userVote };
+            }));
+        });
+
+        socket.on("event:created", (e: any) => {
+            const entry: FeedEntry = {
+                id: `event-${e.id}`, type: "ивент", typeLabel: "Ивент", typeColor: TYPE_COLORS.ивент,
+                title: e.title, description: e.description?.slice(0, 300) || "",
+                date: e.createdAt || e.date || "", author: e.authorName || "—",
+                image: e.image || null, video: e.video || null, path: "/events", extraId: e.id,
+                likesCount: 0, commentsCount: 0,
+            };
+            setEntries((prev) => prev.some((ex) => ex.id === entry.id) ? prev : [entry, ...prev]);
+        });
+
+        socket.on("meme:created", (m: any) => {
+            const entry: FeedEntry = {
+                id: `meme-${m.id}`, type: "мем", typeLabel: "Мем", typeColor: TYPE_COLORS.мем,
+                title: m.title || "Мем", description: "",
+                date: m.createdAt || m.created_at || "", author: m.authorName || m.username || "—",
+                authorAvatar: m.authorAvatar || null, image: m.image || null, path: "/memes", extraId: m.id,
+                likesCount: m.likes || 0, commentsCount: m.commentCount || 0,
+            };
+            setEntries((prev) => prev.some((ex) => ex.id === entry.id) ? prev : [entry, ...prev]);
+        });
+
+        socket.on("movie:created", (m: any) => {
+            const entry: FeedEntry = {
+                id: `movie-${m.id}`, type: "кино", typeLabel: "Кино", typeColor: TYPE_COLORS.кино,
+                title: m.title, description: m.description?.slice(0, 300) || `${m.genre || ""} · ${m.year || ""}`,
+                date: m.createdAt || m.created_at || "", author: m.addedBy?.displayName || m.addedBy?.username || "—",
+                authorAvatar: m.addedBy?.avatar || null, image: m.poster || null, path: "/cinema", extraId: m.id,
+                likesCount: 0, commentsCount: 0,
+            };
+            setEntries((prev) => prev.some((ex) => ex.id === entry.id) ? prev : [entry, ...prev]);
+        });
+
+        socket.on("recipe:created", (r: any) => {
+            const entry: FeedEntry = {
+                id: `recipe-${r.id}`, type: "таверна", typeLabel: "Таверна", typeColor: TYPE_COLORS.таверна,
+                title: r.title || r.name || "Рецепт", description: r.description?.slice(0, 300) || r.category || "",
+                date: r.createdAt || r.created_at || "", author: r.author?.displayName || r.author?.username || "—",
+                path: "/tavern", extraId: r.id,
+                likesCount: 0, commentsCount: 0,
+            };
+            setEntries((prev) => prev.some((ex) => ex.id === entry.id) ? prev : [entry, ...prev]);
+        });
+
+        socket.on("software:created", (s: any) => {
+            const entry: FeedEntry = {
+                id: `software-${s.id}`, type: "софт", typeLabel: "Софт", typeColor: TYPE_COLORS.софт,
+                title: s.title, description: s.description?.slice(0, 300) || "",
+                date: s.createdAt || "", author: s.author?.displayName || s.author?.username || "—",
+                authorAvatar: s.author?.avatar || null, path: "/software", extraId: s.id,
+                likesCount: 0, commentsCount: 0,
+            };
+            setEntries((prev) => prev.some((ex) => ex.id === entry.id) ? prev : [entry, ...prev]);
+        });
+
+        return () => {
+            socket.off("forum:post_created");
+            socket.off("forum:poll_voted");
+            socket.off("event:created");
+            socket.off("meme:created");
+            socket.off("movie:created");
+            socket.off("recipe:created");
+            socket.off("software:created");
+        };
+    }, [socket]);
+
     const toggleLike = (id: string) => {
         setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const votePoll = async (entryId: string, forumId: number, optionIndex: number) => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        try {
+            const r = await fetch(`${import.meta.env.VITE_API_URL}/api/forum/${forumId}/vote`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ optionIndex }),
+            });
+            if (!r.ok) return;
+            const updated = await r.json();
+            setEntries((prev) => prev.map((e) => {
+                if (e.id !== entryId) return e;
+                return { ...e, pollOptions: updated.pollOptions, pollResults: updated.pollResults, userVote: updated.userVote };
+            }));
+        } catch {}
     };
 
     return (
@@ -192,26 +329,44 @@ export default function FeedPage() {
                         </div>
 
                         {/* Image */}
-                        {entry.image && (
+                        {entry.image && !entry.video && (
                             <img src={entry.image} alt="" className="w-full" loading="lazy" />
                         )}
 
+                        {/* Video */}
+                        {entry.video && (
+                            <video
+                                src={entry.video}
+                                controls
+                                playsInline
+                                muted
+                                preload="metadata"
+                                loop
+                                onMouseEnter={(e) => (e.target as HTMLVideoElement).play()}
+                                onMouseLeave={(e) => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0; }}
+                                className="w-full max-h-[600px] object-contain bg-black cursor-pointer"
+                            />
+                        )}
+
                         {/* Actions */}
-                        <div className="flex items-center gap-4 px-4 py-2.5">
+                        <div className="flex items-center gap-5 px-4 py-2.5 border-t border-[#2a2a2a]">
                             <button
                                 onClick={() => toggleLike(entry.id)}
-                                className="w-12 h-12 flex items-center justify-center bg-transparent border border-[#3a3a3a] text-xl cursor-pointer transition-colors hover:border-[#D32F2F]"
+                                className="w-10 h-10 flex items-center justify-center bg-transparent border border-[#3a3a3a] text-lg cursor-pointer transition-colors hover:border-[#D32F2F]"
                                 style={{ color: liked[entry.id] ? "#D32F2F" : "#808080" }}
                             >
                                 {liked[entry.id] ? "♥" : "♡"}
                             </button>
+                            <span className="text-xs text-gray-500">{entry.likesCount + (liked[entry.id] ? 1 : 0)}</span>
+
                             <button
                                 onClick={() => navigate(entry.path, { state: { openId: entry.extraId } })}
-                                className="w-12 h-12 flex items-center justify-center bg-transparent border border-[#3a3a3a] text-xl cursor-pointer transition-colors hover:border-[#FA6814]"
+                                className="w-10 h-10 flex items-center justify-center bg-transparent border border-[#3a3a3a] text-lg cursor-pointer transition-colors hover:border-[#FA6814]"
                                 style={{ color: "#808080" }}
                             >
                                 💬
                             </button>
+                            <span className="text-xs text-gray-500">{entry.commentsCount}</span>
                         </div>
 
                         {/* Content */}
@@ -224,6 +379,44 @@ export default function FeedPage() {
                             </h3>
                             {entry.description && (
                                 <p className="text-xs text-gray-400 leading-relaxed">{entry.description}</p>
+                            )}
+
+                            {/* Poll */}
+                            {entry.pollOptions && entry.pollResults && (
+                                <div className="mt-3 space-y-2">
+                                    {entry.pollOptions.map((option, i) => {
+                                        const total = entry.pollResults!.reduce((a, b) => a + b, 0);
+                                        const pct = total > 0 ? Math.round((entry.pollResults![i] / total) * 100) : 0;
+                                        const isSelected = entry.userVote === i;
+                                        return (
+                                            <button
+                                                key={i}
+                                                onClick={() => {
+                                                    const forumId = parseInt(entry.id.replace("forum-", ""));
+                                                    votePoll(entry.id, forumId, i);
+                                                }}
+                                                className="w-full relative overflow-hidden border text-left px-3 py-2 text-xs cursor-pointer transition-colors"
+                                                style={{
+                                                    background: isSelected ? "#FA681415" : "#1a1a1a",
+                                                    borderColor: isSelected ? "#FA6814" : "#3a3a3a",
+                                                    color: isSelected ? "#FA6814" : "#a0a0a0",
+                                                }}
+                                            >
+                                                <div
+                                                    className="absolute left-0 top-0 bottom-0 transition-all duration-300"
+                                                    style={{ width: `${pct}%`, background: isSelected ? "#FA681410" : "#3a3a3a20" }}
+                                                />
+                                                <span className="relative z-10 flex justify-between">
+                                                    <span>{option}</span>
+                                                    <span className="text-gray-500">{pct}%</span>
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                    <p className="text-[10px] text-gray-600">
+                                        {entry.pollResults!.reduce((a, b) => a + b, 0)} голосов
+                                    </p>
+                                </div>
                             )}
                         </div>
                     </div>

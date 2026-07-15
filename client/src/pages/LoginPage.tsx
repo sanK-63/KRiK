@@ -86,9 +86,6 @@ export default function LoginPage() {
                     <br />
                     <span className="whitespace-nowrap">"Рога и Копыта"</span>
                 </h1>
-                <p className="text-center text-[10px] text-gray-500 mb-10 tracking-widest uppercase">
-                    Владку софт
-                </p>
 
                 {(state === "idle" || state === "error") && (
                     <>

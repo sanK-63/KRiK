@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 
 interface PublicProfile {
     id: number;
@@ -58,6 +59,7 @@ type Tab = "Профиль" | "Социальные сети";
 export default function UserPublicProfilePage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { user: currentUser } = useUser();
     const [user, setUser] = useState<PublicProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -258,7 +260,11 @@ export default function UserPublicProfilePage() {
                     </div>
 
                     <button
-                        onClick={() => alert("Мессенджер в разработке")}
+                        onClick={() => {
+                            if (currentUser && id && currentUser.id !== Number(id)) {
+                                navigate(`/messages/${id}`);
+                            }
+                        }}
                         className="w-full text-[10px] uppercase px-4 py-3 bg-[#FA6814] text-white font-medium hover:bg-[#FF7D30] transition-colors cursor-pointer"
                     >
                         Написать сообщение

@@ -12,6 +12,7 @@ interface Event {
     location: string | null;
     category: string;
     image: string | null;
+    video: string | null;
     author: { id: number; displayName: string | null; username: string; avatar: string | null } | null;
     createdAt: string;
 }
@@ -29,10 +30,10 @@ export default function EventsPage() {
     const [showForm, setShowForm] = useState(false);
     const [selected, setSelected] = useState<Event | null>(null);
     const [editing, setEditing] = useState(false);
-    const [editForm, setEditForm] = useState({ title: "", description: "", date: "", time: "", location: "", category: "Другое", image: "" });
+    const [editForm, setEditForm] = useState({ title: "", description: "", date: "", time: "", location: "", category: "Другое", image: "", video: "" });
     const token = localStorage.getItem("token");
 
-    const [form, setForm] = useState({ title: "", description: "", date: "", time: "", location: "", category: "Другое", image: "" });
+    const [form, setForm] = useState({ title: "", description: "", date: "", time: "", location: "", category: "Другое", image: "", video: "" });
 
     const load = () => {
         fetch(`${import.meta.env.VITE_API_URL}/api/events`, {
@@ -92,9 +93,10 @@ export default function EventsPage() {
                 location: form.location || null,
                 category: form.category,
                 image: form.image || null,
+                video: form.video || null,
             }),
         });
-        setForm({ title: "", description: "", date: "", time: "", location: "", category: "Другое", image: "" });
+        setForm({ title: "", description: "", date: "", time: "", location: "", category: "Другое", image: "", video: "" });
         setShowForm(false);
         load();
     };
@@ -112,6 +114,7 @@ export default function EventsPage() {
                 location: editForm.location || null,
                 category: editForm.category,
                 image: editForm.image || null,
+                video: editForm.video || null,
             }),
         });
         if (res.ok) {
@@ -142,6 +145,7 @@ export default function EventsPage() {
             location: selected.location || "",
             category: selected.category,
             image: selected.image || "",
+            video: (selected as any).video || "",
         });
         setEditing(true);
     };
@@ -195,6 +199,7 @@ export default function EventsPage() {
                             {categories.filter((c) => c !== "Все").map((c) => <option key={c} value={c}>{c}</option>)}
                         </select>
                         <input placeholder="Изображение (URL)" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} className="bg-[#2a2a2a] border border-[#3a3a3a] text-[#e0e0e0] px-3 py-2 text-sm" style={{ borderRadius: 4 }} />
+                        <input placeholder="Видео (URL .mp4)" value={form.video} onChange={(e) => setForm({ ...form, video: e.target.value })} className="bg-[#2a2a2a] border border-[#3a3a3a] text-[#e0e0e0] px-3 py-2 text-sm" style={{ borderRadius: 4 }} />
                         <textarea placeholder="Описание" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-[#2a2a2a] border border-[#3a3a3a] text-[#e0e0e0] px-3 py-2 text-sm sm:col-span-2 resize-y" style={{ borderRadius: 4, minHeight: 60 }} />
                     </div>
                     <button onClick={handleCreate} className="px-4 py-2 bg-[#4caf50] text-white text-sm hover:bg-[#3cb371]" style={{ borderRadius: 4 }}>Создать</button>
@@ -221,6 +226,7 @@ export default function EventsPage() {
                                         {categories.filter((c) => c !== "Все").map((c) => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                     <input placeholder="Изображение (URL)" value={editForm.image} onChange={(e) => setEditForm({ ...editForm, image: e.target.value })} className="bg-[#2a2a2a] border border-[#3a3a3a] text-[#e0e0e0] px-3 py-2 text-sm" style={{ borderRadius: 4 }} />
+                                    <input placeholder="Видео (URL .mp4)" value={editForm.video} onChange={(e) => setEditForm({ ...editForm, video: e.target.value })} className="bg-[#2a2a2a] border border-[#3a3a3a] text-[#e0e0e0] px-3 py-2 text-sm" style={{ borderRadius: 4 }} />
                                     <textarea placeholder="Описание" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} className="bg-[#2a2a2a] border border-[#3a3a3a] text-[#e0e0e0] px-3 py-2 text-sm sm:col-span-2 resize-y" style={{ borderRadius: 4, minHeight: 60 }} />
                                 </div>
                                 <div className="flex gap-2">

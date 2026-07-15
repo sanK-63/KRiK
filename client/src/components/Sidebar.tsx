@@ -17,6 +17,7 @@ const links: [string, string][] = [
     ["/leaderboard", "Лидеры"],
     ["/library", "Библиотека"],
     ["/archive", "Архив"],
+    ["/messages", "Сообщения"],
 ];
 
 export default function Sidebar() {

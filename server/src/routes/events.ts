@@ -35,7 +35,7 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
         res.status(401).json({ error: "Unauthorized" });
         return;
     }
-    const { title, description, date, time, location, category, image } = req.body;
+    const { title, description, date, time, location, category, image, video } = req.body;
     if (!title || !date) {
         res.status(400).json({ error: "Название и дата обязательны" });
         return;
@@ -48,6 +48,7 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
         location: location || null,
         category: category || "general",
         image: image || null,
+        video: video || null,
         authorId: req.userId,
     }).returning().get();
 
@@ -71,7 +72,7 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         res.status(403).json({ error: "Нет прав на редактирование" });
         return;
     }
-    const { title, description, date, time, location, category, image } = req.body;
+    const { title, description, date, time, location, category, image, video } = req.body;
     const updated = db.update(events).set({
         title: title ?? event.title,
         description: description !== undefined ? description : event.description,
@@ -80,6 +81,7 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         location: location !== undefined ? location : event.location,
         category: category ?? event.category,
         image: image !== undefined ? image : event.image,
+        video: video !== undefined ? video : (event as any).video,
     }).where(eq(events.id, id)).returning().get();
 
     try { getIO().emit("event:updated", enrichEvent(updated)); } catch {}

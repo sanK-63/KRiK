@@ -71,9 +71,14 @@ export default function TavernPage() {
             setRecipes((prev) => prev.filter((r) => r.id !== id));
             setSelected((prev) => prev?.id === id ? null : prev);
         });
+        socket.on("recipe:updated", (recipe: Recipe) => {
+            setRecipes((prev) => prev.map((r) => (r.id === recipe.id ? recipe : r)));
+            setSelected((prev) => (prev?.id === recipe.id ? recipe : prev));
+        });
         return () => {
             socket.off("recipe:created");
             socket.off("recipe:deleted");
+            socket.off("recipe:updated");
         };
     }, [socket]);
 

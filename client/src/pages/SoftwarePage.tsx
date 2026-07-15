@@ -1,19 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUser } from "../context/UserContext";
-
-interface SoftwareItem {
-    id: number;
-    category: "софт" | "файлы" | "оптимизация" | "инструкции";
-    title: string;
-    description: string;
-    date: string;
-    author: string;
-    authorId: number;
-    tags: string[];
-    downloadUrl?: string;
-    downloadLabel?: string;
-    version?: string;
-}
+import { useSocket } from "../context/SocketContext";
+import { softwareApi, type SoftwareItemData } from "../services/software";
 
 const CATEGORY_LABELS: Record<string, string> = {
     софт: "Софт",
@@ -36,53 +24,6 @@ const CATEGORY_ICONS: Record<string, string> = {
     инструкции: "📖",
 };
 
-const seedItems: SoftwareItem[] = [
-    {
-        id: 1, category: "софт", title: "Nox App — v2.0.0",
-        description: "Полная переработка таймлайна и тепловой карты, добавлены тултипы и демо-данные. Обновлённый интерфейс, исправления ошибок и улучшение производительности.",
-        date: "22 мая 2026", author: "sanK-63", authorId: 1, tags: ["Nox App", "Релиз", "Обновление"],
-        downloadUrl: "https://github.com/sanK-63/nox-app/releases/tag/v2.0.0", downloadLabel: "Скачать v2.0.0", version: "v2.0.0",
-    },
-    {
-        id: 2, category: "инструкции", title: "Настройка сервера для турниров",
-        description: "Пошаговая инструкция по настройке выделенного сервера для проведения киберспортивных турниров. Включает оптимизацию сети и параметры запуска.",
-        date: "18 мая 2026", author: "Тунев А.С.", authorId: 1, tags: ["Сервер", "Турниры", "Настройка"],
-    },
-    {
-        id: 3, category: "оптимизация", title: "Оптимизация FPS в CS2",
-        description: "Комплексный гайд по настройке графики и системы для максимального FPS в Counter-Strike 2. Конфиги, параметры запуска, настройки Windows.",
-        date: "15 мая 2026", author: "Черепков К.В.", authorId: 2, tags: ["CS2", "FPS", "Оптимизация"],
-    },
-    {
-        id: 4, category: "файлы", title: "Конфиги серверов",
-        description: "Архив конфигурационных файлов для игровых серверов: CS2, Dota 2, Valorant. Готовые файлы для быстрого развёртывания.",
-        date: "12 мая 2026", author: "sanK-63", authorId: 1, tags: ["Конфиги", "Серверы"],
-        downloadUrl: "#", downloadLabel: "Скачать архив",
-    },
-    {
-        id: 5, category: "софт", title: "Nox App — v1.5.0",
-        description: "Добавлена поддержка Battlefield 6, исправлен баг с отображением тепловой карты, улучшена производительность на больших данных.",
-        date: "5 мая 2026", author: "sanK-63", authorId: 1, tags: ["Nox App", "Обновление"],
-        downloadUrl: "https://github.com/sanK-63/nox-app/releases/tag/v1.5.0", downloadLabel: "Скачать v1.5.0", version: "v1.5.0",
-    },
-    {
-        id: 6, category: "инструкции", title: "Как создать турнир",
-        description: "Подробная инструкция по созданию турнира в корпоративном портале: от настройки формата до генерации сетки и подведения итогов.",
-        date: "1 мая 2026", author: "Тунев А.С.", authorId: 1, tags: ["Турниры", "Инструкция"],
-    },
-    {
-        id: 7, category: "оптимизация", title: "Настройка Discord бота",
-        description: "Гайд по развёртыванию и настройке Discord-бота для автоматического создания голосовых каналов для турниров и уведомлений.",
-        date: "28 апреля 2026", author: "Черепков К.В.", authorId: 2, tags: ["Discord", "Бот", "Настройка"],
-    },
-    {
-        id: 8, category: "файлы", title: "Шаблоны документов",
-        description: "Готовые шаблоны .docx для внутренних документов: приказы, протоколы, заявки. Автоматическая генерация через портал.",
-        date: "20 апреля 2026", author: "Тунев А.С.", authorId: 1, tags: ["Шаблоны", "Документы"],
-        downloadUrl: "#", downloadLabel: "Скачать шаблоны",
-    },
-];
-
 const tabs = ["Лента", "Софт", "Файлы", "Оптимизация", "Инструкции"];
 
 const catForTab: Record<string, string | null> = {
@@ -100,9 +41,12 @@ function formatDate(d: Date): string {
 
 export default function SoftwarePage() {
     const { user } = useUser();
+    const socket = useSocket();
     const [activeTab, setActiveTab] = useState("Лента");
-    const [items, setItems] = useState<SoftwareItem[]>(seedItems);
+    const [items, setItems] = useState<SoftwareItemData[]>([]);
+    const [loading, setLoading] = useState(true);
     const [showAdd, setShowAdd] = useState(false);
+    const [editItem, setEditItem] = useState<SoftwareItemData | null>(null);
 
     const [form, setForm] = useState({
         title: "", description: "", tags: "", version: "", downloadUrl: "", downloadLabel: "", category: "софт",
@@ -110,36 +54,90 @@ export default function SoftwarePage() {
 
     const currentCat = getCatForTab(activeTab);
 
+    useEffect(() => {
+        softwareApi.list().then(setItems).catch(() => {}).finally(() => setLoading(false));
+    }, []);
+
+    useEffect(() => {
+        if (!socket) return;
+        const onCreated = (item: SoftwareItemData) => setItems((prev) => [item, ...prev]);
+        const onUpdated = (item: SoftwareItemData) => setItems((prev) => prev.map((i) => i.id === item.id ? item : i));
+        const onDeleted = ({ id }: { id: number }) => setItems((prev) => prev.filter((i) => i.id !== id));
+        socket.on("software:created", onCreated);
+        socket.on("software:updated", onUpdated);
+        socket.on("software:deleted", onDeleted);
+        return () => { socket.off("software:created", onCreated); socket.off("software:updated", onUpdated); socket.off("software:deleted", onDeleted); };
+    }, [socket]);
+
     const filteredItems = useMemo(() => {
         if (currentCat === null) return [...items].sort((a, b) => b.id - a.id);
         return items.filter((i) => i.category === currentCat).sort((a, b) => b.id - a.id);
     }, [items, currentCat]);
 
-    const handleAdd = () => {
-        if (!form.title.trim() || !form.description.trim() || !user) return;
-        const now = new Date();
-        const cat = currentCat || form.category;
-        const newItem: SoftwareItem = {
-            id: Date.now(),
-            category: cat as SoftwareItem["category"],
-            title: form.title.trim(),
-            description: form.description.trim(),
-            date: formatDate(now),
-            author: user.displayName || user.username,
-            authorId: user.id,
-            tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
-            version: form.version.trim() || undefined,
-            downloadUrl: form.downloadUrl.trim() || undefined,
-            downloadLabel: form.downloadLabel.trim() || undefined,
-        };
-        setItems((prev) => [newItem, ...prev]);
-        setForm({ title: "", description: "", tags: "", version: "", downloadUrl: "", downloadLabel: "", category: "софт" });
-        setShowAdd(false);
+    const resetForm = () => setForm({ title: "", description: "", tags: "", version: "", downloadUrl: "", downloadLabel: "", category: "софт" });
+
+    const openAdd = () => {
+        resetForm();
+        if (currentCat) setForm((p) => ({ ...p, category: currentCat }));
+        setShowAdd(true);
     };
 
-    const handleDelete = (id: number) => {
+    const openEdit = (item: SoftwareItemData) => {
+        setForm({
+            title: item.title,
+            description: item.description,
+            tags: (item.tags || []).join(", "),
+            version: item.version || "",
+            downloadUrl: item.downloadUrl || "",
+            downloadLabel: item.downloadLabel || "",
+            category: item.category,
+        });
+        setEditItem(item);
+    };
+
+    const handleAdd = async () => {
+        if (!form.title.trim() || !form.description.trim() || !user) return;
+        const cat = currentCat || form.category;
+        try {
+            const created = await softwareApi.create({
+                category: cat,
+                title: form.title.trim(),
+                description: form.description.trim(),
+                tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+                version: form.version.trim() || undefined,
+                downloadUrl: form.downloadUrl.trim() || undefined,
+                downloadLabel: form.downloadLabel.trim() || undefined,
+            });
+            setItems((prev) => [created, ...prev]);
+            resetForm();
+            setShowAdd(false);
+        } catch {}
+    };
+
+    const handleEdit = async () => {
+        if (!editItem || !form.title.trim() || !form.description.trim()) return;
+        try {
+            const updated = await softwareApi.update(editItem.id, {
+                category: form.category,
+                title: form.title.trim(),
+                description: form.description.trim(),
+                tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+                version: form.version.trim() || null,
+                downloadUrl: form.downloadUrl.trim() || null,
+                downloadLabel: form.downloadLabel.trim() || null,
+            });
+            setItems((prev) => prev.map((i) => i.id === updated.id ? updated : i));
+            setEditItem(null);
+            resetForm();
+        } catch {}
+    };
+
+    const handleDelete = async (id: number) => {
         if (!confirm("Удалить публикацию?")) return;
-        setItems((prev) => prev.filter((i) => i.id !== id));
+        try {
+            await softwareApi.delete(id);
+            setItems((prev) => prev.filter((i) => i.id !== id));
+        } catch {}
     };
 
     return (
@@ -149,7 +147,7 @@ export default function SoftwarePage() {
                     Софт
                 </h1>
                 <button
-                    onClick={() => { setShowAdd(true); if (currentCat) setForm((p) => ({ ...p, category: currentCat })); }}
+                    onClick={openAdd}
                     className="bg-[#FA6814] text-white px-5 py-2.5 text-sm font-semibold uppercase hover:bg-[#ff7a2a] transition-colors cursor-pointer"
                 >
                     Добавить
@@ -172,7 +170,9 @@ export default function SoftwarePage() {
                 ))}
             </div>
 
-            {filteredItems.length === 0 ? (
+            {loading ? (
+                <div className="text-center py-10 text-gray-500 text-xs">Загрузка...</div>
+            ) : filteredItems.length === 0 ? (
                 <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-8 text-center">
                     <p className="text-xs text-gray-500">Пока нет публикаций в этой категории.</p>
                 </div>
@@ -188,10 +188,10 @@ export default function SoftwarePage() {
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 bg-[#212121] border border-[#3b3b3b] flex items-center justify-center text-[10px] text-[#FA6814] font-bold">
-                                            {item.author[0].toUpperCase()}
+                                            {item.author ? (item.author.displayName || item.author.username)[0].toUpperCase() : "?"}
                                         </div>
                                         <div>
-                                            <span className="text-xs text-white font-medium">{item.author}</span>
+                                            <span className="text-xs text-white font-medium">{item.author?.displayName || item.author?.username || "—"}</span>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -205,20 +205,28 @@ export default function SoftwarePage() {
                                         >
                                             {CATEGORY_LABELS[item.category]}
                                         </span>
-                                        <span className="text-[10px] text-gray-500">{item.date}</span>
+                                        <span className="text-[10px] text-gray-500">{formatDate(new Date(item.createdAt))}</span>
                                         {user && (user.id === item.authorId || user.username === "tunev") && (
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="text-gray-600 hover:text-[#D32F2F] text-[10px] transition-colors cursor-pointer"
-                                            >
-                                                ✕
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => openEdit(item)}
+                                                    className="text-gray-600 hover:text-[#FA6814] text-[10px] transition-colors cursor-pointer"
+                                                >
+                                                    ✎
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(item.id)}
+                                                    className="text-gray-600 hover:text-[#D32F2F] text-[10px] transition-colors cursor-pointer"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
                                 <h2 className="text-base font-bold text-white">{item.title}</h2>
                                 <div className="flex gap-2 mt-2">
-                                    {item.tags.map((tag) => (
+                                    {(item.tags || []).map((tag) => (
                                         <span
                                             key={tag}
                                             className="text-[9px] px-2 py-0.5 bg-[#212121] border border-[#3b3b3b] text-gray-400"
@@ -255,16 +263,31 @@ export default function SoftwarePage() {
                 </div>
             )}
 
-            {showAdd && (
+            {(showAdd || editItem) && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center"
                     style={{ background: "rgba(0,0,0,0.6)" }}
-                    onClick={() => setShowAdd(false)}
+                    onClick={() => { setShowAdd(false); setEditItem(null); resetForm(); }}
                 >
                     <div className="w-[550px] max-h-[85vh] overflow-y-auto bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-lg font-semibold mb-5">Новая публикация</h3>
+                        <h3 className="text-lg font-semibold mb-5">{editItem ? "Редактировать" : "Новая публикация"}</h3>
 
-                        {!currentCat && (
+                        {currentCat && !editItem && (
+                            <div className="mb-4">
+                                <span
+                                    className="text-[10px] px-2 py-0.5 uppercase font-semibold inline-block"
+                                    style={{
+                                        color: CATEGORY_COLORS[currentCat],
+                                        background: `${CATEGORY_COLORS[currentCat]}15`,
+                                        border: `1px solid ${CATEGORY_COLORS[currentCat]}30`,
+                                    }}
+                                >
+                                    {CATEGORY_ICONS[currentCat]} {CATEGORY_LABELS[currentCat]}
+                                </span>
+                            </div>
+                        )}
+
+                        {(!currentCat || editItem) && (
                             <>
                                 <label className="block text-xs uppercase text-gray-400 mb-2">Категория *</label>
                                 <div className="flex gap-2 mb-4">
@@ -284,21 +307,6 @@ export default function SoftwarePage() {
                                     ))}
                                 </div>
                             </>
-                        )}
-
-                        {currentCat && (
-                            <div className="mb-4">
-                                <span
-                                    className="text-[10px] px-2 py-0.5 uppercase font-semibold inline-block"
-                                    style={{
-                                        color: CATEGORY_COLORS[currentCat],
-                                        background: `${CATEGORY_COLORS[currentCat]}15`,
-                                        border: `1px solid ${CATEGORY_COLORS[currentCat]}30`,
-                                    }}
-                                >
-                                    {CATEGORY_ICONS[currentCat]} {CATEGORY_LABELS[currentCat]}
-                                </span>
-                            </div>
                         )}
 
                         <label className="block text-xs uppercase text-gray-400 mb-2">Заголовок *</label>
@@ -359,15 +367,15 @@ export default function SoftwarePage() {
                         )}
 
                         <div className="flex justify-end gap-3 mt-5">
-                            <button onClick={() => setShowAdd(false)} className="bg-[#303030] border border-[#404040] text-white px-5 py-2.5 text-sm font-semibold hover:bg-[#3a3a3a] transition-colors cursor-pointer">
+                            <button onClick={() => { setShowAdd(false); setEditItem(null); resetForm(); }} className="bg-[#303030] border border-[#404040] text-white px-5 py-2.5 text-sm font-semibold hover:bg-[#3a3a3a] transition-colors cursor-pointer">
                                 Отмена
                             </button>
                             <button
-                                onClick={handleAdd}
+                                onClick={editItem ? handleEdit : handleAdd}
                                 disabled={!form.title.trim() || !form.description.trim()}
                                 className="bg-[#FA6814] text-white px-5 py-2.5 text-sm font-semibold hover:bg-[#ff7a2a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                             >
-                                Опубликовать
+                                {editItem ? "Сохранить" : "Опубликовать"}
                             </button>
                         </div>
                     </div>

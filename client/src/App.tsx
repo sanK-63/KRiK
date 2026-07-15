@@ -28,6 +28,7 @@ import LeaderboardPage from "./pages/LeaderboardPage";
 import FeedPage from "./pages/FeedPage";
 import LibraryPage from "./pages/LibraryPage";
 import AdminPage from "./pages/AdminPage";
+import MessagesPage from "./pages/MessagesPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem("token");
@@ -74,6 +75,8 @@ function App() {
                         <Route path="/logs" element={<LogsPage />} />
                         <Route path="/admin" element={<AdminPage />} />
                         <Route path="/search" element={<SearchPage />} />
+                        <Route path="/messages" element={<MessagesPage />} />
+                        <Route path="/messages/:id" element={<MessagesPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                     </Route>
 

@@ -87,3 +87,25 @@ button {
     border: 1px solid var(--color-border);
     border-radius: 4px;
 }
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #212121;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #FA6814;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #3a3a3a #212121;
+}
