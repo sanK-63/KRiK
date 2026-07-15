@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-const TABS = ["ИМТ", "Колесо Фартуны", "Рандомайзер", "Кости", "Метроном", "Тюнер"] as const;
+const TABS = ["ИМТ", "Колесо Фартуны", "Рандомайзер", "Кости", "Метроном", "Тюнер", "Генератор частот"] as const;
 type Tab = typeof TABS[number];
 
 // ═══════════════════════════════════════════════════════════════
@@ -57,7 +57,7 @@ function BMICalculator() {
         <div className="space-y-4">
             <div className="p-4 border-b border-[#3a3a3a]">
                 <h2 className="text-white font-bold text-sm mb-1">Индекс Массы Тела (ИМТ)</h2>
-                <p className="text-[11px] text-gray-500 leading-relaxed">Простой показатель соотношения роста и веса для классификации веса.</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed">Калькулятор ИМТ — вычисляет соотношение роста и веса для оценки массы тела. Формула: ИМТ = вес (кг) / рост² (м²). Результат классифицирует вес по категориям: дефицит, норма, избыток или ожирение, и показывает идеальный диапазон веса для вашего роста и пола.</p>
             </div>
 
             <div className="px-4">
@@ -195,7 +195,7 @@ function FortuneWheel() {
         <div className="space-y-4">
             <div className="p-4 border-b border-[#3a3a3a]">
                 <h2 className="text-white font-bold text-sm mb-1">Колесо Фартуны</h2>
-                <p className="text-[11px] text-gray-500">Добавьте сегменты и крутите колесо!</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed">Интерактивное колесо удачи с настраиваемыми сегментами. Добавьте от 2 до 12 вариантов, крутите колесо — оно сделает 5–9 полных оборотов и случайно остановится на одном из сегментов. Идеально для розыгрышей, выбора победителя или случайного решения.</p>
             </div>
 
             <div className="px-4 flex gap-2">
@@ -286,7 +286,7 @@ function Randomizer() {
         <div className="space-y-4">
             <div className="p-4 border-b border-[#3a3a3a]">
                 <h2 className="text-white font-bold text-sm mb-1">Генератор Случайных Чисел</h2>
-                <p className="text-[11px] text-gray-500">Генерируйте случайные числа в заданном диапазоне.</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed">Генератор случайных чисел с настраиваемым диапазоном и количеством результатов. Задайте минимальное и максимальное значение, укажите сколько чисел нужно сгенерировать (до 20 за раз). Результаты появляются с анимацией гонки. Встроенные пресеты: D6, D20, проценты, лотерея 5 из 36.</p>
             </div>
 
             <div className="px-4 grid grid-cols-3 gap-3">
@@ -415,7 +415,7 @@ function Dice() {
         <div className="space-y-4">
             <div className="p-4 border-b border-[#3a3a3a]">
                 <h2 className="text-white font-bold text-sm mb-1">Игральные Кости</h2>
-                <p className="text-[11px] text-gray-500">Выберите тип кости и количество и бросьте!</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed">Виртуальные игральные кости для настольных игр и RPG. Выберите тип кости по количеству граней: d4 (тетраэдр), d6 (кубик), d8 (октаэдр), d10 (децагонал), d12 (додекаэдр), d20 (икосаэдр) или d100 (процентная). Кидайте от 1 до 10 костей за раз, SVG-анимация броска, история результатов с подсчётом суммы.</p>
             </div>
 
             <div className="px-4">
@@ -491,7 +491,7 @@ function Metronome() {
     const [playing, setPlaying] = useState(false);
     const [timeSignature, setTimeSignature] = useState("4/4");
     const [beat, setBeat] = useState(0);
-    const [swing, setSwing] = useState(0);
+
     const audioCtxRef = useRef<AudioContext | null>(null);
     const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const nextNoteRef = useRef(0);
@@ -550,7 +550,7 @@ function Metronome() {
         <div className="space-y-4">
             <div className="p-4 border-b border-[#3a3a3a]">
                 <h2 className="text-white font-bold text-sm mb-1">Метроном</h2>
-                <p className="text-[11px] text-gray-500">Ритм-мейкер для музыкантов.</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed">Цифровой метроном для поддержания ровного темпа. Диапазон: 20–300 BPM с ползунком и кнопками ±1. Выбор размера: 2/4, 3/4, 4/4, 5/4, 6/8, 7/8. Визуальный индикатор подсвечивает текущий бит (первая доля — акцент). Итальянские обозначения темпа: от Largo (медленно) до Presto (очень быстро). Звуковые щелчки через Web Audio API.</p>
             </div>
 
             {/* BPM display */}
@@ -724,7 +724,7 @@ function Tuner() {
         <div className="space-y-4">
             <div className="p-4 border-b border-[#3a3a3a]">
                 <h2 className="text-white font-bold text-sm mb-1">Тюнер</h2>
-                <p className="text-[11px] text-gray-500">Настройте инструмент по микрофону.</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed">Хроматический тюнер с определением высоты звука через микрофон. Детектирует ноту (C–B), октаву и отклонение в центах (±50). Эталонная частота A4 = 440 Гц. Визуальный индикатор показывает расстройку: в бемоль (♭) — нота ниже нормы, в диез (♯) — выше, по центру — настроено точно. Работает с гитарой, фортепиано, вокалом и другими инструментами.</p>
             </div>
 
             {error && (
@@ -792,6 +792,167 @@ function Tuner() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// Генератор частот (Tone Generator)
+// ═══════════════════════════════════════════════════════════════
+
+const WAVEFORMS = ["sine", "square", "sawtooth", "triangle"] as const;
+type Waveform = typeof WAVEFORMS[number];
+const WAVEFORM_LABELS: Record<Waveform, string> = { sine: "Синус", square: "Пила", sawtooth: "Зуб", triangle: "Треугольник" };
+
+const FREQ_PRESETS = [
+    { label: "Суб-бас", freq: 40, desc: "20–60 Гц — физически ощутимый гул" },
+    { label: "Бас", freq: 100, desc: "60–250 Гц — глубокий бас" },
+    { label: "Низ mid", freq: 400, desc: "250–500 Гц — тёплый тон" },
+    { label: "Mid", freq: 1000, desc: "500–2000 Гц — основной тон" },
+    { label: "High mid", freq: 3000, desc: "2–4 кГц — присутствие" },
+    { label: "Высокие", freq: 8000, desc: "4–12 кГц — яркость" },
+    { label: "Верх", freq: 16000, desc: "12–20 кГц — эрцитет" },
+    { label: "A4 (тест)", freq: 440, desc: "Эталон ноты ля" },
+];
+
+function ToneGenerator() {
+    const [frequency, setFrequency] = useState(440);
+    const [waveform, setWaveform] = useState<Waveform>("sine");
+    const [volume, setVolume] = useState(0.3);
+    const [playing, setPlaying] = useState(false);
+    const [activePreset, setActivePreset] = useState<number | null>(7);
+    const oscRef = useRef<OscillatorNode | null>(null);
+    const gainRef = useRef<GainNode | null>(null);
+    const ctxRef = useRef<AudioContext | null>(null);
+
+    const startTone = useCallback(() => {
+        if (ctxRef.current?.state === "suspended") ctxRef.current.resume();
+        if (!ctxRef.current) ctxRef.current = new AudioContext();
+        const ctx = ctxRef.current;
+
+        if (oscRef.current) { try { oscRef.current.stop(); } catch {} }
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = waveform;
+        osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+        gain.gain.setValueAtTime(volume, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        oscRef.current = osc;
+        gainRef.current = gain;
+        setPlaying(true);
+    }, [frequency, waveform, volume]);
+
+    const stopTone = useCallback(() => {
+        if (oscRef.current) { try { oscRef.current.stop(); } catch {} oscRef.current = null; }
+        setPlaying(false);
+    }, []);
+
+    const updateFrequency = useCallback((freq: number) => {
+        setFrequency(freq);
+        if (oscRef.current && ctxRef.current) {
+            oscRef.current.frequency.setValueAtTime(freq, ctxRef.current.currentTime);
+        }
+    }, []);
+
+    const updateWaveform = useCallback((wf: Waveform) => {
+        setWaveform(wf);
+        if (oscRef.current) oscRef.current.type = wf;
+    }, []);
+
+    const updateVolume = useCallback((vol: number) => {
+        setVolume(vol);
+        if (gainRef.current && ctxRef.current) {
+            gainRef.current.gain.setValueAtTime(vol, ctxRef.current.currentTime);
+        }
+    }, []);
+
+    useEffect(() => () => { stopTone(); if (ctxRef.current) ctxRef.current.close(); }, []);
+
+    const getNoteLabel = (freq: number) => {
+        const A4 = 440;
+        const semitones = 12 * Math.log2(freq / A4);
+        const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        const idx = Math.round(semitones) % 12;
+        const octave = 4 + Math.floor((Math.round(semitones) + 9) / 12);
+        return `${notes[(idx + 12) % 12]}${octave}`;
+    };
+
+    return (
+        <div className="space-y-4">
+            <div className="p-4 border-b border-[#3a3a3a]">
+                <h2 className="text-white font-bold text-sm mb-1">Генератор частот</h2>
+                <p className="text-[11px] text-gray-500 leading-relaxed">Генератор звуковых тонов для тестирования аудиооборудования, настройки инструментов и проверки слуха. Задайте частоту (20–20 000 Гц), форму волны и громкость. Используйте пресеты для быстрого переключения между диапазонами.</p>
+            </div>
+
+            {/* Main display */}
+            <div className="px-4">
+                <div className="bg-[#1a1a1a] border border-[#3a3a3a] p-6 text-center">
+                    <p className="text-[10px] uppercase text-gray-500 mb-2" style={{ fontFamily: '"Press Start 2P", system-ui' }}>Частота</p>
+                    <div className="flex items-center justify-center gap-4">
+                        <button onClick={() => updateFrequency(Math.max(20, frequency - (frequency < 100 ? 1 : frequency < 1000 ? 10 : 100)))} className="bg-[#282828] border border-[#3a3a3a] text-white w-10 h-10 flex items-center justify-center text-lg hover:border-[#FA6814] transition-colors cursor-pointer">−</button>
+                        <div>
+                            <input type="number" min={20} max={20000} value={frequency} onChange={(e) => updateFrequency(Math.max(20, Math.min(20000, Number(e.target.value))))} className="w-28 bg-transparent border-b-2 border-[#FA6814] text-[#FA6814] text-4xl font-bold text-center outline-none" style={{ fontFamily: '"Press Start 2P", system-ui' }} />
+                            <p className="text-xs text-gray-500 mt-1">Гц · {getNoteLabel(frequency)}</p>
+                        </div>
+                        <button onClick={() => updateFrequency(Math.min(20000, frequency + (frequency < 100 ? 1 : frequency < 1000 ? 10 : 100)))} className="bg-[#282828] border border-[#3a3a3a] text-white w-10 h-10 flex items-center justify-center text-lg hover:border-[#FA6814] transition-colors cursor-pointer">+</button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Frequency slider */}
+            <div className="px-4">
+                <input type="range" min={20} max={20000} value={frequency} onChange={(e) => updateFrequency(Number(e.target.value))} className="w-full accent-[#FA6814] h-2 cursor-pointer" />
+                <div className="flex justify-between text-[9px] text-gray-600 mt-1">
+                    <span>20 Гц</span><span>100</span><span>1 кГц</span><span>10 кГц</span><span>20 кГц</span>
+                </div>
+            </div>
+
+            {/* Volume */}
+            <div className="px-4">
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] uppercase text-gray-500 w-20">Громкость</span>
+                    <input type="range" min={0} max={1} step={0.01} value={volume} onChange={(e) => updateVolume(Number(e.target.value))} className="flex-1 accent-[#FA6814] h-2 cursor-pointer" />
+                    <span className="text-xs text-gray-400 w-10 text-right">{Math.round(volume * 100)}%</span>
+                </div>
+            </div>
+
+            {/* Waveform selector */}
+            <div className="px-4">
+                <label className="text-[10px] uppercase text-gray-500 mb-2 block">Форма волны</label>
+                <div className="flex gap-2">
+                    {WAVEFORMS.map((wf) => (
+                        <button key={wf} onClick={() => updateWaveform(wf)} className="flex-1 py-2.5 text-xs font-semibold border transition-colors cursor-pointer" style={{ background: waveform === wf ? "#FA681415" : "#1a1a1a", borderColor: waveform === wf ? "#FA6814" : "#3a3a3a", color: waveform === wf ? "#FA6814" : "#808080" }}>
+                            {WAVEFORM_LABELS[wf]}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Play/Stop */}
+            <div className="px-4 flex justify-center">
+                <button onClick={playing ? stopTone : startTone} className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold transition-all cursor-pointer border-2" style={{ background: playing ? "#D32F2F" : "#FA6814", borderColor: playing ? "#D32F2F" : "#FA6814", color: "white", boxShadow: playing ? "0 0 20px #D32F2F40" : "0 0 20px #FA681440" }}>
+                    {playing ? "⏹" : "▶"}
+                </button>
+            </div>
+
+            {/* Presets */}
+            <div className="px-4 pb-4">
+                <p className="text-[10px] uppercase text-gray-500 mb-2">Пресеты</p>
+                <div className="grid grid-cols-2 gap-2">
+                    {FREQ_PRESETS.map((p, i) => (
+                        <button key={i} onClick={() => { updateFrequency(p.freq); setActivePreset(i); }} className="text-left bg-[#1a1a1a] border border-[#3a3a3a] p-2.5 hover:border-[#FA6814] transition-colors cursor-pointer" style={{ borderColor: activePreset === i ? "#FA6814" : undefined }}>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-white font-semibold">{p.label}</span>
+                                <span className="text-[10px] text-[#FA6814] font-bold">{p.freq} Гц</span>
+                            </div>
+                            <p className="text-[9px] text-gray-500 mt-0.5">{p.desc}</p>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Main Page
 // ═══════════════════════════════════════════════════════════════
 
@@ -806,6 +967,7 @@ export default function ResearchPage() {
             case "Кости": return <Dice />;
             case "Метроном": return <Metronome />;
             case "Тюнер": return <Tuner />;
+            case "Генератор частот": return <ToneGenerator />;
         }
     };
 
@@ -814,7 +976,7 @@ export default function ResearchPage() {
             {/* Header */}
             <div className="text-center mb-6">
                 <h1 className="text-[#FA6814] text-sm" style={{ fontFamily: '"Press Start 2P", system-ui' }}>Исследования</h1>
-                <p className="text-xs text-gray-500 mt-2">Инструменты, калькуляторы и генераторы</p>
+                <p className="text-xs text-gray-500 mt-2">Калькуляторы, генераторы, игровые и музыкальные инструменты — всё в одном месте</p>
             </div>
 
             {/* Tab bar */}
