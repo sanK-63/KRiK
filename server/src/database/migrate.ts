@@ -592,6 +592,20 @@ export function migrate() {
         insertProfile.run(5, "Казахстан");
     }
 
+    // Seed guest user
+    const guestCount = sqlite.prepare("SELECT COUNT(*) as c FROM users WHERE username = 'guest'").get() as { c: number };
+    if (guestCount.c === 0) {
+        const crypto = require("crypto");
+        const bcryptjs = require("bcryptjs");
+        const { v4: guestUuid } = require("uuid");
+        const guestKey = "gost-krik-6881b607";
+        const guestLookup = crypto.createHash("sha256").update(guestKey).digest("hex");
+        const guestHash = bcryptjs.hashSync(guestKey, 10);
+        sqlite.prepare("INSERT INTO users (uuid, username, display_name, email, access_key_hash, key_lookup, status) VALUES (?, ?, ?, ?, ?, ?, ?)").run(
+            guestUuid(), "guest", "Гость", "guest@krik.local", guestHash, guestLookup, "active"
+        );
+    }
+
     // Seed games
     const gameCount = sqlite.prepare("SELECT COUNT(*) as c FROM games").get() as { c: number };
     if (gameCount.c === 0) {
