@@ -109,3 +109,612 @@ button {
     scrollbar-width: thin;
     scrollbar-color: #3a3a3a #212121;
 }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* 3D Dice Roller                                                */
+/* ═══════════════════════════════════════════════════════════════ */
+
+:root {
+    --steel-0: #f2f2f2;
+    --steel-13: #3a3a3a;
+    --steel-15: #212121;
+    --steel-17: #1a1a1a;
+    --dc-size: 100px;
+    --d6-size: calc(var(--dc-size) * .8);
+    --d8-size: calc(var(--dc-size) * .8);
+    --d10-size: calc(var(--dc-size) * .9);
+    --d12-size: calc(var(--dc-size) * .6);
+    --d20-size: calc(var(--dc-size) * .6);
+    --perspective: calc(var(--dc-size) * 1.70);
+}
+
+@keyframes spin {
+    from {
+        transform: rotateX(0) rotateY(0) rotateZ(0);
+    }
+    to {
+        transform: rotateX(360deg) rotateY(720deg) rotateZ(360deg);
+    }
+}
+
+.dice-cont {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    position: relative;
+}
+
+.dice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--dc-size);
+    perspective: var(--perspective);
+}
+
+.outcome-cont {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.outcome {
+    font-size: 30px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.outcome.d4 {
+    transform: translateY(12px);
+}
+
+.roll-button {
+    margin: 0 auto;
+    border: none;
+    background: none;
+}
+
+.roll-button:hover {
+    cursor: pointer;
+}
+
+/* ---------- d4 (tetrahedron) ---------- */
+.tetra {
+    position: relative;
+    width: var(--dc-size);
+    height: calc(var(--dc-size) * .866);
+    margin: 0 auto;
+    border: none;
+    background: none;
+    transform-style: preserve-3d;
+    transform-origin: 50% 66%;
+    transition: transform 1s ease;
+}
+
+.tetra div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.tetra .face:nth-child(1) {
+    transform-origin: 0% 100%;
+    transform: translateZ(calc(var(--dc-size) * -0.33)) rotate(0deg) rotatex(0deg);
+}
+
+.tetra .face:nth-child(2) {
+    transform-origin: 0% 100%;
+    transform: translateZ(calc(var(--dc-size) * -0.33)) rotate(-60deg) rotatex(-109.5deg);
+}
+
+.tetra .face:nth-child(3) {
+    transform-origin: 100% 100%;
+    transform: translateZ(calc(var(--dc-size) * -0.33)) rotate(60deg) rotatex(-109.5deg);
+}
+
+.tetra .face:nth-child(4) {
+    transform-origin: 50% 100%;
+    transform: translateZ(calc(var(--dc-size) * -0.33)) rotate(180deg) rotatex(-109.5deg);
+}
+
+.tetra svg {
+    fill: rgba(250,104,20,0.15);
+    stroke-width: 2px;
+    stroke: #FA6814;
+}
+
+/* ---------- d6 (cube) ---------- */
+.cube {
+    position: relative;
+    width: var(--d6-size);
+    height: var(--d6-size);
+    margin: 0 auto;
+    transform-style: preserve-3d;
+    transform-origin: 50% 50%;
+    border: none;
+    background: none;
+    transition: transform 1s ease;
+}
+
+.cube div {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.cube .face:nth-child(1) {
+    transform-origin: 50% 100%;
+    transform: translateZ(calc(var(--d6-size) / 2)) rotatex(0deg);
+}
+
+.cube .face:nth-child(2) {
+    transform-origin: 50% 100%;
+    transform: translateZ(calc(var(--d6-size) / 2)) rotatex(90deg);
+}
+
+.cube .face:nth-child(3) {
+    transform-origin: 0% 50%;
+    transform: translateZ(calc(var(--d6-size) / 2)) rotateY(90deg);
+}
+
+.cube .face:nth-child(4) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d6-size) / 2)) rotatex(-90deg);
+}
+
+.cube .face:nth-child(5) {
+    transform-origin: 100% 50%;
+    transform: translateZ(calc(var(--d6-size) / 2)) rotateY(-90deg);
+}
+
+.cube .face:nth-child(6) {
+    transform-origin: 50% 50%;
+    transform: translateZ(calc(var(--d6-size) / -2));
+}
+
+.cube svg {
+    fill: rgba(250,104,20,0.15);
+    stroke-width: 2px;
+    stroke: #FA6814;
+}
+
+/* ---------- d8 (octahedron) ---------- */
+.octa {
+    position: relative;
+    width: var(--d8-size);
+    height: var(--d8-size);
+    margin: 0 auto;
+    border: none;
+    background: none;
+    transform-style: preserve-3d;
+    transform-origin: 50% 50%;
+    transition: transform 1s ease;
+}
+
+.octa div {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: calc(var(--d8-size) * .866);
+}
+
+.octa .face:nth-child(1) {
+    transform-origin: 50% 100%;
+    transform: rotatex(54.74deg);
+}
+
+.octa .face:nth-child(2) {
+    transform-origin: 0% 100%;
+    transform: rotate(-90deg) rotatex(125.26deg);
+}
+
+.octa .face:nth-child(3) {
+    transform-origin: 100% 100%;
+    transform: rotate(90deg) rotatex(125.26deg);
+}
+
+.octa .face:nth-child(4) {
+    top: 0;
+    transform-origin: 50% 0%;
+    transform: rotatex(-54.74deg);
+}
+
+.octa .face:nth-child(5) {
+    top: 0;
+    transform-origin: 50% 0%;
+    transform: rotatex(54.74deg);
+}
+
+.octa .face:nth-child(6) {
+    top: 0;
+    transform-origin: 0% 0%;
+    transform: rotate(90deg) rotatex(125.26deg);
+}
+
+.octa .face:nth-child(7) {
+    top: 0;
+    transform-origin: 100% 0%;
+    transform: rotate(-90deg) rotatex(125.26deg);
+}
+
+.octa .face:nth-child(8) {
+    transform-origin: 50% 100%;
+    transform: rotatex(-54.74deg);
+}
+
+.octa svg {
+    fill: rgba(250,104,20,0.15);
+    stroke-width: 2px;
+    stroke: #FA6814;
+}
+
+/* ---------- d10 (pentagonal trapezohedron) ---------- */
+.pentrap {
+    position: relative;
+    width: var(--d10-size);
+    height: var(--d10-size);
+    margin: 0 auto;
+    border: none;
+    background: none;
+    transform-style: preserve-3d;
+    transform-origin: 50% 50%;
+    transition: transform 1s ease;
+}
+
+.pentrap div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    left: 20%;
+    width: 60%;
+    height: auto;
+}
+
+.pentrap .face:nth-child(1) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d10-size) * 0.5875)) rotate(0deg) rotatex(-128.18deg);
+}
+
+.pentrap .face:nth-child(2) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d10-size) * 0.5875)) rotate(72deg) rotatex(-128.18deg);
+}
+
+.pentrap .face:nth-child(3) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d10-size) * 0.5875)) rotate(144deg) rotatex(-128.18deg);
+}
+
+.pentrap .face:nth-child(4) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d10-size) * 0.5875)) rotate(216deg) rotatex(-128.18deg);
+}
+
+.pentrap .face:nth-child(5) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d10-size) * 0.5875)) rotate(288deg) rotatex(-128.18deg);
+}
+
+.pentrap .face:nth-child(6) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d10-size) * -0.5875)) rotate(36deg) rotatex(128.18deg);
+}
+
+.pentrap .face:nth-child(7) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d10-size) * -0.5875)) rotate(108deg) rotatex(128.18deg);
+}
+
+.pentrap .face:nth-child(8) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d10-size) * -0.5875)) rotate(180deg) rotatex(128.18deg);
+}
+
+.pentrap .face:nth-child(9) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d10-size) * -0.5875)) rotate(252deg) rotatex(128.18deg);
+}
+
+.pentrap .face:nth-child(10) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d10-size) * -0.58)) rotate(324deg) rotatex(128.18deg);
+}
+
+.pentrap svg {
+    fill: rgba(250,104,20,0.15);
+    stroke-width: 1px;
+    stroke: #FA6814;
+}
+
+/* ---------- d12 (dodecahedron) ---------- */
+.dodec {
+    position: relative;
+    width: var(--dc-size);
+    height: calc(var(--dc-size) * 0.9511);
+    margin: 0 auto;
+    border: none;
+    background: none;
+    transform-style: preserve-3d;
+    transform-origin: 50% 50%;
+    transition: transform 1s ease;
+}
+
+.dodec div {
+    display: flex;
+    position: absolute;
+    top: 16.75%;
+    left: 19.75%;
+    width: var(--d12-size);
+    height: auto;
+    transform-origin: 50% 55.27%;
+}
+
+.dodec .face:nth-child(1) {
+    transform: translateZ(calc(var(--d12-size) * .69)) rotate(0deg) rotatex(0deg);
+}
+
+.dodec .face:nth-child(2) {
+    transform: translateY(65%) translateZ(calc(var(--d12-size) * .31)) rotate(180deg) rotatex(63.4deg);
+}
+
+.dodec .face:nth-child(3) {
+    transform: translateX(-58.7%) translateY(20.15%) translateZ(calc(var(--d12-size) * .31)) rotate(-108deg) rotatex(63.4deg);
+}
+
+.dodec .face:nth-child(4) {
+    transform: translateX(58.7%) translateY(20.15%) translateZ(calc(var(--d12-size) * .31)) rotate(108deg) rotatex(63.4deg);
+}
+
+.dodec .face:nth-child(5) {
+    transform: translateX(-36.3%) translateY(-52.45%) translateZ(calc(var(--d12-size) * .31)) rotate(-36deg) rotatex(63.4deg);
+}
+
+.dodec .face:nth-child(6) {
+    transform: translateX(36.3%) translateY(-52.45%) translateZ(calc(var(--d12-size) * .31)) rotate(36deg) rotatex(63.4deg);
+}
+
+.dodec .face:nth-child(7) {
+    transform: translateZ(calc(var(--d12-size) * -0.69)) rotate(180deg) rotatex(0deg);
+}
+
+.dodec .face:nth-child(8) {
+    transform: translateY(-65%) translateZ(calc(var(--d12-size) * -0.31)) rotate(0deg) rotatex(-63.4deg);
+}
+
+.dodec .face:nth-child(9) {
+    transform: translateX(58.7%) translateY(-20.15%) translateZ(calc(var(--d12-size) * -0.31)) rotate(72deg) rotatex(-63.4deg);
+}
+
+.dodec .face:nth-child(10) {
+    transform: translateX(-58.7%) translateY(-20.15%) translateZ(calc(var(--d12-size) * -0.31)) rotate(-72deg) rotatex(-63.4deg);
+}
+
+.dodec .face:nth-child(11) {
+    transform: translateX(36.3%) translateY(52.45%) translateZ(calc(var(--d12-size) * -0.31)) rotate(144deg) rotatex(-63.4deg);
+}
+
+.dodec .face:nth-child(12) {
+    transform: translateX(-36.3%) translateY(52.45%) translateZ(calc(var(--d12-size) * -0.31)) rotate(-144deg) rotatex(-63.4deg);
+}
+
+.dodec svg {
+    fill: rgba(250,104,20,0.15);
+    stroke-width: 2px;
+    stroke: #FA6814;
+}
+
+/* ---------- d20 (icosahedron) ---------- */
+.icosa {
+    position: relative;
+    width: var(--dc-size);
+    height: var(--dc-size);
+    margin: 0 auto;
+    transform-style: preserve-3d;
+    transform-origin: 50% 50%;
+    border: none;
+    background: none;
+    transition: transform 1s ease;
+}
+
+.icosa div {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    left: 19.75%;
+    width: var(--d20-size);
+    height: calc(var(--d20-size) * .866);
+}
+
+.icosa .face:nth-child(1) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d20-size) * 0.95)) rotatex(-37.35deg);
+}
+
+.icosa .face:nth-child(2) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d20-size) * 0.95)) rotate(72deg) rotatex(-37.35deg);
+}
+
+.icosa .face:nth-child(3) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d20-size) * 0.95)) rotate(144deg) rotatex(-37.35deg);
+}
+
+.icosa .face:nth-child(4) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d20-size) * 0.95)) rotate(216deg) rotatex(-37.35deg);
+}
+
+.icosa .face:nth-child(5) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d20-size) * 0.95)) rotate(288deg) rotatex(-37.35deg);
+}
+
+.icosa .face:nth-child(6) {
+    transform-origin: 50% 100%;
+    transform: translateY(-20.5%) translateZ(calc(var(--d20-size) * 0.425)) rotate(180deg) rotatex(79.2deg);
+}
+
+.icosa .face:nth-child(7) {
+    transform-origin: 50% 100%;
+    transform: translateX(-65.5%) translateY(-75.5%) translateZ(calc(var(--d20-size) * 0.425)) rotate(-108deg) rotatex(79.2deg);
+}
+
+.icosa .face:nth-child(8) {
+    transform-origin: 50% 100%;
+    transform: translateX(65.5%) translateY(-75.5%) translateZ(calc(var(--d20-size) * 0.425)) rotate(108deg) rotatex(79.2deg);
+}
+
+.icosa .face:nth-child(9) {
+    transform-origin: 50% 100%;
+    transform: translateX(-40.5%) translateY(-164.3%) translateZ(calc(var(--d20-size) * 0.425)) rotate(-36deg) rotatex(79.2deg);
+}
+
+.icosa .face:nth-child(10) {
+    transform-origin: 50% 100%;
+    transform: translateX(40.5%) translateY(-164.3%) translateZ(calc(var(--d20-size) * 0.425)) rotate(36deg) rotatex(79.2deg);
+}
+
+.icosa .face:nth-child(11) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d20-size) * -0.95)) rotate(180deg) rotatex(37.35deg);
+}
+
+.icosa .face:nth-child(12) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d20-size) * -0.95)) rotate(108deg) rotatex(37.35deg);
+}
+
+.icosa .face:nth-child(13) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d20-size) * -0.95)) rotate(36deg) rotatex(37.35deg);
+}
+
+.icosa .face:nth-child(14) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d20-size) * -0.95)) rotate(252deg) rotatex(37.35deg);
+}
+
+.icosa .face:nth-child(15) {
+    transform-origin: 50% 0%;
+    transform: translateZ(calc(var(--d20-size) * -0.95)) rotate(324deg) rotatex(37.35deg);
+}
+
+.icosa .face:nth-child(16) {
+    transform-origin: 50% 100%;
+    transform: translateY(-179.5%) translateZ(calc(var(--d20-size) * -0.425)) rotate(0deg) rotatex(-79.2deg);
+}
+
+.icosa .face:nth-child(17) {
+    transform-origin: 50% 100%;
+    transform: translateX(-65.5%) translateY(-124.5%) translateZ(calc(var(--d20-size) * -0.425)) rotate(-72deg) rotatex(-79.2deg);
+}
+
+.icosa .face:nth-child(18) {
+    transform-origin: 50% 100%;
+    transform: translateX(65.5%) translateY(-124.5%) translateZ(calc(var(--d20-size) * -0.425)) rotate(72deg) rotatex(-79.2deg);
+}
+
+.icosa .face:nth-child(19) {
+    transform-origin: 50% 100%;
+    transform: translateX(-40.5%) translateY(-35.7%) translateZ(calc(var(--d20-size) * -0.425)) rotate(-144deg) rotatex(-79.2deg);
+}
+
+.icosa .face:nth-child(20) {
+    transform-origin: 50% 100%;
+    transform: translateX(40.5%) translateY(-35.7%) translateZ(calc(var(--d20-size) * -0.425)) rotate(144deg) rotatex(-79.2deg);
+}
+
+.icosa svg {
+    fill: rgba(250,104,20,0.15);
+    stroke-width: 2px;
+    stroke: #FA6814;
+}
+
+/* ---------- Dice type selector ---------- */
+.dice-type-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    border: 1px solid #3a3a3a;
+    background: #1a1a1a;
+    color: #808080;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.dice-type-btn:hover {
+    border-color: #FA6814;
+    color: #FA6814;
+}
+
+.dice-type-btn.active {
+    background: rgba(250,104,20,0.15);
+    border-color: #FA6814;
+    color: #FA6814;
+}
+
+/* ---------- Number increment controls ---------- */
+.dice-increment-cont {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dice-increment-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #808080;
+    margin-bottom: 4px;
+}
+
+.dice-increment-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    border: 2px solid #1a1a1a;
+    border-radius: 12px;
+    background-color: #1a1a1a;
+}
+
+.dice-increment-group button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 9px;
+    background-color: #212121;
+    cursor: pointer;
+    color: #f2f2f2;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.dice-increment-group button:hover {
+    background-color: #3a3a3a;
+}
+
+.dice-increment-group span {
+    width: 36px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #f2f2f2;
+    user-select: none;
+}
