@@ -229,15 +229,21 @@ export default function ForumPage() {
                             className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors resize-none h-32 mb-4"
                         />
 
-                        <div className="flex items-center gap-2 mb-3">
-                            <input
-                                type="checkbox"
-                                id="poll-toggle"
-                                checked={pollEnabled}
-                                onChange={() => setPollEnabled(!pollEnabled)}
-                                className="accent-[#FA6814]"
-                            />
-                            <label htmlFor="poll-toggle" className="text-xs text-gray-400 cursor-pointer">Добавить голосование</label>
+                        <div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => setPollEnabled(!pollEnabled)}>
+                            <div
+                                className="w-5 h-5 border flex items-center justify-center transition-colors shrink-0"
+                                style={{
+                                    borderColor: pollEnabled ? "#FA6814" : "#3a3a3a",
+                                    background: pollEnabled ? "#FA6814" : "transparent",
+                                }}
+                            >
+                                {pollEnabled && (
+                                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                        <path d="M2 6l3 3 5-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                )}
+                            </div>
+                            <label className="text-xs text-gray-400 cursor-pointer">Добавить голосование</label>
                         </div>
 
                         {pollEnabled && (
