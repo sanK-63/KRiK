@@ -35,7 +35,7 @@ function fmtTime(dateStr: string): string {
 
 function fmtDate(dateStr: string): string {
     const d = parseDate(dateStr);
-    if (isNaN(d.getTime()) return "";
+    if (isNaN(d.getTime())) return "";
     const now = new Date();
     if (d.toDateString() === now.toDateString()) return "Сегодня";
     const y = new Date(now);

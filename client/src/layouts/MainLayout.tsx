@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar";
+import ChatAssistant from "../components/ChatAssistant/ChatAssistant";
 
 function useScreenWidth() {
     const [width, setWidth] = useState(window.innerWidth);
@@ -46,6 +47,7 @@ export default function MainLayout() {
                     </div>
                 </main>
             </div>
+            <ChatAssistant />
         </div>
     );
 }
