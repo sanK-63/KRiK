@@ -24,6 +24,7 @@ import messagesRoutes from "./routes/messages";
 import softwareRoutes from "./routes/software";
 import searchRoutes from "./routes/search";
 import violationsRoutes from "./routes/violations";
+import logsRoutes from "./routes/logs";
 
 const app = express();
 
@@ -68,6 +69,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/messages", messagesRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/violations", violationsRoutes);
+app.use("/api/logs", logsRoutes);
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
