@@ -1,5 +1,5 @@
 -- Corporate Portal DB dump
--- Generated: 2026-07-15T14:53:41.803Z
+-- Generated: 2026-07-16T14:39:04.252Z
 
 DROP TABLE IF EXISTS "appeal_messages";
 CREATE TABLE appeal_messages (
@@ -510,12 +510,15 @@ CREATE TABLE conversation_participants (
         conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        last_read_at TEXT,
+        last_read_at TEXT, role TEXT NOT NULL DEFAULT 'member',
         PRIMARY KEY(conversation_id, user_id)
     );
 
-INSERT INTO "conversation_participants" ("conversation_id", "user_id", "joined_at", "last_read_at") VALUES (1, 1, 'CURRENT_TIMESTAMP', '2026-07-15T11:26:57.337Z');
-INSERT INTO "conversation_participants" ("conversation_id", "user_id", "joined_at", "last_read_at") VALUES (1, 2, 'CURRENT_TIMESTAMP', '2026-07-15T09:41:02.082Z');
+INSERT INTO "conversation_participants" ("conversation_id", "user_id", "joined_at", "last_read_at", "role") VALUES (1, 1, 'CURRENT_TIMESTAMP', '2026-07-16T09:48:11.808Z', 'member');
+INSERT INTO "conversation_participants" ("conversation_id", "user_id", "joined_at", "last_read_at", "role") VALUES (1, 2, 'CURRENT_TIMESTAMP', '2026-07-15T09:41:02.082Z', 'member');
+INSERT INTO "conversation_participants" ("conversation_id", "user_id", "joined_at", "last_read_at", "role") VALUES (2, 1, 'CURRENT_TIMESTAMP', '2026-07-16T09:26:53.791Z', 'admin');
+INSERT INTO "conversation_participants" ("conversation_id", "user_id", "joined_at", "last_read_at", "role") VALUES (2, 3, 'CURRENT_TIMESTAMP', NULL, 'member');
+INSERT INTO "conversation_participants" ("conversation_id", "user_id", "joined_at", "last_read_at", "role") VALUES (2, 2, 'CURRENT_TIMESTAMP', NULL, 'member');
 
 DROP TABLE IF EXISTS "conversations";
 CREATE TABLE conversations (
@@ -524,9 +527,10 @@ CREATE TABLE conversations (
         is_group INTEGER NOT NULL DEFAULT 0,
         created_by INTEGER REFERENCES users(id),
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
+    , avatar TEXT);
 
-INSERT INTO "conversations" ("id", "title", "is_group", "created_by", "created_at") VALUES (1, NULL, 0, 1, 'CURRENT_TIMESTAMP');
+INSERT INTO "conversations" ("id", "title", "is_group", "created_by", "created_at", "avatar") VALUES (1, NULL, 0, 1, 'CURRENT_TIMESTAMP', NULL);
+INSERT INTO "conversations" ("id", "title", "is_group", "created_by", "created_at", "avatar") VALUES (2, 'Вышка', 1, 1, 'CURRENT_TIMESTAMP', NULL);
 
 DROP TABLE IF EXISTS "doc_templates";
 CREATE TABLE doc_templates (
@@ -557,11 +561,6 @@ CREATE TABLE elo_history (
         reason TEXT NOT NULL,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
-
-INSERT INTO "elo_history" ("id", "user_id", "tournament_id", "match_id", "old_elo", "new_elo", "change", "reason", "created_at") VALUES (1, 1, 1, 1, 1000, 1016, 16, 'match', 'CURRENT_TIMESTAMP');
-INSERT INTO "elo_history" ("id", "user_id", "tournament_id", "match_id", "old_elo", "new_elo", "change", "reason", "created_at") VALUES (2, 2, 1, 1, 1000, 984, -16, 'match', 'CURRENT_TIMESTAMP');
-INSERT INTO "elo_history" ("id", "user_id", "tournament_id", "match_id", "old_elo", "new_elo", "change", "reason", "created_at") VALUES (3, 1, 1, NULL, 1016, 1066, 50, 'tournament_bonus', 'CURRENT_TIMESTAMP');
-INSERT INTO "elo_history" ("id", "user_id", "tournament_id", "match_id", "old_elo", "new_elo", "change", "reason", "created_at") VALUES (4, 2, 1, NULL, 984, 1014, 30, 'tournament_bonus', 'CURRENT_TIMESTAMP');
 
 DROP TABLE IF EXISTS "events";
 CREATE TABLE events (
@@ -605,16 +604,16 @@ CREATE TABLE forum_comments (
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
-INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (1, 1, NULL, 2, 'А что с ночными сменами? Будет ли надбавка?', '2026-07-15 13:23:05');
-INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (2, 1, NULL, 1, 'Надбавка сохраняется в полном объёме. Подробности у начальника смены.', '2026-07-15 13:33:05');
-INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (3, 1, NULL, 3, 'Ознакомлена. Спасибо за информацию.', '2026-07-15 13:38:05');
-INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (4, 2, NULL, 2, 'А как быть с сотрудниками, у которых пропуска старого образца?', '2026-07-15 11:23:05');
-INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (5, 2, NULL, 1, 'Обмен пропусков будет проведён до 14 июля в кабинете 312.', '2026-07-15 12:23:05');
-INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (6, 3, NULL, 3, 'Отлично! А старые карты нужно сдавать?', '2026-07-14 18:23:05');
-INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (7, 3, NULL, 2, 'Да, старые карты сдаются при получении новых. Спасибо!', '2026-07-14 19:23:05');
-INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (8, 4, NULL, 3, 'У нас на 2 этаже была похожая проблема. Вызвали сервис — починили заслонку.', '2026-07-14 20:23:05');
-INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (9, 4, NULL, 2, 'Спасибо, попробую. Куда именно подавать заявку?', '2026-07-14 21:23:05');
-INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (10, 4, NULL, 3, 'it@company.com или через портал в разделе «Обращения».', '2026-07-14 22:23:05');
+INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (1, 1, NULL, 2, 'А что с ночными сменами? Будет ли надбавка?', '2026-07-16 09:46:01');
+INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (2, 1, NULL, 1, 'Надбавка сохраняется в полном объёме. Подробности у начальника смены.', '2026-07-16 09:56:01');
+INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (3, 1, NULL, 3, 'Ознакомлена. Спасибо за информацию.', '2026-07-16 10:01:01');
+INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (4, 2, NULL, 2, 'А как быть с сотрудниками, у которых пропуска старого образца?', '2026-07-16 07:46:01');
+INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (5, 2, NULL, 1, 'Обмен пропусков будет проведён до 14 июля в кабинете 312.', '2026-07-16 08:46:01');
+INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (6, 3, NULL, 3, 'Отлично! А старые карты нужно сдавать?', '2026-07-15 14:46:01');
+INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (7, 3, NULL, 2, 'Да, старые карты сдаются при получении новых. Спасибо!', '2026-07-15 15:46:01');
+INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (8, 4, NULL, 3, 'У нас на 2 этаже была похожая проблема. Вызвали сервис — починили заслонку.', '2026-07-15 16:46:01');
+INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (9, 4, NULL, 2, 'Спасибо, попробую. Куда именно подавать заявку?', '2026-07-15 17:46:01');
+INSERT INTO "forum_comments" ("id", "post_id", "parent_id", "user_id", "content", "created_at") VALUES (10, 4, NULL, 3, 'it@company.com или через портал в разделе «Обращения».', '2026-07-15 18:46:01');
 
 DROP TABLE IF EXISTS "forum_likes";
 CREATE TABLE forum_likes (
@@ -653,7 +652,7 @@ INSERT INTO "forum_posts" ("id", "title", "content", "category", "author_id", "p
 - Смена Б: 16:00 — 00:00
 - Смена В: 00:00 — 08:00
 
-Просьба подтвердить ознакомление в личном кабинете.', 'Объявление', 1, 1, NULL, '2026-07-15 12:23:05');
+Просьба подтвердить ознакомление в личном кабинете.', 'Объявление', 1, 1, NULL, '2026-07-16 08:46:01');
 INSERT INTO "forum_posts" ("id", "title", "content", "category", "author_id", "pinned", "poll_options", "created_at") VALUES (2, 'Приказ №47 — Усиление контроля', 'В связи с последними инцидентами вводится усиленный контроль за перемещением сотрудников между корпусами.
 
 С 15 июля:
@@ -661,7 +660,7 @@ INSERT INTO "forum_posts" ("id", "title", "content", "category", "author_id", "p
 2. Пропуска проверяются на каждом блоке
 3. Нарушители направляются на дисциплинарную комиссию
 
-Приказ вступает в силу немедленно.', 'Приказ', 1, 1, NULL, '2026-07-15 10:23:05');
+Приказ вступает в силу немедленно.', 'Приказ', 1, 1, NULL, '2026-07-16 06:46:01');
 INSERT INTO "forum_posts" ("id", "title", "content", "category", "author_id", "pinned", "poll_options", "created_at") VALUES (3, 'Обновление систем безопасности', 'Завершена модернизация системы пропусков. Новые карты доступа будут выданы до конца недели.
 
 Новые возможности:
@@ -669,12 +668,12 @@ INSERT INTO "forum_posts" ("id", "title", "content", "category", "author_id", "p
 - Автоматическая фиксация входа/выхода
 - Интеграция с системой учёта рабочего времени
 
-Выдача карт — кабинет 105, с 9:00 до 17:00.', 'Новость', 2, 0, NULL, '2026-07-14 14:23:05');
+Выдача карт — кабинет 105, с 9:00 до 17:00.', 'Новость', 2, 0, NULL, '2026-07-15 10:46:01');
 INSERT INTO "forum_posts" ("id", "title", "content", "category", "author_id", "pinned", "poll_options", "created_at") VALUES (4, 'Обсуждение: условия труда в 3-м корпусе', 'Поднимаю вопрос о состоянии вентиляции в серверной. Температура стабильно выше нормы.
 
 Замерил вчера — 28°C при норме 22-24°C. Кондиционер на 3 этаже работает, но не справляется.
 
-Кто-то сталкивался с подобной проблемой? Как решали?', 'Форум', 2, 0, NULL, '2026-07-14 14:23:05');
+Кто-то сталкивался с подобной проблемой? Как решали?', 'Форум', 2, 0, NULL, '2026-07-15 10:46:01');
 INSERT INTO "forum_posts" ("id", "title", "content", "category", "author_id", "pinned", "poll_options", "created_at") VALUES (5, 'Конституция Синдиката v2.1', 'Опубликована обновлённая версия Конституции. Основные изменения касаются раздела «Дисциплинарные меры».
 
 Ключевые изменения:
@@ -682,7 +681,7 @@ INSERT INTO "forum_posts" ("id", "title", "content", "category", "author_id", "p
 - Параграф 5.1: добавлены права сотрудников
 - Приложение Б: новый порядок обжалования
 
-Полный текст доступен в разделе «Конституция».', 'Документ', 1, 0, NULL, '2026-07-13 14:23:05');
+Полный текст доступен в разделе «Конституция».', 'Документ', 1, 0, NULL, '2026-07-14 10:46:01');
 
 DROP TABLE IF EXISTS "forum_reactions";
 CREATE TABLE forum_reactions (
@@ -923,6 +922,14 @@ CREATE TABLE memes (
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+DROP TABLE IF EXISTS "message_reactions";
+CREATE TABLE message_reactions (
+        message_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        emoji TEXT NOT NULL,
+        PRIMARY KEY(message_id, user_id)
+    );
+
 DROP TABLE IF EXISTS "messages";
 CREATE TABLE messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -932,11 +939,35 @@ CREATE TABLE messages (
         attachment_path TEXT,
         attachment_name TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
+    , reply_to_id INTEGER REFERENCES messages(id) ON DELETE SET NULL, forwarded_from_id INTEGER REFERENCES users(id) ON DELETE SET NULL, edited_at TEXT);
 
-INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at") VALUES (1, 1, 1, 'дарова это я но не пригожин', NULL, NULL, 'CURRENT_TIMESTAMP');
-INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at") VALUES (2, 1, 1, 'И тебе привет', NULL, NULL, 'CURRENT_TIMESTAMP');
-INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at") VALUES (3, 1, 2, 'че охуел?', NULL, NULL, 'CURRENT_TIMESTAMP');
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (1, 1, 1, 'дарова это я но не пригожин', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (2, 1, 1, 'И тебе привет', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (3, 1, 2, 'че охуел?', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (4, 1, 1, NULL, '/uploads/messages/1784172268523-911994273.png', 'Ð ÑÑÐ°ÑÑ.png', 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (5, 1, 1, NULL, '/uploads/messages/1784187430443-460838101.png', 'Ð³ÐµÑÐ±.png', 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (6, 2, 1, 'Дарова уебки.Злой папочка сенпай тут!', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (7, 1, 1, 'Че ахуел', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (8, 1, 1, 'а', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (9, 1, 1, 'хуй на', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (10, 1, 1, 'уау', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (11, 1, 1, 'ау', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (12, 1, 1, 'ау', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (13, 1, 1, 'а', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (14, 1, 1, 'а', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (15, 1, 1, 'у', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (16, 1, 1, 'а', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (17, 1, 1, 'ау', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (18, 1, 1, 'а', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (19, 1, 1, 'а', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (20, 1, 1, 'у', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (21, 1, 1, 'ау', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (22, 1, 1, 'а', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (23, 1, 1, 'уау', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (24, 1, 1, 'а', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (25, 1, 1, 'уа', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (26, 1, 1, 'уа', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
+INSERT INTO "messages" ("id", "conversation_id", "sender_id", "content", "attachment_path", "attachment_name", "created_at", "reply_to_id", "forwarded_from_id", "edited_at") VALUES (27, 1, 1, 'у', NULL, NULL, 'CURRENT_TIMESTAMP', NULL, NULL, NULL);
 
 DROP TABLE IF EXISTS "movie_comments";
 CREATE TABLE movie_comments (
@@ -1201,9 +1232,9 @@ INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "
 INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (240, 'Сердцу хочется кричать', NULL, 'Аниме', NULL, NULL, NULL, 5, '2026-07-15 14:32:34');
 INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (241, 'Оседлав волну с тобой', NULL, 'Аниме', NULL, NULL, NULL, 5, '2026-07-15 14:32:34');
 INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (242, 'Пять сантиметров в секунду', 2025, 'Драма', 4, 'Весна 1991 года: в токийской школе Такэки и Акари встречаются и словно нежно протягивая руки навстречу одиночеству друг друга, постепенно сближают свои сердца, но переезд разлучает их сразу после выпуска. Зимой в метель, под единственной сакурой, стоящей в снегу в Ивафуне, они дают обещание встретиться 26 марта 2009 года, и 18 лет спустя, в 2008-м, каждый, живя замкнутой жизнью в Токио, ощущают зов не угасающих воспоминаний и предчувствие судьбоносной встречи. Это тихая история о времени, расстоянии и хрупких связях, где слова прошлого всё ещё витают в воздухе, словно надежда на чудо.', 'https://image.tmdb.org/t/p/w500/nhvPn4TsUQk5ZBk9T9RBW7v7z1J.jpg', 5, '2026-07-15 14:32:35');
-INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (243, 'Любит — не любит', 2014, 'Аниме', 3, 'Леша и Алена вот-вот должны пожениться. И все бы ничего, если бы не знакомство Леши с известной журналисткой Ирой накануне помолвки. Её образ никак не вписывается в рамки привычной для Алексея жизни. Ира вносит хаос в его жизнь, а Алёна — наивная девушка, любит его таким, какой он есть, и мечтает стать его женой.  Авантюризм Иры и ее готовность совершать безумные поступки дают Леше понять, что его жизнь может быть гораздо красочнее. Но готов ли он к авантюрным поступкам, когда на кону счастливое будущее с Аленой?', 'https://image.tmdb.org/t/p/w500/rNksTWnP6V3eJREywP6rRACmPyl.jpg', 5, '2026-07-15 14:32:35');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (243, 'Любит — не любит', 2014, 'Мелодрама', 3, 'Леша и Алена вот-вот должны пожениться. И все бы ничего, если бы не знакомство Леши с известной журналисткой Ирой накануне помолвки. Её образ никак не вписывается в рамки привычной для Алексея жизни. Ира вносит хаос в его жизнь, а Алёна — наивная девушка, любит его таким, какой он есть, и мечтает стать его женой.  Авантюризм Иры и ее готовность совершать безумные поступки дают Леше понять, что его жизнь может быть гораздо красочнее. Но готов ли он к авантюрным поступкам, когда на кону счастливое будущее с Аленой?', 'https://image.tmdb.org/t/p/w500/rNksTWnP6V3eJREywP6rRACmPyl.jpg', 5, '2026-07-15 14:32:35');
 INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (244, 'Украсить цветами обещания прощальное утро', NULL, 'Аниме', NULL, NULL, NULL, 5, '2026-07-15 14:32:36');
-INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (245, 'Связанные', 1988, 'Аниме', 4, 'Два тела. Два разума. Одна душа. Братья Мэнтл — абсолютно идентичные близнецы. Оба они врачи и работают вместе. Эллиот искусней Бева в деле соблазнения женщин и охотно «дарит» брату своих любовниц, которые и не подозревают о «подмене». Но когда их клинику посещает кинозвезда Клэр, застенчивый Бев влюбляется в нее первым. Клэр, сама того не ведая, начинает встречаться с обоими братьями. Смогут ли они «поделить» любимую женщину или, пытаясь найти утешение в наркотиках и алкоголе, погрузятся в пучину безумия?', 'https://image.tmdb.org/t/p/w500/iat5GeDbjBEINnqUNBl7NKiVa4A.jpg', 5, '2026-07-15 14:32:36');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (245, 'Связанные', 1988, 'Триллер', 4, 'Два тела. Два разума. Одна душа. Братья Мэнтл — абсолютно идентичные близнецы. Оба они врачи и работают вместе. Эллиот искусней Бева в деле соблазнения женщин и охотно «дарит» брату своих любовниц, которые и не подозревают о «подмене». Но когда их клинику посещает кинозвезда Клэр, застенчивый Бев влюбляется в нее первым. Клэр, сама того не ведая, начинает встречаться с обоими братьями. Смогут ли они «поделить» любимую женщину или, пытаясь найти утешение в наркотиках и алкоголе, погрузятся в пучину безумия?', 'https://image.tmdb.org/t/p/w500/iat5GeDbjBEINnqUNBl7NKiVa4A.jpg', 5, '2026-07-15 14:32:36');
 INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (246, 'Наруто', NULL, 'Аниме', 4, 'В сериале «Наруто» рассказ ведётся о начинающих ниндзя, только-только окончивших академию и получивших «удостоверения» в виде повязок. Сразу же после окончания герои попадают во множество переделок и опасных ситуаций, находят друзей, встречают врагов.', 'https://image.tmdb.org/t/p/w500/ply5yM9ylDMy8t13pkqKmJlLsJP.jpg', 5, '2026-07-15 14:32:37');
 INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (247, 'Боруто', NULL, 'Аниме', 4, 'Увлекательный и красочный мир шиноби после завершения аниме сериала "Наруто: Ураганные хроники" нас не покинул. Вот только главный герой Наруто теперь глава Конохи и в этом сериале речь пойдет уже не о нем, а о его сыне - Боруто.  Мир очень сильно изменился, он сделал большой прорыв в современность, но главная идея и традиции жителей не поменялись. Теперь отважному Боруто придется возложить на свои плечи все хлопоты своего отца и доказать всем, что он достоин называться сыном величайшего Наруто. Ему еще стоит изучить много новых боевых техник и сразиться с по-настоящему опасными соперниками.', 'https://image.tmdb.org/t/p/w500/hi8zozWxA2w8W5SNt5qiKpokXdK.jpg', 5, '2026-07-15 14:32:37');
 INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (248, 'Седьмая жизнь злодейки: узы вражды', NULL, 'Аниме', NULL, NULL, NULL, 5, '2026-07-15 14:32:38');
@@ -1291,6 +1322,25 @@ INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "
 INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (328, 'Сумерки. Сага. Рассвет — Часть 1', 2011, 'Приключения', 3, 'В четвёртой части Белла Свон оказывается перед непростым выбором — сохранить жизнь себе или своему ребёнку (наполовину вампиру, наполовину человеку). Она решает оставить малыша, но Эдвард и остальные члены семьи Каллен категорически против. Помощи Бёлле ждать не от кого, но она приходит неожиданно, от того, от кого её совсем не ждали. Вдвоём Белла и Розали пытаются сохранить жизнь малышу, даже не догадываясь, к каким ужасающим последствиям это приведёт.', 'https://image.tmdb.org/t/p/w500/hnJ5U57LWu6xHp8w0z3o0ZdgFTf.jpg', 5, '2026-07-15 14:53:21');
 INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (329, 'Сумерки. Сага. Рассвет — Часть 2', 2012, 'Фантастика', 3, 'Белла, став вампиром, постепенно свыкается со своей новой природой. В этом ей помогают Эдвард и остальные члены семьи Калленов. К тому же теперь у Беллы есть дочь Ренесми и вечность впереди. Джейкоб, запечатлённый с Ренесми, становится для девочки другом и наставником. Ненадолго для героев наступают спокойные, счастливые дни. Всё заканчивается, когда вести о Ренесми доходят до Вольтури. «Обращение» детей строго запрещено в мире вампиров. Не зная о необычном происхождении Ренесми, Вольтури собирают армию и направляются в Форкс, чтобы уничтожить Калленов.', 'https://image.tmdb.org/t/p/w500/fgVXAUj9w6OrVlhQ0YPiZhO46j5.jpg', 5, '2026-07-15 14:53:22');
 INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (330, 'Царевна-лягушка 2', NULL, 'Мультфильм', NULL, NULL, NULL, 5, '2026-07-15 14:53:22');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (332, 'Мост в Террабитию', 2007, 'Драма', 5, 'Джесси и Лесли — два одиноких подростка, которые находят друг друга и открывают волшебный мир Террабитию, созданный их воображением. Их дружба наполняет серые будни радостью и чудом, пока трагедия не заставляет взглянуть на жизнь по-новому. Нежная история о детстве, потере и силе фантазии.', 'https://image.tmdb.org/t/p/w500/qbcIbPYMI4bCXn3ZFBJg3W3Cv.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (333, 'Алиса в Пограничье', 2024, 'Сериалы', 4, 'Китайский сериал, вдохновлённый «Алисой в Стране чудес». Алиса случайно попадает в загадочный мир Пограничье — лабиринт, полный ловушек, аномалий и тайн. Чтобы выжить и выбраться, ей предстоит разгадать правила этого мира, найти союзников и столкнуться с мрачными секретами, которые Пограничье хранит.', 'https://image.tmdb.org/t/p/w500/pB1Jm28aUGqNN0pKb5rTm0dP4yq.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (334, 'В Поисках Аляски', 2019, 'Сериалы', 4, 'Майлз «Пайлз» Холтер отправляется в пансион Каллхилл, где знакомится с загадочной и харизматичной Аляской Юнг. Их дружба и романтика переплетаются с философией, юмором и трагедией. Сериал исследует тему взросления, любви и неизбежности потерь.', 'https://image.tmdb.org/t/p/w500/d2sFnzKFJwDheFhMOb6XjZjPzNP.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (335, 'Киберпанк: Бегущие по краю', 2022, 'Аниме', 4, 'Аниме-сериал по мотивам игры Cyberpunk 2077 от CD Projekt Red. История о Луке, сыне наёмника, который пытается выжить в неоновом мегаполисе Найт-Сити, полном преступности, киберимплантов и корпоративных заговоров. Стильная экшн-драма с глубоким погружением в мир будущего.', 'https://image.tmdb.org/t/p/w500/zD5N29V08N9KoMFRcD1bHMFfJc0.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (336, 'Код Гиас: Восставший Лелуш', 2006, 'Аниме', 5, 'Лелуш В. Британия — изгнанный принц Священной Британской Империи, получает силу «Гиас» — абсолютное повиновение от любого, на кого он посмотрит. Под маской «Зеро» он поднимает революцию против империи, пытаясь создать мир, в котором его сестра Наннали будет счастлива. Шедевр политических интриг, стратегий и трагедии.', 'https://image.tmdb.org/t/p/w500/5hIoyDh3bUf7CX8XtJM3UvBwPpG.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (337, 'Крутой учитель Онэдзука', 2000, 'Аниме', 5, 'Эйкити Онэдзука — бывший мотогонщик и делинквент, который становится учителем в школьном классе, полном проблемных подростков. Со своей «крутой» философией, кулаками и непредсказуемым поведением он ломает все правила системы воспитания, чтобы вернуть учеников к жизни. Культовая комедия-драма.', 'https://image.tmdb.org/t/p/w500/q3Pq6G0bqQp6RqBw2rI2oBpYfVj.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (338, 'Initial D', 1998, 'Аниме', 5, 'Такуми Фудживара, скромный доставщик тофу, оказывается гением горных трасс. Его отец когда-то гонялся за Тахеши, и теперь Такуми невольно втягивается в мир ночных гонок на горе Акина. Благодаря идеальному стилю езды и дрифту он становится легендой горных дорог. Культовая серия о культуре тюнинга и гонок.', 'https://image.tmdb.org/t/p/w500/d6U9Dj7KU5F8Dn0H2z3gQ5w6Z6S.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (339, 'Провожающая в последний путь: Фрирен', 2023, 'Аниме', 5, 'Эльфийка-маг Фрирен переживает своих спутников-смертных после победы над Королём Демонов. Осознав, что не знала их почти ничего, она отправляется в новое путешествие, чтобы понять смысл жизни и смерти. Медитативное фэнтези о времени, памяти и упущенных возможностях. Одно из лучших аниме десятилетия.', 'https://image.tmdb.org/t/p/w500/oXxiWVZFYpAZp3jBbBbH47b6Fw2.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (340, 'Адский Рай', 2023, 'Аниме', 4, 'Синобу Акаги — смертельно опасный преступник, приговоренный к казни. Он и другие заключённые получают шанс спасти жизнь, если найдут Эликсир Бессмертия на таинственном острове Синсюку. Их сопровождают палачи-ниндзя, но остров полон чудовищ и духов. Напряжённое сёнен-фэнтези.', 'https://image.tmdb.org/t/p/w500/kLbSNdlHo1Fj4CtIG7cX9J9GEO3.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (341, 'Доктор Стоун', 2019, 'Аниме', 5, 'Таинственная вспышка превращает всё человечество в камень. Спустя 3700 лет гений-учёный Сенку Исигами оживает и решает восстановить цивилизацию с нуля — используя только науку. Сооружая от колеса и мыла до смартфона и двигателя внутреннего сгорания, он собирает команду и бросает вызов первобытному миру. Умная и вдохновляющая серия.', 'https://image.tmdb.org/t/p/w500/s2FdxJFPD6R2gZf3FNTJjIyCjC4.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (342, 'Атака Титанов', 2013, 'Аниме', 5, 'Человечество живёт в городах, окружённых гигантскими стенами, защищающими от Титанов — гуманоидных существ, пожирающих людей. Когда Стена Сигна нарушена, юный Эррен Йегер теряет мать и клянётся уничтожить всех Титанов. Его путь превращается в цепочку откровений, предательств и моральных дилемм. Эпическая сага, изменившая аниме-индустрию.', 'https://image.tmdb.org/t/p/w500/hTP1DtLGFamjfu8WqjnuQdP1n4i.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (343, 'Гачиакута', 2025, 'Аниме', 4, 'В тёмном подземном мире, куда сброшены изгнанники верхнего уровня, выживание зависит от мусора и находок. Ривай — мальчик, выброшенный с верхнего уровня, — обнаруживает, что его мусорные баки превращаются в смертоносное оружие. В мире, где богатство верхних определяет всё, он идёт против системы.', 'https://image.tmdb.org/t/p/w500/wBFYy4Mz0bHQkE8S5rJxbI8pSMi.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (344, 'Маг Битва', 2023, 'Аниме', 4, 'Мэш Вандедейд — мальчик без магических способностей, живущий в мире, где магия определяет всё. Попав в элитную магическую академию, он вынужден маскироваться под мага, используя чистую физическую силу и сардонический юмор. Комедийный экшн, пародирующий клише магических академий.', 'https://image.tmdb.org/t/p/w500/f2wZfM6J5yJ3a6z3G7xK2vDfH8B.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (345, 'Дороро', 2019, 'Аниме', 5, 'Хьёмарки — молодой самурай, рождённый без рук, ног, глаз, ушей и кожи. Его отец заключил сделку с двенадцатью демонами, обменяв части тела сына на политическую власть. Получив от мудреца Дороро prostные протезы и меч, он отправляется в путешествие, убивая демонов и возвращая утраченные части. Тёмное историческое фэнтези.', 'https://image.tmdb.org/t/p/w500/w7JyRtlP3nKzZ5zL5x5cK9iD0tS.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (346, '86: Восемьдесять Шесть', 2021, 'Аниме', 5, 'В Republic San Magnolia ведётся война с империей Гильдии, управляемой дронами. Внешне армия республики предстаёт беспилотной, но на самом деле за дронами стоят операторы из «86» — представители меньшинства, лишённые прав. Шин Нулин и командир Владилена Милица объединяются, чтобы бросить вызов системе. Мощная антивоенная драма.', 'https://image.tmdb.org/t/p/w500/v9M1HqB4jD3fG9J8mW6zVXp9D6.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (347, 'Реинкарнация Безработного', 2021, 'Аниме', 5, '34-летний неудачник погибает и перерождается в магическом мире как младенец Рудеус Грейрат. Сохраняя воспоминания прошлой жизни и талант к магии, он стремится прожить вторую жизнь без ошибок. Эпическое исекай с проработанным миром, ростом персонажей и темами искупления.', 'https://image.tmdb.org/t/p/w500/xwTAJHxmx11ns7RqN7cGxTfFzT.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (348, 'Летнее Время', 2022, 'Аниме', 5, 'Синджи Адзюра возвращается на остров Хинедзима на похороны приёмной сестры Усио и узнаёт, что на острове действуют таинственные силы — тени, копирующие людей. Он попадает в петлу времени, каждый раз возвращаясь в прошлое, чтобы разгадать тайну и спасти жителей. Напряжённый триллер с элементами ужасов и детектива.', 'https://image.tmdb.org/t/p/w500/qMxGwJ8g6BnqjJ9iR2w4f0d8sD.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (349, 'Слэм Данк', 2022, 'Аниме', 5, 'Полнометражный фильм-ремейк классической баскетбольной серии. Сёхоку Ханамичи, бывший хулиган, вступает в баскетбольную секцию ради девушки. Наряду с гениальным Сакуроги Акамира и талантливым Рукавой он ведёт команду к победе на чемпионате. Эмоциональный спорт с потрясающей анимацией.', 'https://image.tmdb.org/t/p/w500/7jk62dKdE2D1M6F8p0q2bX0r0t.jpg', NULL, '2026-07-16 03:16:21');
+INSERT INTO "movies" ("id", "title", "year", "genre", "rating", "description", "poster", "added_by", "created_at") VALUES (350, 'Куроко но Баскет', 2012, 'Аниме', 4, 'Тацуюу Куроко — тихий плеймейкер «Невидимой Тенью» из Золотого поколения баскетбола. Вместе с Сэйрином он бросает вызов другим игрокам Золотого поколения: Аоминэ (kakashi), Мидорима (сияние), Акаси (король) и Мурасакибаре (принц). Динамичная спортивная драма с уникальными способностями игроков.', 'https://image.tmdb.org/t/p/w500/bf3eK6YcWq7l5G9eF8f8dC0wQ5x.jpg', NULL, '2026-07-16 03:16:21');
 
 DROP TABLE IF EXISTS "notifications";
 CREATE TABLE notifications (
@@ -1370,6 +1420,7 @@ INSERT INTO "profiles" ("user_id", "discord", "steam", "ea", "battle_net", "coun
 INSERT INTO "profiles" ("user_id", "discord", "steam", "ea", "battle_net", "country", "bio", "birthday") VALUES (3, NULL, NULL, NULL, NULL, 'Казахстан', NULL, NULL);
 INSERT INTO "profiles" ("user_id", "discord", "steam", "ea", "battle_net", "country", "bio", "birthday") VALUES (4, NULL, NULL, NULL, NULL, 'Казахстан', NULL, NULL);
 INSERT INTO "profiles" ("user_id", "discord", "steam", "ea", "battle_net", "country", "bio", "birthday") VALUES (5, NULL, NULL, NULL, NULL, 'Казахстан', NULL, NULL);
+INSERT INTO "profiles" ("user_id", "discord", "steam", "ea", "battle_net", "country", "bio", "birthday") VALUES (7, NULL, NULL, NULL, NULL, 'Казахстан', NULL, NULL);
 
 DROP TABLE IF EXISTS "recipes";
 CREATE TABLE recipes (
@@ -1594,8 +1645,13 @@ CREATE TABLE user_elo (
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
-INSERT INTO "user_elo" ("user_id", "elo", "games_played", "wins", "losses", "updated_at") VALUES (1, 1066, 2, 2, 0, '2026-07-15T06:12:32.031Z');
-INSERT INTO "user_elo" ("user_id", "elo", "games_played", "wins", "losses", "updated_at") VALUES (2, 1014, 2, 1, 1, '2026-07-15T06:12:32.031Z');
+INSERT INTO "user_elo" ("user_id", "elo", "games_played", "wins", "losses", "updated_at") VALUES (1, 1000, 0, 0, 0, '2026-07-15T06:12:32.031Z');
+INSERT INTO "user_elo" ("user_id", "elo", "games_played", "wins", "losses", "updated_at") VALUES (2, 1000, 0, 0, 0, '2026-07-15T06:12:32.031Z');
+INSERT INTO "user_elo" ("user_id", "elo", "games_played", "wins", "losses", "updated_at") VALUES (3, 1000, 0, 0, 0, '2026-07-16 09:34:35');
+INSERT INTO "user_elo" ("user_id", "elo", "games_played", "wins", "losses", "updated_at") VALUES (4, 1000, 0, 0, 0, '2026-07-16 09:34:35');
+INSERT INTO "user_elo" ("user_id", "elo", "games_played", "wins", "losses", "updated_at") VALUES (5, 1000, 0, 0, 0, '2026-07-16 09:34:35');
+INSERT INTO "user_elo" ("user_id", "elo", "games_played", "wins", "losses", "updated_at") VALUES (6, 1000, 0, 0, 0, '2026-07-16 09:34:35');
+INSERT INTO "user_elo" ("user_id", "elo", "games_played", "wins", "losses", "updated_at") VALUES (7, 1000, 0, 0, 0, '2026-07-16 09:34:35');
 
 DROP TABLE IF EXISTS "user_roles";
 CREATE TABLE user_roles (
@@ -1608,6 +1664,7 @@ INSERT INTO "user_roles" ("user_id", "role_id") VALUES (2, 5);
 INSERT INTO "user_roles" ("user_id", "role_id") VALUES (3, 5);
 INSERT INTO "user_roles" ("user_id", "role_id") VALUES (4, 5);
 INSERT INTO "user_roles" ("user_id", "role_id") VALUES (5, 5);
+INSERT INTO "user_roles" ("user_id", "role_id") VALUES (7, 5);
 
 DROP TABLE IF EXISTS "users";
 CREATE TABLE users (
@@ -1630,10 +1687,26 @@ CREATE TABLE users (
         last_active TEXT
     );
 
-INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (1, '674ba842-f87a-46ca-bcdc-3f5905c104a9', 'tunev', 'Александр', 'Тунев', NULL, '2005-02-01', '+7 (870) 872-24-375', '$2b$10$WKa45bM8B5YC77ma3y4Ti.jmr3f/c4c2uvI72sy.aS8F6W4Kp9d4m', '13faf431b4457f1a864fbb534e7284b4609df8d9fe28bebd2c690596ebeca3d6', '/avatars/tunev.jpg', 'tunov@portal.local', 'active', '2026-07-15 06:10:29', '2026-07-15 06:10:29', '2026-07-15T09:46:41.260Z', '2026-07-15T14:35:30.038Z');
-INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (2, 'b1c2d3e4-f5a6-7890-abcd-ef1234567890', 'cherepkov', 'Константин', 'Черепков', 'Александрович', '2005-01-30', '+7 (777) 129-4-227', '$2b$10$e8hpgR7HerzkkImHBF.eXO0GtVEWCeugcH9MsP0uRSPevBxCpsX4i', 'ecc00a7401a0a14a72ffa37b54a706bcd33c3493fbce500f98476e56d9f9511a', '/avatars/cherepkov.jpg', 'kostacerepkov700@gmail.com', 'active', '2026-07-15 06:10:29', '2026-07-15 06:10:29', '2026-07-15T09:40:43.789Z', '2026-07-15T09:41:02.081Z');
-INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (3, 'c2d3e4f5-a6b7-8901-bcde-f12345678901', 'garbuzov', 'Никита', 'Гарбузов', NULL, '2004-10-14', '+7 (777) 492-12-01', '$2b$10$4sfnUc4dQm0U/11oE7CtjOESK85cuDU1H0WRrlKQsuFb0wSL/VUyG', '0deefd2edf88ddf351e8e17f54d675ec9d75cec0c41b7981b728898872b3dae3', '/avatars/garbuzov.jpg', 'nikitarin054@gmail.com', 'active', '2026-07-15 06:10:29', '2026-07-15 06:10:29', NULL, NULL);
-INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (4, '770e5209-1e2d-4edd-b97c-5a1854ba0654', 'vzhezhevska', 'Елизавета', 'Вжежевская', 'Валентиновна', '2006-04-28', '+7 (870) 022-50-42', '$2b$10$B44AN/.vXRKhwzj0pRMFF.kWN7XR5VNyHey3fyqPBOPrbHKSgl9vG', '8a79ffc11f5f7900ce2241e9a7279b59620cd77d377c0778fcd1415d49c495f0', NULL, 'vzezevskaaelizaveta@gmail.com', 'active', '2026-07-15 09:32:35', '2026-07-15 09:32:35', NULL, NULL);
-INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (5, '381c9e10-d8a1-46a8-97ed-c8e1d7af63da', 'putc', 'Валерия', 'Пуц', 'Руслановна', '2004-01-01', '+7 (877) 702-14-85', '$2b$10$ppvpSM6rushf7snp4yK9k.whH3fITHESe/mQQ8jssrGf1UbrZSvaO', 'e59e675baa90f02d244b332ee748345352823d7a2bb4f3a5e457d5ed332a861c', NULL, 'vpuc72604@gmail.com', 'active', '2026-07-15 09:32:35', '2026-07-15 09:32:35', NULL, NULL);
+INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (1, '674ba842-f87a-46ca-bcdc-3f5905c104a9', 'tunev', 'Александр', 'Тунев', 'Дмитриевич', '2005-02-01', '+7 708 722 43 75', '$2b$10$WKa45bM8B5YC77ma3y4Ti.jmr3f/c4c2uvI72sy.aS8F6W4Kp9d4m', '13faf431b4457f1a864fbb534e7284b4609df8d9fe28bebd2c690596ebeca3d6', '/avatars/tunev.jpg', 'tunov@portal.local', 'active', '2026-07-15 06:10:29', '2026-07-15 06:10:29', '2026-07-15T09:46:41.260Z', '2026-07-16T09:59:23.324Z');
+INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (2, 'b1c2d3e4-f5a6-7890-abcd-ef1234567890', 'cherepkov', 'Константин', 'Черепков', 'Александрович', '2005-01-30', '+7 771 294 12 27', '$2b$10$e8hpgR7HerzkkImHBF.eXO0GtVEWCeugcH9MsP0uRSPevBxCpsX4i', 'ecc00a7401a0a14a72ffa37b54a706bcd33c3493fbce500f98476e56d9f9511a', '/avatars/cherepkov.jpg', 'kostacerepkov700@gmail.com', 'active', '2026-07-15 06:10:29', '2026-07-15 06:10:29', '2026-07-15T09:40:43.789Z', '2026-07-15T09:41:02.081Z');
+INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (3, 'c2d3e4f5-a6b7-8901-bcde-f12345678901', 'garbuzov', 'Никита', 'Гарбузов', 'Александрович', '2004-10-14', '+7 777 492 12 01', '$2b$10$4sfnUc4dQm0U/11oE7CtjOESK85cuDU1H0WRrlKQsuFb0wSL/VUyG', '0deefd2edf88ddf351e8e17f54d675ec9d75cec0c41b7981b728898872b3dae3', '/avatars/garbuzov.jpg', 'nikitarin054@gmail.com', 'active', '2026-07-15 06:10:29', '2026-07-15 06:10:29', NULL, NULL);
+INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (4, '770e5209-1e2d-4edd-b97c-5a1854ba0654', 'vzhezhevska', 'Елизавета', 'Вжежевская', 'Валентиновна', '2006-04-28', '+7 700 225 04 23', '$2b$10$B44AN/.vXRKhwzj0pRMFF.kWN7XR5VNyHey3fyqPBOPrbHKSgl9vG', '8a79ffc11f5f7900ce2241e9a7279b59620cd77d377c0778fcd1415d49c495f0', NULL, 'vzezevskaaelizaveta@gmail.com', 'active', '2026-07-15 09:32:35', '2026-07-15 09:32:35', NULL, NULL);
+INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (5, '381c9e10-d8a1-46a8-97ed-c8e1d7af63da', 'putc', 'Валерия', 'Пуц', 'Руслановна', '2004-01-01', '+7 777 021 48 50', '$2b$10$ppvpSM6rushf7snp4yK9k.whH3fITHESe/mQQ8jssrGf1UbrZSvaO', 'e59e675baa90f02d244b332ee748345352823d7a2bb4f3a5e457d5ed332a861c', NULL, 'vpuc72604@gmail.com', 'active', '2026-07-15 09:32:35', '2026-07-15 09:32:35', NULL, NULL);
 INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (6, '21c14c01-fc9c-41f7-aff1-f63926d4d65f', 'guest', 'Гость', NULL, NULL, NULL, NULL, '$2b$10$WviZzrb.bW8.ZGYjsgOJQu2pJZFnqH.0ulrvD1K7pDQx4YZR5RDja', '1700d5223ccdfd5bf824ed2c40352b84893dfc955840b1059d28decd2fdd0779', NULL, 'guest@krik.local', 'active', '2026-07-15 13:25:26', '2026-07-15 13:25:26', NULL, NULL);
+INSERT INTO "users" ("id", "uuid", "username", "display_name", "surname", "patronymic", "date_of_birth", "phone", "access_key_hash", "key_lookup", "avatar", "email", "status", "created_at", "updated_at", "last_login", "last_active") VALUES (7, '4f97ee27-deb5-4d14-b20b-a7edbed44e6c', 'vladimirov', 'Ратмир', 'Владимиров', 'Николаевич', '2005-10-10', '+7 777 748 83 67', '$2b$10$9B37RGzuee6HlbFQUypivuc0hSzphdOFdyJv7AZca3YUoQMRtPP4K', '534faa6de06ed0b7051f96bb20403bf44d31b8dfcc5861cb83524ec148891f5a', NULL, 'vladimirovratmir57@gmail.com', 'active', '2026-07-16 04:46:54', '2026-07-16 04:46:54', NULL, NULL);
+
+DROP TABLE IF EXISTS "violations";
+CREATE TABLE violations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        reporter_id INTEGER NOT NULL REFERENCES users(id),
+        title TEXT NOT NULL,
+        description TEXT,
+        severity TEXT NOT NULL DEFAULT 'warning',
+        status TEXT NOT NULL DEFAULT 'open',
+        constitution_article TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        resolved_at TEXT,
+        resolved_by INTEGER REFERENCES users(id)
+    );
 

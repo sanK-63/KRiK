@@ -39,7 +39,7 @@ for (const { name } of tables) {
     sql += '\n';
 }
 
-fs.writeFileSync(path.join(__dirname, 'data', 'sync-dump.sql'), sql, 'utf8');
+fs.writeFileSync(path.join(__dirname, 'scripts', 'sync-dump.sql'), sql, 'utf8');
 console.log(`Dump written: ${tables.length} tables, ${sql.length} chars`);
 
 // Print summary of movies
