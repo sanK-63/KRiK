@@ -508,13 +508,20 @@ export default function TournamentPage() {
                                             {field.options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
                                         </select>
                                     ) : field.type === "checkbox" ? (
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={regFormValues[field.id] === "true"}
-                                                onChange={(e) => setRegFormValues((prev) => ({ ...prev, [field.id]: e.target.checked ? "true" : "false" }))}
-                                                className="accent-[#FA6814]"
-                                            />
+                                        <label className="flex items-center gap-2 cursor-pointer" onClick={() => setRegFormValues((prev) => ({ ...prev, [field.id]: prev[field.id] === "true" ? "false" : "true" }))}>
+                                            <div
+                                                className="w-5 h-5 border flex items-center justify-center transition-colors shrink-0"
+                                                style={{
+                                                    borderColor: regFormValues[field.id] === "true" ? "#FA6814" : "#3a3a3a",
+                                                    background: regFormValues[field.id] === "true" ? "#FA6814" : "transparent",
+                                                }}
+                                            >
+                                                {regFormValues[field.id] === "true" && (
+                                                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                                        <path d="M2 6l3 3 5-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                )}
+                                            </div>
                                             <span className="text-sm text-gray-300">{field.label}</span>
                                         </label>
                                     ) : (

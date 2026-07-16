@@ -1751,8 +1751,20 @@ function HarmonicAnalyzer() {
                     </div>
                     <input type="range" min={0.1} max={1} step={0.01} value={decay} onChange={(e) => setDecay(Number(e.target.value))} className="w-full accent-[#FA6814] h-2 cursor-pointer" />
                 </div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={showIndividual} onChange={(e) => setShowIndividual(e.target.checked)} className="accent-[#FA6814]" />
+                <label className="flex items-center gap-2 cursor-pointer" onClick={() => setShowIndividual(!showIndividual)}>
+                    <div
+                        className="w-5 h-5 border flex items-center justify-center transition-colors shrink-0"
+                        style={{
+                            borderColor: showIndividual ? "#FA6814" : "#3a3a3a",
+                            background: showIndividual ? "#FA6814" : "transparent",
+                        }}
+                    >
+                        {showIndividual && (
+                            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                <path d="M2 6l3 3 5-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        )}
+                    </div>
                     <span className="text-[11px] text-gray-400">Показать отдельные гармоники</span>
                 </label>
             </div>
@@ -2099,8 +2111,20 @@ function PasswordGenerator() {
                         ["Цифры (0-9)", numbers, setNumbers],
                         ["Символы (!@#)", symbols, setSymbols],
                     ] as const).map(([label, val, setter]) => (
-                        <label key={label} className="flex items-center gap-2 bg-[#1a1a1a] border border-[#3a3a3a] px-3 py-2 cursor-pointer hover:border-[#FA6814] transition-colors">
-                            <input type="checkbox" checked={val} onChange={(e) => setter(e.target.checked)} className="accent-[#FA6814]" />
+                        <label key={label} className="flex items-center gap-2 bg-[#1a1a1a] border border-[#3a3a3a] px-3 py-2 cursor-pointer hover:border-[#FA6814] transition-colors" onClick={() => setter(!val)}>
+                            <div
+                                className="w-5 h-5 border flex items-center justify-center transition-colors shrink-0"
+                                style={{
+                                    borderColor: val ? "#FA6814" : "#3a3a3a",
+                                    background: val ? "#FA6814" : "transparent",
+                                }}
+                            >
+                                {val && (
+                                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                        <path d="M2 6l3 3 5-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                )}
+                            </div>
                             <span className="text-[11px] text-gray-300">{label}</span>
                         </label>
                     ))}

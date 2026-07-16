@@ -422,7 +422,20 @@ function NotificationsTab({ API, auth }: { API: string; auth: Record<string, str
                         <div className="bg-[#1a1a1a] border border-[#3a3a3a] p-3 max-h-40 overflow-y-auto space-y-1">
                             {users.map((u) => (
                                 <label key={u.id} className="flex items-center gap-2 px-2 py-1.5 hover:bg-[#2a2a2a] cursor-pointer">
-                                    <input type="checkbox" checked={selectedUsers.includes(u.id)} onChange={() => toggle(u.id)} className="accent-[#FA6814]" />
+                                    <div
+                                        className="w-5 h-5 border flex items-center justify-center transition-colors shrink-0"
+                                        style={{
+                                            borderColor: selectedUsers.includes(u.id) ? "#FA6814" : "#3a3a3a",
+                                            background: selectedUsers.includes(u.id) ? "#FA6814" : "transparent",
+                                        }}
+                                        onClick={() => toggle(u.id)}
+                                    >
+                                        {selectedUsers.includes(u.id) && (
+                                            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                                <path d="M2 6l3 3 5-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                        )}
+                                    </div>
                                     <span className="text-sm text-white">{u.displayName || u.username}</span>
                                     <span className="text-xs text-gray-500">{u.email}</span>
                                 </label>
@@ -439,8 +452,20 @@ function NotificationsTab({ API, auth }: { API: string; auth: Record<string, str
                         <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={5} placeholder="Текст уведомления..."
                             className="w-full bg-[#1a1a1a] border border-[#3a3a3a] text-white px-4 py-3 focus:outline-none focus:border-[#FA6814] resize-none transition" />
                     </div>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} className="accent-[#FA6814]" />
+                    <label className="flex items-center gap-2 cursor-pointer" onClick={() => setSendEmail(!sendEmail)}>
+                        <div
+                            className="w-5 h-5 border flex items-center justify-center transition-colors shrink-0"
+                            style={{
+                                borderColor: sendEmail ? "#FA6814" : "#3a3a3a",
+                                background: sendEmail ? "#FA6814" : "transparent",
+                            }}
+                        >
+                            {sendEmail && (
+                                <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                    <path d="M2 6l3 3 5-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            )}
+                        </div>
                         <span className="text-sm text-gray-300">Отправить на почту</span>
                     </label>
                     <button onClick={handleSend} disabled={sending || !title.trim() || !body.trim()}
