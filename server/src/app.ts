@@ -23,6 +23,7 @@ import adminRoutes from "./routes/admin";
 import messagesRoutes from "./routes/messages";
 import softwareRoutes from "./routes/software";
 import searchRoutes from "./routes/search";
+import violationsRoutes from "./routes/violations";
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use("/api/forum", forumRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/messages", messagesRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/violations", violationsRoutes);
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));

@@ -477,6 +477,19 @@ const tables = [
         emoji TEXT NOT NULL,
         PRIMARY KEY(message_id, user_id)
     )`,
+    `CREATE TABLE IF NOT EXISTS violations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        reporter_id INTEGER NOT NULL REFERENCES users(id),
+        title TEXT NOT NULL,
+        description TEXT,
+        severity TEXT NOT NULL DEFAULT 'warning',
+        status TEXT NOT NULL DEFAULT 'open',
+        constitution_article TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        resolved_at TEXT,
+        resolved_by INTEGER REFERENCES users(id)
+    )`,
 ];
 
 const indexes = [

@@ -604,3 +604,17 @@ export const softwareItems = sqliteTable("software_items", {
     authorId: integer("author_id").notNull().references(() => users.id),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });
+
+export const violations = sqliteTable("violations", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id").notNull().references(() => users.id),
+    reporterId: integer("reporter_id").notNull().references(() => users.id),
+    title: text("title").notNull(),
+    description: text("description"),
+    severity: text("severity").notNull().default("warning"),
+    status: text("status").notNull().default("open"),
+    constitutionArticle: text("constitution_article"),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+    resolvedAt: text("resolved_at"),
+    resolvedBy: integer("resolved_by").references(() => users.id),
+});
