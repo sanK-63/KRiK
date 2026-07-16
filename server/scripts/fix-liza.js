@@ -5,6 +5,7 @@ const bcryptjs = require('bcryptjs');
 
 const dbPath = path.join(__dirname, '../data/corporate-portal.db');
 const db = new Database(dbPath);
+db.pragma('foreign_keys = OFF');
 
 // Check if vzhezhevska exists
 const liza = db.prepare("SELECT id FROM users WHERE username = 'vzhezhevska'").get();
@@ -66,5 +67,6 @@ const users = db.prepare('SELECT id, username, display_name, surname, patronymic
 console.log('\nAll users:');
 users.forEach(u => console.log(u.id + ' | ' + u.username + ' | ' + u.display_name + ' ' + (u.surname || '') + ' ' + (u.patronymic || '')));
 
+db.pragma('foreign_keys = ON');
 db.close();
 console.log('\nDone!');
