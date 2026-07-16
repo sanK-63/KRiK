@@ -74,16 +74,14 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (!user || tab !== "ELO рейтинг") return;
-        const token = localStorage.getItem("token");
-        if (!token) return;
         fetch(`${import.meta.env.VITE_API_URL}/api/elo/user/${user.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => r.json())
             .then(setElo)
             .catch(() => {});
         fetch(`${import.meta.env.VITE_API_URL}/api/elo/history/${user.id}?limit=20`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => r.json())
             .then(setEloHistory)
@@ -91,13 +89,13 @@ export default function ProfilePage() {
     }, [user, tab]);
 
     const handleChangeEmail = async () => {
-        const token = localStorage.getItem("token");
-        if (!token || !newEmail) return;
+        if (!newEmail) return;
         setEmailMessage("");
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/change-email`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({ newEmail }),
             });
             if (res.ok) {
@@ -130,7 +128,7 @@ export default function ProfilePage() {
                 Личный кабинет
             </h1>
 
-            <div className="flex gap-1 border-b border-[#3b3b3b]">
+            <div className="flex gap-1 border-b border-[#3b3b3b] overflow-x-auto">
                 {tabs.map((t) => (
                     <button
                         key={t}
@@ -182,7 +180,7 @@ export default function ProfilePage() {
 
                     <div className="p-4 space-y-3" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}>
                         <h3 className="text-xs uppercase text-gray-400 mb-3">Личные данные</h3>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <span className="text-[10px] text-gray-500 block">Имя</span>
                                 <span className="text-xs text-white">{user.displayName || "—"}</span>

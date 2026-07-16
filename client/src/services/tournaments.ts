@@ -12,12 +12,11 @@ import type {
 const BASE = import.meta.env.VITE_API_URL;
 
 function authHeaders(): Record<string, string> {
-    const token = localStorage.getItem("token");
-    return token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+    return { "Content-Type": "application/json" };
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(`${BASE}${path}`, { ...options, headers: { ...authHeaders(), ...options?.headers } });
+    const res = await fetch(`${BASE}${path}`, { ...options, credentials: "include", headers: { ...authHeaders(), ...options?.headers } });
     if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || `HTTP ${res.status}`);

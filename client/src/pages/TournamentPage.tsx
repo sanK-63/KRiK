@@ -293,7 +293,7 @@ export default function TournamentPage() {
                         </div>
 
                         {detailTab === "Главная" && (
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-5">
                                     <h3 className="text-sm uppercase text-gray-400 mb-3">Описание</h3>
                                     <p className="text-sm text-gray-300 leading-relaxed">{t.description || "Описание не задано."}</p>
@@ -326,7 +326,7 @@ export default function TournamentPage() {
                         {detailTab === "Команды" && <TeamsTab tournament={t} />}
 
                         {detailTab === "Матчи" && (
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {t.matches.length === 0 && <p className="text-gray-400 text-sm">Матчи ещё не созданы.</p>}
                                 {t.matches.map((m) => (
                                     <MatchCard key={m.id} match={m} tournamentId={t.id} onRefresh={handleRefresh} />
@@ -360,7 +360,7 @@ export default function TournamentPage() {
                 </button>
             </div>
 
-            <div className="flex gap-1 mb-6 border-b border-[#3b3b3b]">
+            <div className="flex gap-1 mb-6 border-b border-[#3b3b3b] overflow-x-auto">
                 {mainTabs.map((tab) => (
                     <button
                         key={tab}
@@ -378,7 +378,7 @@ export default function TournamentPage() {
 
             {mainTab === "Турниры" && (
                 <>
-                    <div className="flex gap-2 mb-6">
+                    <div className="flex gap-2 mb-6 overflow-x-auto">
                         {statusTabs.map((s) => (
                             <button
                                 key={s.key}
@@ -453,7 +453,7 @@ export default function TournamentPage() {
             )}
 
             {mainTab === "Статистика" && (
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-5">
                         <div className="text-xs uppercase text-gray-400">Всего турниров</div>
                         <div className="text-3xl text-[#FA6814] mt-2">{tournaments.length}</div>
@@ -489,7 +489,7 @@ export default function TournamentPage() {
 
             {showRegForm && selectedTournament && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setShowRegForm(false)}>
-                    <div className="w-[500px] max-h-[85vh] overflow-y-auto bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-full max-w-[500px] mx-4 max-h-[85vh] overflow-y-auto bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
                         <h3 className="text-lg font-semibold mb-2">Регистрация</h3>
                         <p className="text-xs text-gray-500 mb-5">{selectedTournament.title}</p>
                         <div className="space-y-4">
@@ -722,7 +722,7 @@ function StandingsTab({ tournamentId }: { tournamentId: number }) {
     };
 
     return (
-        <div className="bg-[#2a2a2a] border border-[#3b3b3b]">
+        <div className="bg-[#2a2a2a] border border-[#3b3b3b] overflow-x-auto">
             {standings.length === 0 ? (
                 <p className="text-gray-400 text-sm p-5">Таблица пока пуста.</p>
             ) : (
@@ -770,7 +770,7 @@ function StatsTab({ tournamentId }: { tournamentId: number }) {
     }, [tournamentId]);
 
     return (
-        <div className="bg-[#2a2a2a] border border-[#3b3b3b]">
+        <div className="bg-[#2a2a2a] border border-[#3b3b3b] overflow-x-auto">
             {stats.length === 0 ? (
                 <p className="text-gray-400 text-sm p-5">Статистика пока пуста.</p>
             ) : (
@@ -877,7 +877,7 @@ function SettingsTab({ tournament, onRefresh }: { tournament: Tournament; onRefr
                 ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label className="block text-xs uppercase text-gray-400 mb-2">Открытие регистрации</label>
                     <input
@@ -898,7 +898,7 @@ function SettingsTab({ tournament, onRefresh }: { tournament: Tournament; onRefr
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div>
                     <label className="block text-xs uppercase text-gray-400 mb-2">Дата начала</label>
                     <input

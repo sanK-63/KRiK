@@ -9,9 +9,14 @@ interface Message {
     content: string | null;
     attachmentPath: string | null;
     attachmentName: string | null;
+    replyToId: number | null;
+    forwardedFromId: number | null;
+    editedAt: string | null;
     createdAt: string;
     sender?: { id: number; username: string; displayName: string | null; avatar: string | null };
     reactions?: { emoji: string; userIds: number[] }[];
+    replyTo?: { id: number; content: string | null; sender?: { id: number; displayName: string | null; username: string } | null; attachmentName: string | null } | null;
+    forwardedFrom?: { id: number; displayName: string | null; username: string } | null;
 }
 
 interface Participant {
@@ -123,6 +128,12 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
     const [olderLoading, setOlderLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [, setPendingReaction] = useState<number | null>(null);
+    const [replyToMsg, setReplyToMsg] = useState<Message | null>(null);
+    const [editingMsg, setEditingMsg] = useState<Message | null>(null);
+    const [showForwardPicker, setShowForwardPicker] = useState(false);
+    const [forwardMsg, setForwardMsg] = useState<Message | null>(null);
+    const [conversations, setConversations] = useState<any[]>([]);
+    const [convSearchForward, setConvSearchForward] = useState("");
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -133,9 +144,6 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
     const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const scrollHeightBeforeLoadRef = useRef<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
-
-    const token = localStorage.getItem("token");
-    const headers = { Authorization: `Bearer ${token}` };
 
     const autoResize = useCallback(() => {
         const ta = textareaRef.current;
@@ -149,27 +157,29 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
         autoResize();
     }, [input, autoResize]);
 
-    // Request notification permission on mount
     useEffect(() => {
         if ("Notification" in window && Notification.permission === "default") {
             Notification.requestPermission();
         }
     }, []);
 
-    // Load conversation info
     useEffect(() => {
-        fetch(`${API}/api/messages/conversations/${conversationId}/info`, { headers })
+        fetch(`${API}/api/messages/conversations/${conversationId}/info`, { credentials: "include" })
             .then((r) => (r.ok ? r.json() : null))
             .then((data) => { if (data) setConvInfo(data); })
             .catch(() => {});
-    }, [conversationId, headers]);
+    }, [conversationId]);
 
-    // Load initial messages
     useEffect(() => {
         setLoading(true);
         setMessages([]);
         setHasMore(true);
-        fetch(`${API}/api/messages/conversations/${conversationId}?limit=${PAGE_SIZE}`, { headers })
+        setReplyToMsg(null);
+        setEditingMsg(null);
+        setShowForwardPicker(false);
+        setForwardMsg(null);
+        setInput("");
+        fetch(`${API}/api/messages/conversations/${conversationId}?limit=${PAGE_SIZE}`, { credentials: "include" })
             .then((r) => r.json())
             .then((data) => {
                 setMessages(data);
@@ -182,15 +192,13 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
             .catch(() => setLoading(false));
     }, [conversationId]);
 
-    // Mark as read
     useEffect(() => {
         fetch(`${API}/api/messages/conversations/${conversationId}/read`, {
             method: "PATCH",
-            headers,
+            credentials: "include",
         }).catch(() => {});
     }, [conversationId, messages.length]);
 
-    // Scroll to bottom on new message (only if near bottom)
     useEffect(() => {
         const container = messagesContainerRef.current;
         if (!container) return;
@@ -200,7 +208,6 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
         }
     }, [messages]);
 
-    // Socket: new message
     useEffect(() => {
         if (!socket) return;
         const handler = (msg: Message) => {
@@ -225,7 +232,6 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
         return () => { socket.off("message:new", handler); };
     }, [socket, conversationId, user?.id]);
 
-    // Socket: typing indicator
     useEffect(() => {
         if (!socket) return;
         const handler = (data: { conversationId: number; userId: number; username: string }) => {
@@ -252,18 +258,15 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
         };
     }, [socket, conversationId, user?.id]);
 
-    // Socket: read receipts (optional)
     useEffect(() => {
         if (!socket) return;
         const handler = (data: { conversationId: number; userId: number }) => {
             if (data.conversationId !== conversationId) return;
-            // Could update read status on messages here
         };
         socket.on("conversation:read", handler);
         return () => { socket.off("conversation:read", handler); };
     }, [socket, conversationId]);
 
-    // Load older messages on scroll up
     const loadOlder = useCallback(async () => {
         if (olderLoading || !hasMore || messages.length === 0) return;
         setOlderLoading(true);
@@ -272,14 +275,14 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
         try {
             const res = await fetch(
                 `${API}/api/messages/conversations/${conversationId}?before=${oldestId}&limit=${PAGE_SIZE}`,
-                { headers }
+                { credentials: "include" }
             );
             const data = await res.json();
             if (data.length < PAGE_SIZE) setHasMore(false);
             setMessages((prev) => [...data, ...prev]);
         } catch {}
         setOlderLoading(false);
-    }, [olderLoading, hasMore, messages, conversationId, headers]);
+    }, [olderLoading, hasMore, messages, conversationId]);
 
     useEffect(() => {
         const container = messagesContainerRef.current;
@@ -291,7 +294,6 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
         }
     }, [messages, olderLoading]);
 
-    // Scroll handler for infinite scroll + scroll button
     const handleScroll = useCallback(() => {
         const container = messagesContainerRef.current;
         if (!container) return;
@@ -303,20 +305,21 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
         }
     }, [hasMore, olderLoading, loadOlder]);
 
-    // Escape closes lightbox + context menu
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 setLightbox(null);
                 setContextMenu(null);
                 setReactionPickerMsgId(null);
+                setReplyToMsg(null);
+                setEditingMsg(null);
+                setShowForwardPicker(false);
             }
         };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
     }, []);
 
-    // Close context menu / reaction picker on outside click
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
@@ -336,7 +339,7 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
         try {
             const res = await fetch(`${API}/api/messages/conversations/${conversationId}/send`, {
                 method: "POST",
-                headers: { Authorization: `Bearer ${token}` },
+                credentials: "include",
                 body: formData,
             });
             if (res.ok) {
@@ -347,6 +350,7 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
                 });
                 setInput("");
                 setFile(null);
+                setReplyToMsg(null);
                 if (fileInputRef.current) fileInputRef.current.value = "";
                 setTimeout(() => {
                     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -354,13 +358,32 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
             }
         } catch {}
         setSending(false);
-    }, [conversationId, token]);
+    }, [conversationId]);
 
     const sendMessage = async () => {
-        if ((!input.trim() && !file) || sending) return;
+        if ((!input.trim() && !file && !editingMsg) || sending) return;
+
+        if (editingMsg) {
+            try {
+                const res = await fetch(`${API}/api/messages/conversations/${conversationId}/messages/${editingMsg.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ content: input.trim() }),
+                });
+                if (res.ok) {
+                    setMessages((prev) => prev.map(m => m.id === editingMsg.id ? { ...m, content: input.trim(), editedAt: new Date().toISOString() } : m));
+                    setEditingMsg(null);
+                    setInput("");
+                }
+            } catch {}
+            return;
+        }
+
         const fd = new FormData();
         if (input.trim()) fd.append("content", input.trim());
         if (file) fd.append("attachment", file);
+        if (replyToMsg) fd.append("replyToId", String(replyToMsg.id));
         await sendFormData(fd);
     };
 
@@ -402,6 +425,7 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
                 const voiceFile = new File([blob], `voice-${Date.now()}.${ext}`, { type: mime });
                 const fd = new FormData();
                 fd.append("attachment", voiceFile);
+                if (replyToMsg) fd.append("replyToId", String(replyToMsg.id));
                 sendFormData(fd);
             };
 
@@ -440,7 +464,8 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
         try {
             const res = await fetch(`${API}/api/messages/${msgId}/reactions`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({ emoji }),
             });
             if (res.ok) {
@@ -475,6 +500,35 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    const forwardToConversation = async (targetConvId: number) => {
+        if (!forwardMsg) return;
+        try {
+            const res = await fetch(`${API}/api/messages/conversations/${targetConvId}/forward`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ messageId: forwardMsg.id }),
+            });
+            if (res.ok) {
+                setShowForwardPicker(false);
+                setForwardMsg(null);
+            }
+        } catch {}
+    };
+
+    const openForwardPicker = async (msg: Message) => {
+        setContextMenu(null);
+        setForwardMsg(msg);
+        setShowForwardPicker(true);
+        try {
+            const res = await fetch(`${API}/api/messages/conversations`, { credentials: "include" });
+            if (res.ok) {
+                const data = await res.json();
+                setConversations(data);
+            }
+        } catch {}
     };
 
     const typingText = (() => {
@@ -600,6 +654,25 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
                                             </div>
                                         )}
 
+                                        {/* Reply quote */}
+                                        {msg.replyTo && (
+                                            <div className={`mb-1 px-2 py-1 border-l-2 ${isMe ? "border-white/40 bg-white/10" : "border-[#FA6814]/40 bg-[#FA6814]/5"}`} style={{ borderRadius: 2 }}>
+                                                <div className="text-[9px] font-medium text-[#FA6814]">
+                                                    {msg.replyTo.sender?.displayName || msg.replyTo.sender?.username || "Сообщение"}
+                                                </div>
+                                                <div className="text-[10px] text-gray-400 truncate">
+                                                    {msg.replyTo.content || (msg.replyTo.attachmentName ? "📎 " + msg.replyTo.attachmentName : "...")}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Forwarded from */}
+                                        {msg.forwardedFrom && (
+                                            <div className="text-[9px] text-gray-400 mb-1 italic">
+                                                ↪ Переслано от {msg.forwardedFrom.displayName || msg.forwardedFrom.username}
+                                            </div>
+                                        )}
+
                                         {/* Text content */}
                                         {msg.content && (
                                             <div className="text-xs whitespace-pre-wrap break-words">{msg.content}</div>
@@ -660,10 +733,11 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
                                             </a>
                                         )}
 
-                                        {/* Timestamp + read status */}
+                                        {/* Timestamp + read status + edited */}
                                         <div className={`flex items-center justify-end gap-1 text-[10px] mt-1 ${isMe ? "text-white/70" : "text-gray-500"}`}>
                                             {isMe && <span>✓</span>}
                                             <span>{fmtTime(msg.createdAt)}</span>
+                                            {msg.editedAt && <span className="italic">(ред.)</span>}
                                         </div>
 
                                         {/* Reaction chips */}
@@ -780,6 +854,34 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
                 </div>
             )}
 
+            {/* Reply bar */}
+            {replyToMsg && (
+                <div className="px-4 py-2 border-t border-[#3b3b3b] flex items-center gap-2 bg-[#252525] shrink-0">
+                    <div className="w-0.5 h-8 bg-[#FA6814] shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <div className="text-[10px] text-[#FA6814] font-medium">
+                            {replyToMsg.sender?.displayName || replyToMsg.sender?.username || "Сообщение"}
+                        </div>
+                        <div className="text-[11px] text-gray-400 truncate">
+                            {replyToMsg.content || (replyToMsg.attachmentName ? "📎 Файл" : "...")}
+                        </div>
+                    </div>
+                    <button onClick={() => setReplyToMsg(null)} className="text-gray-500 hover:text-white cursor-pointer text-xs">✕</button>
+                </div>
+            )}
+
+            {/* Edit bar */}
+            {editingMsg && (
+                <div className="px-4 py-2 border-t border-[#3b3b3b] flex items-center gap-2 bg-[#252525] shrink-0">
+                    <div className="w-0.5 h-8 bg-[#FFB020] shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <div className="text-[10px] text-[#FFB020] font-medium">Редактирование</div>
+                        <div className="text-[11px] text-gray-400 truncate">{editingMsg.content}</div>
+                    </div>
+                    <button onClick={() => { setEditingMsg(null); setInput(""); }} className="text-gray-500 hover:text-white cursor-pointer text-xs">✕</button>
+                </div>
+            )}
+
             {/* Input area */}
             {!recording && (
                 <div className="px-4 py-3 border-t border-[#3b3b3b] shrink-0 bg-[#1e1e1e]">
@@ -862,9 +964,78 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
                                 >
                                     Реакция
                                 </button>
+                                {msg?.content && (
+                                    <button
+                                        onClick={() => { setContextMenu(null); setReplyToMsg(msg); }}
+                                        className="w-full text-left text-xs text-gray-300 hover:bg-[#3b3b3b] px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
+                                    >
+                                        <span>↩</span> Ответить
+                                    </button>
+                                )}
+                                {msg?.content && msg.senderId === user?.id && (
+                                    <button
+                                        onClick={() => { setContextMenu(null); setEditingMsg(msg); setInput(msg.content || ""); }}
+                                        className="w-full text-left text-xs text-gray-300 hover:bg-[#3b3b3b] px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
+                                    >
+                                        <span>✎</span> Редактировать
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => { if (msg) openForwardPicker(msg); }}
+                                    className="w-full text-left text-xs text-gray-300 hover:bg-[#3b3b3b] px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
+                                >
+                                    <span>↪</span> Переслать
+                                </button>
                             </>
                         );
                     })()}
+                </div>
+            )}
+
+            {/* Forward picker dialog */}
+            {showForwardPicker && forwardMsg && (
+                <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+                    <div className="bg-[#252525] border border-[#3b3b3b] w-full max-w-sm mx-4" style={{ borderRadius: 8 }}>
+                        <div className="px-4 py-3 border-b border-[#3b3b3b] flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-white">Переслать сообщение</h3>
+                            <button onClick={() => { setShowForwardPicker(false); setForwardMsg(null); }} className="text-gray-500 hover:text-white cursor-pointer text-sm">✕</button>
+                        </div>
+                        <div className="px-4 py-2 border-b border-[#3b3b3b]">
+                            <input
+                                type="text"
+                                value={convSearchForward}
+                                onChange={(e) => setConvSearchForward(e.target.value)}
+                                placeholder="Найти чат..."
+                                className="w-full bg-[#1e1e1e] border border-[#3b3b3b] text-white text-xs px-3 py-2 focus:outline-none focus:border-[#FA6814]"
+                                style={{ borderRadius: 4 }}
+                                autoFocus
+                            />
+                        </div>
+                        <div className="max-h-64 overflow-y-auto">
+                            {conversations
+                                .filter((c: any) => c.id !== conversationId)
+                                .filter((c: any) => {
+                                    if (!convSearchForward) return true;
+                                    const name = c.title || (c.otherUser?.displayName || c.otherUser?.username) || "";
+                                    return name.toLowerCase().includes(convSearchForward.toLowerCase());
+                                })
+                                .map((c: any) => (
+                                    <button
+                                        key={c.id}
+                                        onClick={() => forwardToConversation(c.id)}
+                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#2a2a2a] transition-colors cursor-pointer text-left border-b border-[#2a2a2a]"
+                                    >
+                                        <div className="w-8 h-8 bg-[#333] border border-[#3b3b3b] flex items-center justify-center text-xs text-[#FA6814] font-bold shrink-0">
+                                            {c.isGroup ? "👥" : (c.otherUser?.displayName?.[0] || c.otherUser?.username?.[0] || "?").toUpperCase()}
+                                        </div>
+                                        <span className="text-xs text-white truncate">
+                                            {c.title || c.otherUser?.displayName || c.otherUser?.username || "Чат"}
+                                        </span>
+                                    </button>
+                                ))
+                            }
+                        </div>
+                    </div>
                 </div>
             )}
 

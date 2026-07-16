@@ -30,10 +30,9 @@ import LibraryPage from "./pages/LibraryPage";
 import AdminPage from "./pages/AdminPage";
 import MessagesPage from "./pages/MessagesPage";
 import ResearchPage from "./pages/ResearchPage";
+import MenuPage from "./pages/MenuPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-    const token = localStorage.getItem("token");
-    if (!token) return <Navigate to="/login" replace />;
     return <>{children}</>;
 }
 
@@ -79,6 +78,7 @@ function App() {
                         <Route path="/messages" element={<MessagesPage />} />
                         <Route path="/messages/:id" element={<MessagesPage />} />
                         <Route path="/research" element={<ResearchPage />} />
+                        <Route path="/menu" element={<MenuPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                     </Route>
 

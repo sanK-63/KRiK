@@ -1,24 +1,44 @@
 import { NavLink } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import {
+    Newspaper,
+    MessageSquare,
+    Calendar,
+    Mail,
+    BookOpen,
+    Swords,
+    Castle,
+    Download,
+    Trophy,
+    Film,
+    Beer,
+    Laugh,
+    BarChart3,
+    FlaskConical,
+    BookMarked,
+    Archive,
+    Shield,
+    type LucideIcon,
+} from "lucide-react";
 
-const links: [string, string][] = [
-    ["/", "О нас"],
-    ["/feed", "Лента"],
-    ["/constitution", "Конституция"],
-    ["/forum", "Форум"],
-    ["/events", "Ивенты"],
-    ["/workers", "Работяги"],
-    ["/portal", "Портал"],
-    ["/software", "Софт"],
-    ["/tournament", "Турниры"],
-    ["/cinema", "Кинотека"],
-    ["/tavern", "Таверна"],
-    ["/memes", "Мемы"],
-    ["/leaderboard", "Лидеры"],
-    ["/research", "Исследования"],
-    ["/library", "Библиотека"],
-    ["/archive", "Архив"],
-    ["/messages", "Сообщения"],
+const links: [string, string, LucideIcon][] = [
+    ["/", "О нас", Newspaper],
+    ["/feed", "Лента", Newspaper],
+    ["/constitution", "Конституция", BookOpen],
+    ["/forum", "Форум", MessageSquare],
+    ["/events", "Ивенты", Calendar],
+    ["/workers", "Работяги", Swords],
+    ["/portal", "Портал", Castle],
+    ["/software", "Софт", Download],
+    ["/tournament", "Турниры", Trophy],
+    ["/cinema", "Кинотека", Film],
+    ["/tavern", "Таверна", Beer],
+    ["/memes", "Мемы", Laugh],
+    ["/leaderboard", "Лидеры", BarChart3],
+    ["/research", "Исследования", FlaskConical],
+    ["/library", "Библиотека", BookMarked],
+    ["/archive", "Архив", Archive],
+    ["/messages", "Сообщения", Mail],
 ];
 
 export default function Sidebar() {
@@ -29,12 +49,12 @@ export default function Sidebar() {
             className="w-56 h-full py-4 overflow-y-auto"
             style={{ background: "#252525", borderRight: "1px solid #393939" }}
         >
-            {links.map(([url, name]) => (
+            {links.map(([url, name, Icon]) => (
                 <NavLink
                     key={url}
                     to={url}
                     className={({ isActive }) =>
-                        `block px-4 py-2.5 text-[13px] transition-colors relative ${
+                        `flex items-center gap-3 px-4 py-2.5 text-[13px] transition-colors relative ${
                             isActive
                                 ? "text-[#FA6814] bg-[#2a2a2a]"
                                 : "text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
@@ -46,6 +66,7 @@ export default function Sidebar() {
                             {isActive && (
                                 <span className="absolute left-0 top-0 bottom-0 w-1 bg-[#FA6814]" />
                             )}
+                            <Icon size={16} />
                             {name}
                         </>
                     )}
@@ -55,7 +76,7 @@ export default function Sidebar() {
                 <NavLink
                     to="/admin"
                     className={({ isActive }) =>
-                        `block px-4 py-2.5 text-[13px] transition-colors relative ${
+                        `flex items-center gap-3 px-4 py-2.5 text-[13px] transition-colors relative ${
                             isActive
                                 ? "text-[#FA6814] bg-[#2a2a2a]"
                                 : "text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
@@ -67,6 +88,7 @@ export default function Sidebar() {
                             {isActive && (
                                 <span className="absolute left-0 top-0 bottom-0 w-1 bg-[#FA6814]" />
                             )}
+                            <Shield size={16} />
                             Админ
                         </>
                     )}

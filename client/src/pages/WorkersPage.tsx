@@ -33,10 +33,8 @@ export default function WorkersPage() {
     const [search, setSearch] = useState("");
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
         fetch(`${import.meta.env.VITE_API_URL}/api/users`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((data) => setUsers(data))

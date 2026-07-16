@@ -41,12 +41,11 @@ export default function MemesPage() {
     const [selected, setSelected] = useState<Meme | null>(null);
     const [commentText, setCommentText] = useState("");
     const [form, setForm] = useState({ title: "", image: "", category: "general" });
-    const token = localStorage.getItem("token");
 
     const load = () => {
         const q = tab === "all" ? "" : `?category=${tab}`;
         fetch(`${import.meta.env.VITE_API_URL}/api/memes${q}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : []))
             .then(setMemes)
@@ -106,10 +105,11 @@ export default function MemesPage() {
     }, [socket]);
 
     const handleCreate = async () => {
-        if (!form.image || !token) return;
+        if (!form.image) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/memes`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ title: form.title || null, image: form.image, category: form.category }),
         });
         setForm({ title: "", image: "", category: tab === "all" ? "general" : tab });
@@ -118,38 +118,36 @@ export default function MemesPage() {
     };
 
     const handleDelete = async (id: number) => {
-        if (!token) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/memes/${id}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         });
         setSelected(null);
         load();
     };
 
     const handleLike = async (id: number) => {
-        if (!token) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/memes/${id}/like`, {
             method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         });
         load();
         if (selected?.id === id) loadDetail(id);
     };
 
     const loadDetail = async (id: number) => {
-        if (!token) return;
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/memes/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         });
         if (res.ok) setSelected(await res.json());
     };
 
     const handleComment = async () => {
-        if (!selected || !commentText.trim() || !token) return;
+        if (!selected || !commentText.trim()) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/memes/${selected.id}/comments`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ content: commentText }),
         });
         setCommentText("");
@@ -157,10 +155,10 @@ export default function MemesPage() {
     };
 
     const handleDeleteComment = async (commentId: number) => {
-        if (!selected || !token) return;
+        if (!selected) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/memes/${selected.id}/comments/${commentId}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         });
         loadDetail(selected.id);
     };
@@ -191,7 +189,7 @@ export default function MemesPage() {
                 </button>
             </div>
 
-            <div className="flex gap-0 border-b border-[#3a3a3a] mb-6">
+            <div className="flex gap-0 border-b border-[#3a3a3a] mb-6 overflow-x-auto">
                 {tabs.map((t) => (
                     <button
                         key={t.key}

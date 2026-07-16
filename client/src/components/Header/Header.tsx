@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import UserMenu from "./UserMenu";
 import { useSocket } from "../../context/SocketContext";
+import { useUser } from "../../context/UserContext";
 
 interface Props {
     onToggleSidebar: () => void;
@@ -17,6 +18,7 @@ interface Notification {
 }
 
 export default function Header({ onToggleSidebar }: Props) {
+    const { user } = useUser();
     const [query, setQuery] = useState("");
     const navigate = useNavigate();
     const socket = useSocket();
@@ -24,8 +26,6 @@ export default function Header({ onToggleSidebar }: Props) {
     const [showNotifs, setShowNotifs] = useState(false);
     const [notifs, setNotifs] = useState<Notification[]>([]);
     const notifRef = useRef<HTMLDivElement>(null);
-
-    const token = localStorage.getItem("token");
 
     useEffect(() => {
         if (!showNotifs) return;
@@ -39,14 +39,13 @@ export default function Header({ onToggleSidebar }: Props) {
     }, [showNotifs]);
 
     useEffect(() => {
-        if (!token) return;
         fetch(`${import.meta.env.VITE_API_URL}/api/notifications/unread-count`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : null))
             .then((data) => { if (data) setUnread(data.count); })
             .catch(() => {});
-    }, [token]);
+    }, []);
 
     useEffect(() => {
         if (!socket) return;
@@ -62,10 +61,9 @@ export default function Header({ onToggleSidebar }: Props) {
             return;
         }
         setShowNotifs(true);
-        if (!token) return;
         try {
             const r = await fetch(`${import.meta.env.VITE_API_URL}/api/notifications`, {
-                headers: { Authorization: `Bearer ${token}` },
+                credentials: "include",
             });
             if (r.ok) {
                 const data = await r.json();
@@ -75,7 +73,7 @@ export default function Header({ onToggleSidebar }: Props) {
         if (unread > 0) {
             fetch(`${import.meta.env.VITE_API_URL}/api/notifications/read-all`, {
                 method: "PATCH",
-                headers: { Authorization: `Bearer ${token}` },
+                credentials: "include",
             }).catch(() => {});
             setUnread(0);
         }
@@ -94,12 +92,12 @@ export default function Header({ onToggleSidebar }: Props) {
                 <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                     <button
                         onClick={onToggleSidebar}
-                        className="text-gray-400 hover:text-white transition-colors cursor-pointer text-lg shrink-0"
+                        className="text-gray-400 hover:text-white transition-colors cursor-pointer text-lg shrink-0 hidden xl:block"
                     >
                         ☰
                     </button>
                     <h1
-                        className="text-[#FA6814] text-[8px] sm:text-xs leading-tight whitespace-nowrap"
+                        className="text-[#FA6814] text-[8px] sm:text-xs leading-tight whitespace-nowrap hidden sm:block"
                         style={{ fontFamily: '"Press Start 2P", system-ui' }}
                     >
                         Рога и Копыта
@@ -116,7 +114,7 @@ export default function Header({ onToggleSidebar }: Props) {
                             className="w-28 sm:w-48 lg:w-72 bg-[#1e1e1e] border border-[#3a3a3a] text-xs text-gray-300 px-3 py-1.5 outline-none focus:border-[#FA6814] transition-colors"
                         />
                     </form>
-                    {token && (
+                    {user && (
                         <div className="relative" ref={notifRef}>
                             <button
                                 onClick={toggleNotifs}

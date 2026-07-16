@@ -32,15 +32,15 @@ export default function LoginPage() {
                     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/key-login`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
+                        credentials: "include",
                         body: JSON.stringify({ key }),
                     });
                     const data = await res.json();
-                    if (data.token && data.user) {
-                        localStorage.setItem("token", data.token);
+                    if (data.user) {
                         // Fetch full profile after login
                         try {
                             const meRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-                                headers: { Authorization: `Bearer ${data.token}` },
+                                credentials: "include",
                             });
                             if (meRes.ok) {
                                 const profile = await meRes.json();

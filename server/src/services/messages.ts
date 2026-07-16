@@ -175,6 +175,9 @@ export function getConversationMessages(conversationId: number, userId: number, 
             attachmentPath: messages.attachmentPath,
             attachmentName: messages.attachmentName,
             createdAt: messages.createdAt,
+            replyToId: messages.replyToId,
+            forwardedFromId: messages.forwardedFromId,
+            editedAt: messages.editedAt,
         })
         .from(messages)
         .where(eq(messages.conversationId, conversationId))
@@ -190,6 +193,21 @@ export function getConversationMessages(conversationId: number, userId: number, 
             .from(users)
             .where(eq(users.id, m.senderId))
             .get();
+
+        let replyTo = null;
+        if (m.replyToId) {
+            const origMsg = db.select().from(messages).where(eq(messages.id, m.replyToId)).get();
+            if (origMsg) {
+                const origSender = db.select({ id: users.id, username: users.username, displayName: users.displayName }).from(users).where(eq(users.id, origMsg.senderId)).get();
+                replyTo = { id: origMsg.id, content: origMsg.content, sender: origSender || null, attachmentName: origMsg.attachmentName };
+            }
+        }
+
+        let forwardedFrom = null;
+        if (m.forwardedFromId) {
+            const fwdUser = db.select({ id: users.id, username: users.username, displayName: users.displayName }).from(users).where(eq(users.id, m.forwardedFromId)).get();
+            forwardedFrom = fwdUser || null;
+        }
 
         const reactionRows = db
             .select({
@@ -212,6 +230,8 @@ export function getConversationMessages(conversationId: number, userId: number, 
             ...m,
             sender: sender || null,
             reactions: Object.values(reactionsMap),
+            replyTo,
+            forwardedFrom,
         };
     });
 
@@ -325,13 +345,123 @@ export function sendMessage(
         .where(eq(users.id, senderId))
         .get();
 
-    const messageWithSender = { ...msg, sender, reactions: [] };
+    let replyTo: any = null;
+    if (replyToId) {
+        const origMsg = db.select().from(messages).where(eq(messages.id, replyToId)).get();
+        if (origMsg) {
+            const origSender = db.select({ id: users.id, username: users.username, displayName: users.displayName }).from(users).where(eq(users.id, origMsg.senderId)).get();
+            replyTo = { ...origMsg, sender: origSender || null };
+        }
+    }
+
+    const messageWithSender = { ...msg, sender, reactions: [], replyTo };
 
     try {
         emitToConversation(conversationId, "message:new", messageWithSender);
     } catch {}
 
     return messageWithSender;
+}
+
+export function editMessage(conversationId: number, userId: number, messageId: number, content: string) {
+    const participant = db
+        .select()
+        .from(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, userId)
+            )
+        )
+        .get();
+
+    if (!participant) return { error: "Вы не участник этого чата" };
+
+    const msg = db
+        .select()
+        .from(messages)
+        .where(
+            and(
+                eq(messages.id, messageId),
+                eq(messages.conversationId, conversationId)
+            )
+        )
+        .get();
+
+    if (!msg) return { error: "Сообщение не найдено" };
+    if (msg.senderId !== userId) return { error: "Нельзя редактировать чужое сообщение" };
+
+    db.update(messages)
+        .set({ content, editedAt: new Date().toISOString() })
+        .where(eq(messages.id, messageId))
+        .run();
+
+    const updated = db.select().from(messages).where(eq(messages.id, messageId)).get()!;
+
+    const sender = db
+        .select({ id: users.id, username: users.username, displayName: users.displayName, avatar: users.avatar })
+        .from(users)
+        .where(eq(users.id, updated.senderId))
+        .get();
+
+    const result = { ...updated, sender: sender || null };
+
+    try {
+        emitToConversation(conversationId, "message:edited", result);
+    } catch {}
+
+    return result;
+}
+
+export function forwardMessage(conversationId: number, senderId: number, messageId: number) {
+    const participant = db
+        .select()
+        .from(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, senderId)
+            )
+        )
+        .get();
+
+    if (!participant) return { error: "Вы не участник этого чата" };
+
+    const origMsg = db.select().from(messages).where(eq(messages.id, messageId)).get();
+    if (!origMsg) return { error: "Исходное сообщение не найдено" };
+
+    const newMsg = db
+        .insert(messages)
+        .values({
+            conversationId,
+            senderId,
+            content: origMsg.content,
+            attachmentPath: origMsg.attachmentPath,
+            attachmentName: origMsg.attachmentName,
+            forwardedFromId: origMsg.senderId,
+        })
+        .returning()
+        .get();
+
+    const sender = db
+        .select({ id: users.id, username: users.username, displayName: users.displayName, avatar: users.avatar })
+        .from(users)
+        .where(eq(users.id, senderId))
+        .get();
+
+    const forwardedFrom = db
+        .select({ id: users.id, username: users.username, displayName: users.displayName })
+        .from(users)
+        .where(eq(users.id, origMsg.senderId))
+        .get();
+
+    const result = { ...newMsg, sender: sender || null, forwardedFrom: forwardedFrom || null, reactions: [] };
+
+    try {
+        emitToConversation(conversationId, "message:new", result);
+    } catch {}
+
+    return result;
 }
 
 export function markAsRead(conversationId: number, userId: number) {

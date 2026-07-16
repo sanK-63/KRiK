@@ -18,8 +18,7 @@ interface LogEntry {
 }
 
 function getAuthHeaders(): Record<string, string> {
-    const token = localStorage.getItem("token");
-    return { Authorization: `Bearer ${token || ""}` };
+    return {};
 }
 
 function formatDate(d: string | null) {
@@ -87,7 +86,7 @@ export default function LogsPage() {
         if (dateFrom) params.set("dateFrom", dateFrom);
         if (dateTo) params.set("dateTo", dateTo);
 
-        fetch(`${API}/api/logs?${params.toString()}`, { headers: getAuthHeaders() })
+        fetch(`${API}/api/logs?${params.toString()}`, { headers: getAuthHeaders(), credentials: "include" })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((data) => {
                 setLogs(data.logs);
@@ -100,7 +99,7 @@ export default function LogsPage() {
 
     useEffect(() => { fetchLogs(page); }, [page]);
     useEffect(() => {
-        fetch(`${API}/api/logs/actions`, { headers: getAuthHeaders() })
+        fetch(`${API}/api/logs/actions`, { headers: getAuthHeaders(), credentials: "include" })
             .then((r) => (r.ok ? r.json() : []))
             .then((data) => setDistinctActions(data))
             .catch(() => {});
@@ -260,7 +259,7 @@ export default function LogsPage() {
                                 {/* Expanded details */}
                                 {isExpanded && (
                                     <div className="px-4 pb-3 border-t border-[#2a2a2a] pt-2">
-                                        <div className="grid grid-cols-2 gap-2 text-[10px]">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
                                             <div>
                                                 <span className="text-gray-600">ID: </span>
                                                 <span className="text-gray-400">{log.id}</span>

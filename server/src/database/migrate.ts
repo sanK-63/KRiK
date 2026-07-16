@@ -563,8 +563,8 @@ export function migrate() {
 
         // 1. tunev — Administrator
         insertUser.run(
-            "674ba842-f87a-46ca-bcdc-3f5905c104a9", "tunev", "Александр", "Тунев", null,
-            "2005-02-01", "+7 (870) 872-24-375", "tunov@portal.local", "/avatars/tunev.jpg",
+            "674ba842-f87a-46ca-bcdc-3f5905c104a9", "tunev", "Александр", "Тунев", "Дмитриевич",
+            "2005-02-01", "+7 708 722 43 75", "tunov@portal.local", "/avatars/tunev.jpg",
             "$2b$10$WKa45bM8B5YC77ma3y4Ti.jmr3f/c4c2uvI72sy.aS8F6W4Kp9d4m",
             sha256("uqUCyp91Md0yzAlMrGs4uB0jVwua6Sjj"), "active"
         );
@@ -574,7 +574,7 @@ export function migrate() {
         // 2. cherepkov — User
         insertUser.run(
             "b1c2d3e4-f5a6-7890-abcd-ef1234567890", "cherepkov", "Константин", "Черепков", "Александрович",
-            "2005-01-30", "+7 (777) 129-4-227", "kostacerepkov700@gmail.com", "/avatars/cherepkov.jpg",
+            "2005-01-30", "+7 771 294 12 27", "kostacerepkov700@gmail.com", "/avatars/cherepkov.jpg",
             "$2b$10$e8hpgR7HerzkkImHBF.eXO0GtVEWCeugcH9MsP0uRSPevBxCpsX4i",
             sha256("9v4YDVw6BygjGNRCiczM4voRKDsoqHAA"), "active"
         );
@@ -583,8 +583,8 @@ export function migrate() {
 
         // 3. garbuzov — User
         insertUser.run(
-            "c2d3e4f5-a6b7-8901-bcde-f12345678901", "garbuzov", "Никита", "Гарбузов", null,
-            "2004-10-14", "+7 (777) 492-12-01", "nikitarin054@gmail.com", "/avatars/garbuzov.jpg",
+            "c2d3e4f5-a6b7-8901-bcde-f12345678901", "garbuzov", "Никита", "Гарбузов", "Александрович",
+            "2004-10-14", "+7 777 492 12 01", "nikitarin054@gmail.com", "/avatars/garbuzov.jpg",
             "$2b$10$4sfnUc4dQm0U/11oE7CtjOESK85cuDU1H0WRrlKQsuFb0wSL/VUyG",
             sha256("ZqayaqfYav0qaQtzU8Cf9YfGMPpBWp9Q"), "active"
         );
@@ -594,7 +594,7 @@ export function migrate() {
         // 4. vzhezhevska — User
         insertUser.run(
             "d3e4f5a6-b7c8-9012-cdef-123456789012", "vzhezhevska", "Елизавета", "Вжежевская", "Валентиновна",
-            "2006-04-28", "+7 (870) 022-50-42", "vzezevskaaelizaveta@gmail.com", null,
+            "2006-04-28", "+7 700 225 04 23", "vzezevskaaelizaveta@gmail.com", null,
             "$2b$10$Pq.JhFI1dwAhBXwwicerkeawZ5wnkQgO9GfJeK.SJ2jpsw2YbhaWW",
             sha256("LKAS8B5g0uSOIfQREhJNJMIzB96PjfPj"), "active"
         );
@@ -604,7 +604,7 @@ export function migrate() {
         // 5. putc — User
         insertUser.run(
             "e4f5a6b7-c8d9-0123-defa-234567890123", "putc", "Валерия", "Пуц", "Руслановна",
-            "2004-01-01", "+7 (877) 702-14-85", "vpuc72604@gmail.com", null,
+            "2004-01-01", "+7 777 021 48 50", "vpuc72604@gmail.com", null,
             "$2b$10$7MlnACKFIkcZpyNFP4GQ0ux46klR.chfNRZEsHKV4hDcEZS7D9q6W",
             sha256("c77h7GYDQgqgqRHjZ95iZ5D1Edlm0vtF"), "active"
         );
@@ -638,8 +638,8 @@ export function migrate() {
         sqlite.prepare(
             "INSERT INTO users (uuid, username, display_name, surname, patronymic, date_of_birth, phone, email, avatar, access_key_hash, key_lookup, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         ).run(
-            vladUuid(), "vladimirov", "Ратмир", "Владимиров", null,
-            "2005-10-10", "+7 (877) 748-83-671", "vladimirovratmir57@gmail.com", null,
+            vladUuid(), "vladimirov", "Ратмир", "Владимиров", "Николаевич",
+            "2005-10-10", "+7 777 748 83 67", "vladimirovratmir57@gmail.com", null,
             vladHash, vladLookup, "active"
         );
         const vladId = sqlite.prepare("SELECT id FROM users WHERE username = 'vladimirov'").get() as { id: number };
@@ -930,6 +930,21 @@ export function migrate() {
         SELECT id, 1000, 0, 0, 0, datetime('now') FROM users
     `);
     console.log("ELO reset to 1000 for all users");
+
+    // Update patronymics for existing users
+    sqlite.prepare("UPDATE users SET patronymic = ? WHERE username = ?").run("Дмитриевич", "tunev");
+    sqlite.prepare("UPDATE users SET patronymic = ? WHERE username = ?").run("Александрович", "garbuzov");
+    sqlite.prepare("UPDATE users SET patronymic = ? WHERE username = ?").run("Николаевич", "vladimirov");
+    console.log("Patronymics updated for tunev, garbuzov, vladimirov");
+
+    // Normalize phone numbers to +7 7XX XXX XX XX format
+    sqlite.prepare("UPDATE users SET phone = ? WHERE username = ?").run("+7 708 722 43 75", "tunev");
+    sqlite.prepare("UPDATE users SET phone = ? WHERE username = ?").run("+7 771 294 12 27", "cherepkov");
+    sqlite.prepare("UPDATE users SET phone = ? WHERE username = ?").run("+7 777 492 12 01", "garbuzov");
+    sqlite.prepare("UPDATE users SET phone = ? WHERE username = ?").run("+7 700 225 04 23", "vzhezhevska");
+    sqlite.prepare("UPDATE users SET phone = ? WHERE username = ?").run("+7 777 021 48 50", "putc");
+    sqlite.prepare("UPDATE users SET phone = ? WHERE username = ?").run("+7 777 748 83 67", "vladimirov");
+    console.log("Phone numbers normalized for all users");
 
     console.log("Database migrated successfully");
 }

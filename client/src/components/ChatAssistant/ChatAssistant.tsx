@@ -97,10 +97,8 @@ export default function ChatAssistant() {
             {/* Knight button */}
             <button
                 onClick={toggleOpen}
-                className="fixed z-50 transition-transform duration-200 cursor-pointer"
+                className="fixed z-50 transition-transform duration-200 cursor-pointer max-sm:bottom-20 max-sm:right-4 sm:bottom-5 sm:right-5"
                 style={{
-                    bottom: 20,
-                    right: 20,
                     width: 80,
                     height: 80,
                     transform: bouncing ? "translateY(-12px)" : "translateY(0)",
@@ -129,12 +127,8 @@ export default function ChatAssistant() {
             {/* Chat window */}
             {open && (
                 <div
-                    className="fixed z-50 flex flex-col overflow-hidden"
+                    className="fixed z-50 flex flex-col overflow-hidden max-sm:inset-0 max-sm:w-full max-sm:h-full max-sm:rounded-none sm:bottom-[110px] sm:right-5 sm:w-[380px] sm:max-h-[550px]"
                     style={{
-                        bottom: 110,
-                        right: 20,
-                        width: 380,
-                        maxHeight: 550,
                         background: "#1a1a1a",
                         border: "2px solid #FA6814",
                         boxShadow: "0 0 30px rgba(250,104,20,0.15)",

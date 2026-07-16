@@ -49,7 +49,7 @@ export default function TournamentControlPanel({ tournament, currentUserId, onBa
                 </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
                 <div className="bg-[#1e1e1e] border border-[#3a3a3a] p-3">
                     <div className="text-[10px] uppercase text-gray-500">Игра</div>
                     <div className="text-xl font-bold text-[#FA6814]">{t.gameName || "—"}</div>

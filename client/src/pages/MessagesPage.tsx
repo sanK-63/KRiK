@@ -51,15 +51,13 @@ export default function MessagesPage() {
     const { user } = useUser();
     const socket = useSocket();
 
-    const token = localStorage.getItem("token");
-    const headers = { Authorization: `Bearer ${token}` };
-
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeConvId, setActiveConvId] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [mobileShowChat, setMobileShowChat] = useState(false);
 
     const [convSearch, setConvSearch] = useState("");
+    const [allUsers, setAllUsers] = useState<User[]>([]);
 
     const [showNewChat, setShowNewChat] = useState(false);
     const [newChatMode, setNewChatMode] = useState<"personal" | "group">("personal");
@@ -81,10 +79,10 @@ export default function MessagesPage() {
     const [memberSearchResults, setMemberSearchResults] = useState<User[]>([]);
 
     const loadConversations = useCallback(() => {
-        fetch(`${API}/api/messages/conversations`, { headers })
-            .then((r) => r.json())
+        fetch(`${API}/api/messages/conversations`, { credentials: "include" })
+            .then((r) => (r.ok ? r.json() : []))
             .then((data) => {
-                setConversations(data);
+                setConversations(Array.isArray(data) ? data : []);
                 setLoading(false);
             })
             .catch(() => setLoading(false));
@@ -95,8 +93,19 @@ export default function MessagesPage() {
     }, [loadConversations]);
 
     useEffect(() => {
+        fetch(`${API}/api/users`, { credentials: "include" })
+            .then((r) => (r.ok ? r.json() : []))
+            .then((data: any[]) => {
+                if (Array.isArray(data)) {
+                    setAllUsers(data.filter((u) => u.id !== user?.id));
+                }
+            })
+            .catch(() => {});
+    }, [user?.id]);
+
+    useEffect(() => {
         if (!paramUserId) return;
-        fetch(`${API}/api/messages/find-or-create/${paramUserId}`, { headers })
+        fetch(`${API}/api/messages/find-or-create/${paramUserId}`, { credentials: "include" })
             .then((r) => r.json())
             .then((conv) => {
                 setActiveConvId(conv.id);
@@ -118,7 +127,7 @@ export default function MessagesPage() {
 
     const searchAllUsers = useCallback(
         (query: string): Promise<User[]> => {
-            return fetch(`${API}/api/users`, { headers })
+            return fetch(`${API}/api/users`, { credentials: "include" })
                 .then((r) => r.json())
                 .then((data: any[]) =>
                     data.filter(
@@ -160,7 +169,7 @@ export default function MessagesPage() {
     };
 
     const startPersonalChat = (userId: number) => {
-        fetch(`${API}/api/messages/find-or-create/${userId}`, { headers })
+        fetch(`${API}/api/messages/find-or-create/${userId}`, { credentials: "include" })
             .then((r) => r.json())
             .then((conv) => {
                 setActiveConvId(conv.id);
@@ -175,7 +184,8 @@ export default function MessagesPage() {
         if (selectedUsers.length < 2) return;
         fetch(`${API}/api/messages/conversations`, {
             method: "POST",
-            headers: { ...headers, "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({
                 participantIds: selectedUsers.map((u) => u.id),
                 title: groupName.trim() || undefined,
@@ -214,7 +224,7 @@ export default function MessagesPage() {
         setEditingTitle(false);
         setMemberSearchQuery("");
         setMemberSearchResults([]);
-        fetch(`${API}/api/messages/conversations/${activeConvId}/info`, { headers })
+        fetch(`${API}/api/messages/conversations/${activeConvId}/info`, { credentials: "include" })
             .then((r) => r.json())
             .then((info: ConversationInfo) => {
                 setConvInfo(info);
@@ -228,7 +238,8 @@ export default function MessagesPage() {
         if (!activeConvId || !groupTitle.trim()) return;
         fetch(`${API}/api/messages/conversations/${activeConvId}/title`, {
             method: "PATCH",
-            headers: { ...headers, "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ title: groupTitle.trim() }),
         })
             .then((r) => r.json())
@@ -246,7 +257,7 @@ export default function MessagesPage() {
             return;
         }
         const existingIds = new Set(convInfo?.participants.map((p) => p.id) || []);
-        fetch(`${API}/api/users`, { headers })
+        fetch(`${API}/api/users`, { credentials: "include" })
             .then((r) => r.json())
             .then((data: any[]) => {
                 const filtered = data.filter(
@@ -265,7 +276,8 @@ export default function MessagesPage() {
         if (!activeConvId) return;
         fetch(`${API}/api/messages/conversations/${activeConvId}/members`, {
             method: "POST",
-            headers: { ...headers, "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ userId }),
         })
             .then(() => {
@@ -279,7 +291,7 @@ export default function MessagesPage() {
         if (!activeConvId) return;
         fetch(`${API}/api/messages/conversations/${activeConvId}/members/${userId}`, {
             method: "DELETE",
-            headers,
+            credentials: "include",
         }).then(() => openSettings());
     };
 
@@ -287,7 +299,7 @@ export default function MessagesPage() {
         if (!activeConvId) return;
         fetch(`${API}/api/messages/conversations/${activeConvId}/leave`, {
             method: "POST",
-            headers,
+            credentials: "include",
         }).then(() => {
             setShowSettings(false);
             setActiveConvId(null);
@@ -300,7 +312,7 @@ export default function MessagesPage() {
         if (!activeConvId) return;
         fetch(`${API}/api/messages/conversations/${activeConvId}`, {
             method: "DELETE",
-            headers,
+            credentials: "include",
         }).then(() => {
             setShowSettings(false);
             setActiveConvId(null);
@@ -352,7 +364,7 @@ export default function MessagesPage() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-64px)]">
+        <div className="flex max-sm:h-[calc(100vh-152px)] sm:h-[calc(100vh-80px)] lg:h-[calc(100vh-104px)]">
             <div
                 className={`w-full lg:w-80 border-r border-[#3b3b3b] flex flex-col bg-[#252525] ${
                     mobileShowChat ? "hidden lg:flex" : "flex"
@@ -636,6 +648,31 @@ export default function MessagesPage() {
                         ))
                     )}
                 </div>
+
+                {allUsers.length > 0 && !showNewChat && (
+                    <div className="border-t border-[#3b3b3b]">
+                        <div className="px-4 py-2">
+                            <span className="text-[10px] uppercase text-gray-500 font-semibold">Быстрый доступ</span>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#3a3a3a #252525" }}>
+                            {allUsers.map((u) => (
+                                <button
+                                    key={u.id}
+                                    onClick={() => startPersonalChat(u.id)}
+                                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-[#2a2a2a] transition-colors cursor-pointer text-left"
+                                >
+                                    <div className="w-7 h-7 bg-[#333] border border-[#3b3b3b] flex items-center justify-center text-[10px] text-[#FA6814] font-bold shrink-0">
+                                        {(u.displayName?.[0] || u.username[0] || "?").toUpperCase()}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-[11px] text-white truncate">{u.displayName || u.username}</div>
+                                        <div className="text-[9px] text-gray-500">@{u.username}</div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div

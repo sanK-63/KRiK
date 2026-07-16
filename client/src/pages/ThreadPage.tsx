@@ -57,8 +57,7 @@ function timeAgo(dateStr: string): string {
 
 function CommentItem({ comment, postId, depth = 0 }: { comment: CommentData; postId: number; depth?: number }) {
     const { user } = useUser();
-    const token = localStorage.getItem("token");
-    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
     const [liked, setLiked] = useState(false);
     const [likes, setLikes] = useState(comment.likes);
     const [showReply, setShowReply] = useState(false);
@@ -66,9 +65,8 @@ function CommentItem({ comment, postId, depth = 0 }: { comment: CommentData; pos
     const [replies, setReplies] = useState<CommentData[]>(comment.replies || []);
 
     const handleLike = async () => {
-        if (!token) return;
         try {
-            const r = await fetch(`${API}/api/forum/comments/${comment.id}/like`, { method: "POST", headers });
+            const r = await fetch(`${API}/api/forum/comments/${comment.id}/like`, { method: "POST", headers, credentials: "include" });
             if (r.ok) {
                 const data = await r.json();
                 setLikes(data.likes);
@@ -83,6 +81,7 @@ function CommentItem({ comment, postId, depth = 0 }: { comment: CommentData; pos
             const r = await fetch(`${API}/api/forum/${postId}/comments`, {
                 method: "POST",
                 headers,
+                credentials: "include",
                 body: JSON.stringify({ content: replyText.trim(), parentId: comment.id }),
             });
             if (r.ok) {
@@ -97,7 +96,7 @@ function CommentItem({ comment, postId, depth = 0 }: { comment: CommentData; pos
     const handleDelete = async () => {
         if (!confirm("Удалить комментарий?")) return;
         try {
-            await fetch(`${API}/api/forum/comments/${comment.id}`, { method: "DELETE", headers });
+            await fetch(`${API}/api/forum/comments/${comment.id}`, { method: "DELETE", headers, credentials: "include" });
         } catch {}
     };
 
@@ -177,11 +176,10 @@ export default function ThreadPage() {
     const [loading, setLoading] = useState(true);
     const [commentText, setCommentText] = useState("");
 
-    const token = localStorage.getItem("token");
-    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
 
     useEffect(() => {
-        fetch(`${API}/api/forum/${id}`, { headers })
+        fetch(`${API}/api/forum/${id}`, { headers, credentials: "include" })
             .then((r) => (r.ok ? r.json() : null))
             .then((data) => {
                 setPost(data);
@@ -246,11 +244,12 @@ export default function ThreadPage() {
     }, [socket, id]);
 
     const handleAddComment = async () => {
-        if (!commentText.trim() || !token) return;
+        if (!commentText.trim()) return;
         try {
             const r = await fetch(`${API}/api/forum/${id}/comments`, {
                 method: "POST",
                 headers,
+                credentials: "include",
                 body: JSON.stringify({ content: commentText.trim() }),
             });
             if (r.ok) {
@@ -265,11 +264,11 @@ export default function ThreadPage() {
     };
 
     const votePoll = async (optionIndex: number) => {
-        if (!token) return;
         try {
             const r = await fetch(`${API}/api/forum/${id}/vote`, {
                 method: "POST",
                 headers,
+                credentials: "include",
                 body: JSON.stringify({ optionIndex }),
             });
             if (r.ok) {
@@ -407,8 +406,7 @@ export default function ThreadPage() {
             </div>
 
             {/* Add comment */}
-            {token && (
-                <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-4">
+            <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-4">
                     <textarea
                         placeholder="Написать комментарий..."
                         value={commentText}
@@ -425,7 +423,6 @@ export default function ThreadPage() {
                         </button>
                     </div>
                 </div>
-            )}
         </>
     );
 }

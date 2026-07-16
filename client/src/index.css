@@ -25,6 +25,7 @@ body,
     background: var(--color-bg-primary);
     color: var(--color-text-primary);
     font-family: "Press Start 2P", system-ui;
+    -webkit-tap-highlight-color: transparent;
 }
 
 * {

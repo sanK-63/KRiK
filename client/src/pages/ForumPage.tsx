@@ -50,11 +50,10 @@ export default function ForumPage() {
     const [pollOptions, setPollOptions] = useState(["", ""]);
     const socket = useSocket();
 
-    const token = localStorage.getItem("token");
-    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
 
     useEffect(() => {
-        fetch(`${API}/api/forum`, { headers })
+        fetch(`${API}/api/forum`, { headers, credentials: "include" })
             .then((r) => r.json())
             .then((data) => { setPosts(Array.isArray(data) ? data : []); setLoading(false); })
             .catch(() => setLoading(false));
@@ -86,7 +85,7 @@ export default function ForumPage() {
             if (opts.length >= 2) body.pollOptions = opts;
         }
         try {
-            const res = await fetch(`${API}/api/forum`, { method: "POST", headers, body: JSON.stringify(body) });
+            const res = await fetch(`${API}/api/forum`, { method: "POST", headers, credentials: "include", body: JSON.stringify(body) });
             if (res.ok) {
                 const post = await res.json();
                 setPosts((prev) => [post, ...prev]);
@@ -101,7 +100,7 @@ export default function ForumPage() {
     const handleDelete = async (id: number) => {
         if (!confirm("Удалить тему?")) return;
         try {
-            await fetch(`${API}/api/forum/${id}`, { method: "DELETE", headers });
+            await fetch(`${API}/api/forum/${id}`, { method: "DELETE", headers, credentials: "include" });
             setPosts((prev) => prev.filter((p) => p.id !== id));
         } catch {}
     };

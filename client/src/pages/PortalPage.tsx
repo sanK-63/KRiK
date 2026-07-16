@@ -15,11 +15,10 @@ export default function PortalPage() {
     const [formValues, setFormValues] = useState<Record<string, string>>({});
     const [generating, setGenerating] = useState(false);
     const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
-    const token = localStorage.getItem("token");
 
     useEffect(() => {
         fetch(`${import.meta.env.VITE_API_URL}/api/templates`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : []))
             .then(setTemplates)
@@ -36,12 +35,13 @@ export default function PortalPage() {
     };
 
     const handleGenerate = async () => {
-        if (!selected || !token) return;
+        if (!selected) return;
         setGenerating(true);
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/templates/${selected.id}/generate`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({ data: formValues }),
             });
             if (res.ok) {

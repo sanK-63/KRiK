@@ -58,7 +58,6 @@ function renderMarkdown(md: string): string {
 
 export default function ConstitutionPage() {
     const { user } = useUser();
-    const token = localStorage.getItem("token");
     const isAdmin = user?.roles?.some((r) => r.priority >= 100) ?? false;
 
     const [activeTab, setActiveTab] = useState("Конституция");
@@ -72,7 +71,7 @@ export default function ConstitutionPage() {
 
     const loadConstitution = () => {
         fetch(`${import.meta.env.VITE_API_URL}/api/constitution`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : { version: null }))
             .then((data) => {
@@ -85,7 +84,7 @@ export default function ConstitutionPage() {
 
     const loadHistory = () => {
         fetch(`${import.meta.env.VITE_API_URL}/api/constitution/history`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : []))
             .then(setHistory)
@@ -98,12 +97,13 @@ export default function ConstitutionPage() {
     }, []);
 
     const handleSave = async () => {
-        if (!editMarkdown.trim() || !token) return;
+        if (!editMarkdown.trim()) return;
         setSaving(true);
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/constitution`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({ markdown: editMarkdown }),
             });
             if (res.ok) {
@@ -117,11 +117,10 @@ export default function ConstitutionPage() {
     };
 
     const handleDownload = async () => {
-        if (!token) return;
         setDownloading(true);
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/constitution/download`, {
-                headers: { Authorization: `Bearer ${token}` },
+                credentials: "include",
             });
             if (res.ok) {
                 const blob = await res.blob();
@@ -171,7 +170,7 @@ export default function ConstitutionPage() {
                 </div>
             </div>
 
-            <div className="flex gap-0 border-b border-[#3a3a3a] mb-6">
+            <div className="flex gap-0 border-b border-[#3a3a3a] mb-6 overflow-x-auto">
                 {tabs.map((tab) => (
                     <button
                         key={tab}

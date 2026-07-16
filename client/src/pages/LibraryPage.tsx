@@ -3,12 +3,11 @@ import { useState, useEffect, useCallback } from "react";
 const BASE = import.meta.env.VITE_API_URL;
 
 function authHeaders(): Record<string, string> {
-    const token = localStorage.getItem("token");
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    return {};
 }
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(`${BASE}${path}`, { ...options, headers: { ...authHeaders(), ...options?.headers } });
+    const res = await fetch(`${BASE}${path}`, { ...options, credentials: "include", headers: { ...authHeaders(), ...options?.headers } });
     if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || `HTTP ${res.status}`);
@@ -118,10 +117,9 @@ export default function LibraryPage() {
         fd.append("description", description);
         if (categoryId) fd.append("categoryId", String(categoryId));
 
-        const token = localStorage.getItem("token");
         await fetch(`${BASE}/api/library`, {
             method: "POST",
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            credentials: "include",
             body: fd,
         });
         setShowUpload(false);
@@ -157,20 +155,17 @@ export default function LibraryPage() {
     };
 
     const handleDownload = (doc: Document) => {
-        const token = localStorage.getItem("token");
         const a = document.createElement("a");
         a.href = `${BASE}/api/library/${doc.id}/download`;
         a.setAttribute("download", "");
-        if (token) {
-            fetch(a.href, { headers: { Authorization: `Bearer ${token}` } })
-                .then((r) => r.blob())
-                .then((blob) => {
-                    const url = URL.createObjectURL(blob);
-                    a.href = url;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                });
-        }
+        fetch(a.href, { credentials: "include" })
+            .then((r) => r.blob())
+            .then((blob) => {
+                const url = URL.createObjectURL(blob);
+                a.href = url;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
         loadDocuments();
     };
 
@@ -206,7 +201,7 @@ export default function LibraryPage() {
             </div>
 
             {stats && (
-                <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                     <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-4">
                         <div className="text-[10px] uppercase text-gray-500">Документов</div>
                         <div className="text-2xl text-[#FA6814] mt-1">{stats.documents}</div>
@@ -228,7 +223,7 @@ export default function LibraryPage() {
 
             <div className="flex gap-6">
                 {/* Sidebar: categories */}
-                <div className="w-56 shrink-0">
+                <div className="w-56 shrink-0 hidden lg:block">
                     <h3 className="text-xs uppercase text-gray-500 mb-3">Категории</h3>
                     <div className="space-y-1">
                         <button
@@ -343,7 +338,7 @@ export default function LibraryPage() {
             {/* Category modal */}
             {showCategoryModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setShowCategoryModal(false)}>
-                    <div className="w-[400px] bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-full max-w-[400px] mx-4 bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
                         <h3 className="text-lg font-semibold mb-4">Новая категория</h3>
                         <label className="block text-xs uppercase text-gray-400 mb-2">Название</label>
                         <input
@@ -380,7 +375,7 @@ export default function LibraryPage() {
             {/* Edit doc modal */}
             {editingDoc && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setEditingDoc(null)}>
-                    <div className="w-[500px] bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-full max-w-[500px] mx-4 bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
                         <h3 className="text-lg font-semibold mb-4">Редактировать документ</h3>
                         <label className="block text-xs uppercase text-gray-400 mb-2">Название</label>
                         <input
@@ -431,7 +426,7 @@ function UploadModal({ categories, onUpload, onClose }: { categories: Category[]
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }} onClick={onClose}>
-            <div className="w-[500px] bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full max-w-[500px] mx-4 bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
                 <h3 className="text-lg font-semibold mb-4">Загрузить документ</h3>
 
                 <label className="block text-xs uppercase text-gray-400 mb-2">Файл *</label>

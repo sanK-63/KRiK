@@ -17,9 +17,11 @@ import {
     deleteConversation,
     toggleReaction,
     getParticipants,
+    editMessage,
+    forwardMessage,
 } from "../services/messages";
 import { db } from "../database";
-import { users, conversationParticipants } from "../database/schema";
+import { users, conversationParticipants, messages } from "../database/schema";
 import { eq, and } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -90,7 +92,7 @@ router.get("/conversations/:id", authMiddleware, (req: AuthRequest, res: Respons
 router.post("/conversations/:id/send", authMiddleware, upload.single("attachment"), (req: AuthRequest, res: Response) => {
     if (!req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
     const conversationId = Number(req.params.id);
-    const { content } = req.body;
+    const { content, replyToId } = req.body;
 
     if (!content && !req.file) {
         res.status(400).json({ error: "Укажите содержимое или вложение" });
@@ -102,7 +104,8 @@ router.post("/conversations/:id/send", authMiddleware, upload.single("attachment
         req.userId,
         content || null,
         req.file ? `/uploads/messages/${req.file.filename}` : undefined,
-        req.file ? req.file.originalname : undefined
+        req.file ? req.file.originalname : undefined,
+        replyToId ? Number(replyToId) : undefined
     );
 
     if (!msg) {
@@ -274,6 +277,67 @@ router.post("/conversations/:id/reactions", authMiddleware, (req: AuthRequest, r
         return;
     }
     res.json(result);
+});
+
+router.post("/:msgId/reactions", authMiddleware, (req: AuthRequest, res: Response) => {
+    if (!req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    const messageId = Number(req.params.msgId);
+    const { emoji } = req.body;
+
+    if (!emoji) {
+        res.status(400).json({ error: "emoji обязателен" });
+        return;
+    }
+
+    const msg = db.select().from(messages).where(eq(messages.id, messageId)).get();
+    if (!msg) { res.status(404).json({ error: "Сообщение не найдено" }); return; }
+
+    const result = toggleReaction(msg.conversationId, req.userId, messageId, emoji);
+    if ("error" in result) { res.status(403).json(result); return; }
+    res.json({ reactions: result.reactions });
+});
+
+router.patch("/conversations/:id/messages/:msgId", authMiddleware, (req: AuthRequest, res: Response) => {
+    if (!req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    const conversationId = Number(req.params.id);
+    const messageId = Number(req.params.msgId);
+    const { content } = req.body;
+
+    if (!content || !content.trim()) {
+        res.status(400).json({ error: "Сообщение не может быть пустым" });
+        return;
+    }
+
+    const result = editMessage(conversationId, req.userId, messageId, content.trim());
+    if ("error" in result) { res.status(403).json(result); return; }
+    res.json(result);
+});
+
+router.post("/conversations/:id/forward", authMiddleware, (req: AuthRequest, res: Response) => {
+    if (!req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    const conversationId = Number(req.params.id);
+    const { messageId } = req.body;
+
+    if (!messageId) {
+        res.status(400).json({ error: "messageId обязателен" });
+        return;
+    }
+
+    const result = forwardMessage(conversationId, req.userId, Number(messageId));
+    if ("error" in result) { res.status(403).json(result); return; }
+    res.json(result);
+});
+
+router.get("/messages/:msgId", authMiddleware, (req: AuthRequest, res: Response) => {
+    if (!req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    const msgId = Number(req.params.msgId);
+
+    const msg = db.select().from(messages).where(eq(messages.id, msgId)).get();
+    if (!msg) { res.status(404).json({ error: "Сообщение не найдено" }); return; }
+
+    const sender = db.select({ id: users.id, username: users.username, displayName: users.displayName }).from(users).where(eq(users.id, msg.senderId)).get();
+
+    res.json({ ...msg, sender: sender || null });
 });
 
 router.get("/conversations/:id/members", authMiddleware, (req: AuthRequest, res: Response) => {

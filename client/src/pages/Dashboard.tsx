@@ -45,10 +45,8 @@ export default function Dashboard() {
     const [onlineUsers, setOnlineUsers] = useState<Founder[]>([]);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
         fetch(`${import.meta.env.VITE_API_URL}/api/users`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : []))
             .then((data: Founder[]) => {

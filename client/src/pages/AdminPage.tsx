@@ -37,12 +37,10 @@ function StatCard({ label, value, color }: { label: string; value: number | stri
 
 export default function AdminPage() {
     const { user } = useUser();
-    const token = localStorage.getItem("token");
     const API = import.meta.env.VITE_API_URL;
     const [tab, setTab] = useState<Tab>("Дашборд");
 
     const auth: Record<string, string> = {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json; charset=utf-8",
     };
 
@@ -91,7 +89,7 @@ function DashboardTab({ API, auth }: { API: string; auth: Record<string, string>
     const [stats, setStats] = useState<Stats | null>(null);
 
     useEffect(() => {
-        fetch(`${API}/api/admin/stats`, { headers: auth })
+        fetch(`${API}/api/admin/stats`, { headers: auth, credentials: "include" })
             .then((r) => r.ok ? r.json() : null)
             .then(setStats)
             .catch(() => {});
@@ -156,7 +154,7 @@ function UsersTab({ API, auth }: { API: string; auth: Record<string, string> }) 
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`${API}/api/users`, { headers: auth })
+        fetch(`${API}/api/users`, { headers: auth, credentials: "include" })
             .then((r) => r.ok ? r.json() : [])
             .then(setUsers)
             .catch(() => {})
@@ -170,7 +168,7 @@ function UsersTab({ API, auth }: { API: string; auth: Record<string, string> }) 
             <div className="flex items-center justify-between">
                 <p className="text-xs text-gray-500">{users.length} пользователей</p>
             </div>
-            <div className="bg-[#282828] border border-[#3a3a3a] overflow-hidden">
+            <div className="bg-[#282828] border border-[#3a3a3a] overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="border-b border-[#3a3a3a] text-left text-xs text-gray-500">
@@ -226,7 +224,7 @@ function ForumTab({ API, auth }: { API: string; auth: Record<string, string> }) 
     const [loading, setLoading] = useState(true);
 
     const load = useCallback(() => {
-        fetch(`${API}/api/forum`, { headers: auth })
+        fetch(`${API}/api/forum`, { headers: auth, credentials: "include" })
             .then((r) => r.ok ? r.json() : [])
             .then(setPosts)
             .catch(() => {})
@@ -237,7 +235,7 @@ function ForumTab({ API, auth }: { API: string; auth: Record<string, string> }) 
 
     const togglePin = async (id: number, current: number) => {
         await fetch(`${API}/api/forum/${id}`, {
-            method: "PUT", headers: auth,
+            method: "PUT", headers: auth, credentials: "include",
             body: JSON.stringify({ pinned: current ? 0 : 1 }),
         });
         load();
@@ -245,7 +243,7 @@ function ForumTab({ API, auth }: { API: string; auth: Record<string, string> }) 
 
     const deletePost = async (id: number) => {
         if (!confirm("Удалить пост?")) return;
-        await fetch(`${API}/api/forum/${id}`, { method: "DELETE", headers: auth });
+        await fetch(`${API}/api/forum/${id}`, { method: "DELETE", headers: auth, credentials: "include" });
         load();
     };
 
@@ -288,14 +286,14 @@ function ContentTab({ API, auth }: { API: string; auth: Record<string, string> }
     const [events, setEvents] = useState<any[]>([]);
 
     useEffect(() => {
-        fetch(`${API}/api/movies`, { headers: auth }).then((r) => r.ok ? r.json() : []).then(setMovies).catch(() => {});
-        fetch(`${API}/api/memes`, { headers: auth }).then((r) => r.ok ? r.json() : []).then(setMemes).catch(() => {});
-        fetch(`${API}/api/events`, { headers: auth }).then((r) => r.ok ? r.json() : []).then(setEvents).catch(() => {});
+        fetch(`${API}/api/movies`, { headers: auth, credentials: "include" }).then((r) => r.ok ? r.json() : []).then(setMovies).catch(() => {});
+        fetch(`${API}/api/memes`, { headers: auth, credentials: "include" }).then((r) => r.ok ? r.json() : []).then(setMemes).catch(() => {});
+        fetch(`${API}/api/events`, { headers: auth, credentials: "include" }).then((r) => r.ok ? r.json() : []).then(setEvents).catch(() => {});
     }, []);
 
     const del = async (type: string, id: number) => {
         if (!confirm("Удалить?")) return;
-        await fetch(`${API}/api/${type}/${id}`, { method: "DELETE", headers: auth });
+        await fetch(`${API}/api/${type}/${id}`, { method: "DELETE", headers: auth, credentials: "include" });
         if (type === "movies") setMovies((p) => p.filter((m) => m.id !== id));
         if (type === "memes") setMemes((p) => p.filter((m) => m.id !== id));
         if (type === "events") setEvents((p) => p.filter((e) => e.id !== id));
@@ -373,8 +371,8 @@ function NotificationsTab({ API, auth }: { API: string; auth: Record<string, str
     const [subTab, setSubTab] = useState<"compose" | "history">("compose");
 
     useEffect(() => {
-        fetch(`${API}/api/users`, { headers: auth }).then((r) => r.ok ? r.json() : []).then(setUsers).catch(() => {});
-        fetch(`${API}/api/notifications`, { headers: auth }).then((r) => r.ok ? r.json() : []).then(setNotifications).catch(() => {});
+        fetch(`${API}/api/users`, { headers: auth, credentials: "include" }).then((r) => r.ok ? r.json() : []).then(setUsers).catch(() => {});
+        fetch(`${API}/api/notifications`, { headers: auth, credentials: "include" }).then((r) => r.ok ? r.json() : []).then(setNotifications).catch(() => {});
     }, []);
 
     const toggle = (id: number) => setSelectedUsers((p) => p.includes(id) ? p.filter((u) => u !== id) : [...p, id]);
@@ -390,12 +388,12 @@ function NotificationsTab({ API, auth }: { API: string; auth: Record<string, str
             const payload = selectedUsers.length === 0 || selectedUsers.length === users.length
                 ? { title, body, sendEmail }
                 : { userIds: selectedUsers, title, body, sendEmail };
-            const res = await fetch(target, { method: "POST", headers: auth, body: JSON.stringify(payload) });
+            const res = await fetch(target, { method: "POST", headers: auth, credentials: "include", body: JSON.stringify(payload) });
             if (!res.ok) throw new Error("Ошибка");
             const data = await res.json();
             setMsg(`Отправлено ${data.sent || selectedUsers.length || users.length} пользователю(ям)`);
             setTitle(""); setBody(""); setSelectedUsers([]);
-            fetch(`${API}/api/notifications`, { headers: auth }).then((r) => r.ok ? r.json() : []).then(setNotifications);
+            fetch(`${API}/api/notifications`, { headers: auth, credentials: "include" }).then((r) => r.ok ? r.json() : []).then(setNotifications);
         } catch { setMsg("Ошибка отправки"); } finally { setSending(false); }
     };
 
@@ -542,7 +540,7 @@ function EloCalc() {
         <div className="max-w-2xl space-y-4">
             <div className="bg-[#282828] border border-[#3a3a3a] p-5 space-y-4">
                 <h3 className="text-[10px] text-gray-500" style={{ fontFamily: '"Press Start 2P", system-ui' }}>РАСЧЁТ ELO</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="text-xs text-gray-400 mb-1 block">Игрок A — рейтинг</label>
                         <input type="number" value={ra} onChange={(e) => setRa(Number(e.target.value))} className="w-full bg-[#1a1a1a] border border-[#3a3a3a] text-white px-3 py-2 text-sm focus:border-[#FA6814] outline-none" />
@@ -566,7 +564,7 @@ function EloCalc() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-[#282828] border border-[#3a3a3a] p-4 text-center">
                     <p className="text-[10px] text-gray-500 mb-2" style={{ fontFamily: '"Press Start 2P", system-ui' }}>ИГРОК A</p>
                     <p className="text-3xl font-bold text-white">{ra} → {newA}</p>
@@ -634,7 +632,7 @@ function ProbCalc() {
         <div className="max-w-2xl space-y-4">
             <div className="bg-[#282828] border border-[#3a3a3a] p-5 space-y-4">
                 <h3 className="text-[10px] text-gray-500" style={{ fontFamily: '"Press Start 2P", system-ui' }}>ВЕРОЯТНОСТИ</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="text-xs text-gray-400 mb-1 block">Победы</label>
                         <input type="number" min={0} value={wins} onChange={(e) => setWins(Math.max(0, Number(e.target.value)))} className="w-full bg-[#1a1a1a] border border-[#3a3a3a] text-white px-3 py-2 text-sm focus:border-[#FA6814] outline-none" />
@@ -645,7 +643,7 @@ function ProbCalc() {
                     </div>
                 </div>
             </div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="bg-[#282828] border border-[#3a3a3a] p-4 text-center">
                     <p className="text-3xl font-bold text-[#FA6814]">{winRate}%</p>
                     <p className="text-xs text-gray-500 mt-1">Винрейт</p>
@@ -679,7 +677,7 @@ function BMICalc() {
         <div className="max-w-2xl space-y-4">
             <div className="bg-[#282828] border border-[#3a3a3a] p-5 space-y-4">
                 <h3 className="text-[10px] text-gray-500" style={{ fontFamily: '"Press Start 2P", system-ui' }}>BMI КАЛЬКУЛЯТОР</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="text-xs text-gray-400 mb-1 block">Рост (см)</label>
                         <input type="number" value={height} onChange={(e) => setHeight(Number(e.target.value))} className="w-full bg-[#1a1a1a] border border-[#3a3a3a] text-white px-3 py-2 text-sm focus:border-[#FA6814] outline-none" />

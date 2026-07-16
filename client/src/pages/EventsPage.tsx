@@ -31,13 +31,12 @@ export default function EventsPage() {
     const [selected, setSelected] = useState<Event | null>(null);
     const [editing, setEditing] = useState(false);
     const [editForm, setEditForm] = useState({ title: "", description: "", date: "", time: "", location: "", category: "Другое", image: "", video: "" });
-    const token = localStorage.getItem("token");
 
     const [form, setForm] = useState({ title: "", description: "", date: "", time: "", location: "", category: "Другое", image: "", video: "" });
 
     const load = () => {
         fetch(`${import.meta.env.VITE_API_URL}/api/events`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : []))
             .then(setEvents)
@@ -81,10 +80,11 @@ export default function EventsPage() {
     }, [socket]);
 
     const handleCreate = async () => {
-        if (!form.title || !form.date || !token) return;
+        if (!form.title || !form.date) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/events`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({
                 title: form.title,
                 description: form.description || null,
@@ -102,10 +102,11 @@ export default function EventsPage() {
     };
 
     const handleEdit = async () => {
-        if (!selected || !token) return;
+        if (!selected) return;
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/events/${selected.id}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({
                 title: editForm.title,
                 description: editForm.description || null,
@@ -126,10 +127,9 @@ export default function EventsPage() {
     };
 
     const handleDelete = async (id: number) => {
-        if (!token) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/events/${id}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         });
         setSelected(null);
         load();

@@ -7,10 +7,16 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     const socketRef = useRef<Socket | null>(null);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
         const s = io(import.meta.env.VITE_API_URL, {
-            auth: token ? { token } : undefined,
+            withCredentials: true,
             transports: ["websocket", "polling"],
+            reconnection: true,
+            reconnectionAttempts: 20,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 10000,
+            timeout: 20000,
+            forceNew: false,
+            upgrade: true,
         });
 
         s.on("connect", () => {

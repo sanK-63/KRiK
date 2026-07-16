@@ -24,7 +24,6 @@ export default function TavernPage() {
     const [selected, setSelected] = useState<Recipe | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [filter, setFilter] = useState("Все");
-    const token = localStorage.getItem("token");
 
     const [form, setForm] = useState({
         name: "",
@@ -37,7 +36,7 @@ export default function TavernPage() {
 
     const load = () => {
         fetch(`${import.meta.env.VITE_API_URL}/api/recipes`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : []))
             .then(setRecipes)
@@ -83,10 +82,11 @@ export default function TavernPage() {
     }, [socket]);
 
     const handleCreate = async () => {
-        if (!form.name || !form.ingredients || !form.instructions || !token) return;
+        if (!form.name || !form.ingredients || !form.instructions) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/recipes`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ ...form, image: form.image || null }),
         });
         setForm({ name: "", description: "", ingredients: "", instructions: "", category: "Блюдо", image: "" });
@@ -95,10 +95,9 @@ export default function TavernPage() {
     };
 
     const handleDelete = async (id: number) => {
-        if (!token) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/recipes/${id}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         });
         if (selected?.id === id) setSelected(null);
         load();
@@ -147,7 +146,7 @@ export default function TavernPage() {
             {showForm && (
                 <div className="p-4 space-y-3" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b" }}>
                     <h3 className="text-[10px] uppercase text-gray-400">Новый рецепт</h3>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <input
                             type="text"
                             placeholder="Название*"

@@ -68,10 +68,9 @@ export default function UserPublicProfilePage() {
     const [elo, setElo] = useState<EloData | null>(null);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token || !id) return;
+        if (!id) return;
         fetch(`${import.meta.env.VITE_API_URL}/api/elo/user/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => r.json())
             .then(setElo)
@@ -79,13 +78,8 @@ export default function UserPublicProfilePage() {
     }, [id]);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            navigate("/login");
-            return;
-        }
         fetch(`${import.meta.env.VITE_API_URL}/api/users/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => {
                 if (!r.ok) throw new Error("not found");
@@ -195,7 +189,7 @@ export default function UserPublicProfilePage() {
                                         </div>
                                         <div className="text-[8px] text-gray-500 uppercase">ELO</div>
                                     </div>
-                                    <div className="flex-1 grid grid-cols-3 gap-2 text-center">
+                                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
                                         <div>
                                             <div className="text-xs font-bold text-[#4CAF50]">{elo.wins}W</div>
                                             <div className="text-[8px] text-gray-500">{elo.losses}L</div>
@@ -220,7 +214,7 @@ export default function UserPublicProfilePage() {
 
                     <div className="p-4 space-y-3" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}>
                         <h3 className="text-xs uppercase text-gray-400 mb-3">Личные данные</h3>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <span className="text-[10px] text-gray-500 block">Имя</span>
                                 <span className="text-xs text-white">{user.displayName || "—"}</span>

@@ -64,14 +64,9 @@ export default function LeaderboardPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            navigate("/login");
-            return;
-        }
         setLoading(true);
         fetch(`${import.meta.env.VITE_API_URL}/api/elo/leaderboard?page=1&limit=100`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => r.json())
             .then(setData)
@@ -102,7 +97,7 @@ export default function LeaderboardPage() {
                     </div>
 
                     <div
-                        className="overflow-hidden"
+                        className="overflow-x-auto"
                         style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}
                     >
                         <table className="w-full">

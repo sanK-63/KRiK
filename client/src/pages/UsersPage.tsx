@@ -43,8 +43,7 @@ const roleBadgeColor: Record<string, string> = {
 };
 
 function getAuthHeaders(): Record<string, string> {
-    const token = localStorage.getItem("token");
-    return { Authorization: `Bearer ${token || ""}`, "Content-Type": "application/json" };
+    return { "Content-Type": "application/json" };
 }
 
 function formatDate(d: string | null) {
@@ -91,9 +90,7 @@ export default function UsersPage() {
 
     // Fetch users
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-        fetch(`${API}/api/users`, { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${API}/api/users`, { credentials: "include" })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((data) => setUsers(data))
             .catch(() => {})
@@ -102,9 +99,7 @@ export default function UsersPage() {
 
     // Fetch roles
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-        fetch(`${API}/api/users/roles/all`, { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${API}/api/users/roles/all`, { credentials: "include" })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((data) => setAllRoles(data))
             .catch(() => {});
@@ -149,7 +144,7 @@ export default function UsersPage() {
             // Update profile
             const r1 = await fetch(`${API}/api/users/${editUser.id}`, {
                 method: "PUT",
-                headers: getAuthHeaders(),
+                headers: getAuthHeaders(), credentials: "include",
                 body: JSON.stringify({
                     displayName: editDisplayName,
                     surname: editSurname,
@@ -163,7 +158,7 @@ export default function UsersPage() {
             // Update roles
             const r2 = await fetch(`${API}/api/users/${editUser.id}/roles`, {
                 method: "PUT",
-                headers: getAuthHeaders(),
+                headers: getAuthHeaders(), credentials: "include",
                 body: JSON.stringify({ roleIds: editRoleIds }),
             });
             if (!r2.ok) throw new Error("Roles save failed");
@@ -172,7 +167,7 @@ export default function UsersPage() {
             if (editStatus !== editUser.status) {
                 const r3 = await fetch(`${API}/api/users/${editUser.id}/status`, {
                     method: "PUT",
-                    headers: getAuthHeaders(),
+                    headers: getAuthHeaders(), credentials: "include",
                     body: JSON.stringify({ status: editStatus }),
                 });
                 if (!r3.ok) throw new Error("Status save failed");
@@ -403,7 +398,7 @@ export default function UsersPage() {
                             </div>
 
                             {/* Profile fields */}
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-[10px] text-gray-500 mb-1">Имя</label>
                                     <input

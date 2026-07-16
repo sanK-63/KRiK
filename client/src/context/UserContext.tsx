@@ -39,24 +39,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            setLoading(false);
-            return;
-        }
         fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((data) => setUser(data))
-            .catch(() => {
-                localStorage.removeItem("token");
-            })
+            .catch(() => {})
             .finally(() => setLoading(false));
     }, []);
 
     const logout = () => {
-        localStorage.removeItem("token");
         setUser(null);
     };
 

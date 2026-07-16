@@ -75,7 +75,7 @@ export default function GamesPage({ embedded = false }: Props) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-5">
                         <h3 className="text-sm uppercase text-gray-400 mb-3">Карты ({selectedGame.maps.length})</h3>
                         <div className="flex flex-wrap gap-2">
@@ -114,7 +114,7 @@ export default function GamesPage({ embedded = false }: Props) {
             {loading ? (
                 <div className="text-center py-10 text-gray-500 text-sm">Загрузка...</div>
             ) : (
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {games.map((game) => {
                         const color = getGameColor(game.slug);
                         return (

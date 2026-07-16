@@ -104,10 +104,8 @@ export default function WebRTCTestPage() {
     }, [logs]);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
         fetch(`${API}/api/users`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => r.json())
             .then((data: any[]) => {
@@ -575,7 +573,7 @@ export default function WebRTCTestPage() {
                                     {stunResult.natType}
                                 </div>
                             </div>
-                            <div className="grid grid-cols-4 gap-2 flex-1">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1">
                                 <div className="bg-[#1a1a1a] border border-[#3a3a3a] p-3 text-center">
                                     <div className="text-lg font-bold text-white">{stunResult.candidateCount}</div>
                                     <div className="text-[10px] text-gray-500">Кандидатов</div>
@@ -666,7 +664,7 @@ export default function WebRTCTestPage() {
                                     {p2pResult.connected ? "Connected OK" : "Failed NO"}
                                 </div>
                             </div>
-                            <div className="grid grid-cols-3 gap-2 flex-1">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
                                 <div className="bg-[#1a1a1a] border border-[#3a3a3a] p-3 text-center">
                                     <div className="text-lg font-bold text-white">
                                         {p2pResult.connectionTime ? `${(p2pResult.connectionTime / 1000).toFixed(1)}s` : "—"}

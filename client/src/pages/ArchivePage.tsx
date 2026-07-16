@@ -77,9 +77,7 @@ export default function ArchivePage() {
 
     useEffect(() => {
         setLoading(true);
-        const token = localStorage.getItem("token");
-        if (!token) { setLoading(false); return; }
-        fetch(`${API}/api/archive?tab=${activeTab}`, { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${API}/api/archive?tab=${activeTab}`, { credentials: "include" })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((data) => {
                 if (data.tournaments) setTournaments(data.tournaments);
@@ -105,7 +103,7 @@ export default function ArchivePage() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 border-b border-[#3a3a3a]">
+            <div className="flex gap-1 border-b border-[#3a3a3a] overflow-x-auto">
                 {tabs.map((t) => {
                     const count = t.key === "all" ? totalCount
                         : t.key === "tournaments" ? tournaments.length

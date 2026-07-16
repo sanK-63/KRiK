@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 import path from "path";
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
@@ -29,22 +30,44 @@ import archiveRoutes from "./routes/archive";
 
 const app = express();
 
-app.use(cors());
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            imgSrc: ["'self'", "data:", "https:", "http:"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            connectSrc: ["'self'", "ws:", "wss:"],
+app.use((req, res, next) => {
+    if (req.url.startsWith("/socket.io")) return next();
+    const origin = req.headers.origin || "http://localhost:5173";
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+    if (req.method === "OPTIONS") { res.sendStatus(204); return; }
+    next();
+});
+app.use((req, res, next) => {
+    if (req.url.startsWith("/socket.io")) return next();
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                imgSrc: ["'self'", "data:", "https:", "http:"],
+                scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+                styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+                fontSrc: ["'self'", "https://fonts.gstatic.com"],
+                connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"],
+            },
         },
-    },
-    crossOriginEmbedderPolicy: false,
-}));
-app.use(express.json());
-app.use(morgan("dev"));
+        crossOriginEmbedderPolicy: false,
+    })(req, res, next);
+});
+app.use((req, res, next) => {
+    if (req.url.startsWith("/socket.io")) return next();
+    cookieParser()(req, res, next);
+});
+app.use((req, res, next) => {
+    if (req.url.startsWith("/socket.io")) return next();
+    express.json()(req, res, next);
+});
+app.use((req, res, next) => {
+    if (req.url.startsWith("/socket.io")) return next();
+    morgan("dev")(req, res, next);
+});
 
 app.get("/api/health", (req, res) => {
     res.json({ status: "ok", message: "Corporate Portal API" });
@@ -79,8 +102,12 @@ app.use("/api/software", softwareRoutes);
 
 // Serve static frontend
 const clientDist = path.resolve(__dirname, "../../client/dist");
-app.use(express.static(clientDist));
+app.use((req, res, next) => {
+    if (req.url.startsWith("/socket.io")) return next();
+    express.static(clientDist)(req, res, next);
+});
 app.get("*", (req, res) => {
+    if (req.url.startsWith("/socket.io")) return;
     if (req.path.startsWith("/api/")) return res.status(404).json({ error: "Not found" });
     res.sendFile(path.join(clientDist, "index.html"));
 });

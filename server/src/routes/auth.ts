@@ -9,6 +9,13 @@ router.post("/register", async (req: Request, res: Response) => {
     try {
         const { email, password, username, displayName } = req.body;
         const result = await register(email, password, username, displayName);
+        res.cookie("token", result.token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: "/",
+        });
         res.status(201).json(result);
     } catch (error: any) {
         res.status(400).json({ error: error.message });
@@ -19,6 +26,13 @@ router.post("/login", async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
         const result = await login(email, password);
+        res.cookie("token", result.token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: "/",
+        });
         res.json(result);
     } catch (error: any) {
         res.status(401).json({ error: error.message });
@@ -34,6 +48,13 @@ router.post("/key-login", async (req: Request, res: Response) => {
         }
         const result = await keyLogin(key);
         try { getIO().emit("user:online", { userId: result.user.id, username: result.user.username, displayName: result.user.displayName }); } catch {}
+        res.cookie("token", result.token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: "/",
+        });
         res.json(result);
     } catch (error: any) {
         res.status(401).json({ error: error.message });
@@ -65,6 +86,11 @@ router.post("/change-email", authMiddleware, async (req: AuthRequest, res: Respo
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }
+});
+
+router.post("/logout", (_req: Request, res: Response) => {
+    res.clearCookie("token", { path: "/" });
+    res.json({ ok: true });
 });
 
 export default router;

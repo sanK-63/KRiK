@@ -93,7 +93,7 @@ function BMICalculator() {
                 </div>
             </div>
 
-            <div className="px-4 grid grid-cols-3 gap-3">
+            <div className="px-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                     <label className="text-[10px] uppercase text-gray-500 mb-1 block">Рост (см)</label>
                     <input type="number" min={100} max={250} value={height} onChange={(e) => setHeight(Number(e.target.value))} className={INPUT_CLASS} />
@@ -129,7 +129,7 @@ function BMICalculator() {
                 </div>
             </div>
 
-            <div className="px-4 pb-4 grid grid-cols-3 gap-2">
+            <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div className="bg-[#1a1a1a] border border-[#3a3a3a] p-3 text-center">
                     <p className="text-[9px] uppercase text-gray-500 mb-1">Идеальный ИМТ</p>
                     <p className="text-xs text-white font-semibold">{info.idealBMI}</p>
@@ -310,7 +310,7 @@ function Randomizer() {
                 <p className="text-[11px] text-gray-500 leading-relaxed">Генератор случайных чисел с настраиваемым диапазоном и количеством результатов. Задайте минимальное и максимальное значение, укажите сколько чисел нужно сгенерировать (до 20 за раз). Результаты появляются с анимацией гонки. Встроенные пресеты: D6, D20, проценты, лотерея 5 из 36.</p>
             </div>
 
-            <div className="px-4 grid grid-cols-3 gap-3">
+            <div className="px-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                     <label className="text-[10px] uppercase text-gray-500 mb-1 block">От</label>
                     <input type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className={INPUT_CLASS} />
@@ -843,7 +843,7 @@ function Tuner() {
                             </div>
                             {frequency && <p className="text-sm text-gray-400 mb-3">{frequency} Гц</p>}
 
-                            <div className="relative mx-auto" style={{ width: 280 }}>
+                            <div className="relative mx-auto w-full max-w-[280px]">
                                 <div className="h-2 bg-[#282828] rounded-full overflow-hidden">
                                     <div className="h-full transition-all duration-75 rounded-full" style={{
                                         width: `${centsPercent}%`,
@@ -1026,7 +1026,7 @@ function ToneGenerator() {
 
             <div className="px-4 pb-4">
                 <p className="text-[10px] uppercase text-gray-500 mb-2">Пресеты</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {FREQ_PRESETS.map((p, i) => (
                         <button key={i} onClick={() => { updateFrequency(p.freq); setActivePreset(i); }} className="text-left bg-[#1a1a1a] border border-[#3a3a3a] p-2.5 hover:border-[#FA6814] transition-colors cursor-pointer" style={{ borderColor: activePreset === i ? "#FA6814" : undefined }}>
                             <div className="flex items-center justify-between">
@@ -1246,7 +1246,7 @@ function WebRTCTestPage() {
                         </button>
                     </div>
                     {capabilities.length > 0 && (
-                        <div className="grid grid-cols-2 gap-1.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                             {capabilities.map((c) => (
                                 <div key={c.name} className={`flex items-center gap-2 px-2.5 py-1.5 text-[11px] border ${c.supported ? "bg-[#4CAF50]/10 border-[#4CAF50]/30 text-[#4CAF50]" : "bg-[#D32F2F]/10 border-[#D32F2F]/30 text-[#D32F2F]"}`}>
                                     <span>{c.supported ? "Y" : "X"}</span>
@@ -1273,7 +1273,7 @@ function WebRTCTestPage() {
                                     <p className="text-[9px] text-gray-500 mb-1">NAT Type</p>
                                     <p className="text-xs font-bold" style={{ color: getNatColor(stunResult.natType) }}>{stunResult.natType}</p>
                                 </div>
-                                <div className="grid grid-cols-4 gap-1.5 flex-1">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 flex-1">
                                     <div className="bg-[#282828] border border-[#3a3a3a] p-2 text-center">
                                         <p className="text-sm font-bold text-white">{stunResult.candidateCount}</p>
                                         <p className="text-[9px] text-gray-500">Кандидатов</p>
@@ -1411,7 +1411,7 @@ function OhmLawCalc() {
                     </button>
                 ))}
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                     <label className="text-[10px] uppercase text-gray-500 mb-1 block">V (Вольты)</label>
                     <input type="number" step="0.01" value={v} onChange={(e) => setV(Number(e.target.value))} disabled={mode === "V"} className={INPUT_CLASS + (mode === "V" ? " opacity-50" : "")} />
@@ -1459,7 +1459,7 @@ function PowerCalc() {
                     </button>
                 ))}
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {mode !== "IR" && (
                     <div>
                         <label className="text-[10px] uppercase text-gray-500 mb-1 block">V (Вольты)</label>
@@ -1532,7 +1532,7 @@ function CapacitorCalc() {
     return (
         <div className="px-4 space-y-3">
             <p className="text-[10px] uppercase text-gray-500" style={{ fontFamily: '"Press Start 2P", system-ui' }}>E = 0.5 * C * V^2</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label className="text-[10px] uppercase text-gray-500 mb-1 block">C (мкФ)</label>
                     <input type="number" step="0.01" min={0} value={c} onChange={(e) => setC(Number(e.target.value))} className={INPUT_CLASS} />
@@ -1557,7 +1557,7 @@ function ForceCalc() {
     return (
         <div className="px-4 space-y-3">
             <p className="text-[10px] uppercase text-gray-500" style={{ fontFamily: '"Press Start 2P", system-ui' }}>F = m * a</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label className="text-[10px] uppercase text-gray-500 mb-1 block">m (кг)</label>
                     <input type="number" step="0.01" min={0} value={m} onChange={(e) => setM(Number(e.target.value))} className={INPUT_CLASS} />
@@ -1585,7 +1585,7 @@ function PowerCostCalc() {
     return (
         <div className="px-4 space-y-3">
             <p className="text-[10px] uppercase text-gray-500" style={{ fontFamily: '"Press Start 2P", system-ui' }}>Расход</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label className="text-[10px] uppercase text-gray-500 mb-1 block">Мощность (Вт)</label>
                     <input type="number" min={0} value={watts} onChange={(e) => setWatts(Number(e.target.value))} className={INPUT_CLASS} />
@@ -1603,7 +1603,7 @@ function PowerCostCalc() {
                     <input type="number" min={0} step="0.1" value={price} onChange={(e) => setPrice(Number(e.target.value))} className={INPUT_CLASS} />
                 </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-[#1a1a1a] border border-[#3a3a3a] p-3 text-center">
                     <p className="text-[10px] uppercase text-gray-500 mb-1">Потребление</p>
                     <p className="text-lg font-bold text-[#5B9BD5]">{kwh} кВтч</p>
@@ -1855,7 +1855,7 @@ function VideoVolumeCalc() {
                 <input type="number" min={1} value={bitrate} onChange={(e) => setBitrate(Number(e.target.value))} className={INPUT_CLASS} />
             </div>
 
-            <div className="px-4 grid grid-cols-3 gap-3">
+            <div className="px-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                     <label className="text-[10px] uppercase text-gray-500 mb-1 block">Часы</label>
                     <input type="number" min={0} max={999} value={hours} onChange={(e) => setHours(Number(e.target.value))} className={INPUT_CLASS} />
@@ -1884,7 +1884,7 @@ function VideoVolumeCalc() {
             <div className="px-4 pb-4">
                 <div className="bg-[#1a1a1a] border border-[#3a3a3a] p-4">
                     <p className="text-[10px] uppercase text-gray-500 mb-3 text-center" style={{ fontFamily: '"Press Start 2P", system-ui' }}>Результат</p>
-                    <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                         <div className="text-center">
                             <p className="text-[9px] text-gray-500 mb-1">Размер файла</p>
                             <p className="text-xl font-bold text-[#FA6814]">{totalSeconds > 0 ? formatBytes(bytes) : "0 Б"}</p>
@@ -1894,7 +1894,7 @@ function VideoVolumeCalc() {
                             <p className="text-xl font-bold text-[#5B9BD5]">{formatTime(totalSeconds)}</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
                         <div className="bg-[#282828] border border-[#3a3a3a] p-2">
                             <p className="text-[9px] text-gray-500">Базовый</p>
                             <p className="text-xs text-white font-bold">{bitrate} кбит/с</p>
@@ -2104,7 +2104,7 @@ function PasswordGenerator() {
                     <div className="flex justify-between text-[9px] text-gray-600 mt-1"><span>8</span><span>32</span><span>64</span></div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {([
                         ["Заглавные (A-Z)", uppercase, setUppercase],
                         ["Строчные (a-z)", lowercase, setLowercase],

@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar";
+import BottomNav from "../components/BottomNav";
 import ChatAssistant from "../components/ChatAssistant/ChatAssistant";
 
 function useScreenWidth() {
@@ -41,12 +42,16 @@ export default function MainLayout() {
                 >
                     <Sidebar />
                 </div>
-                <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6" style={{ background: "#212121" }}>
+                <main
+                    className={`flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 xl:pb-6 pb-20`}
+                    style={{ background: "#212121" }}
+                >
                     <div className="max-w-[1600px] 2xl:max-w-[2000px] mx-auto">
                         <Outlet />
                     </div>
                 </main>
             </div>
+            <BottomNav />
             <ChatAssistant />
         </div>
     );

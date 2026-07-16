@@ -67,7 +67,6 @@ export default function CinemaPage() {
     const [commentRating, setCommentRating] = useState(0);
     const location = useLocation();
     const openId = (location.state as { openId?: number })?.openId;
-    const token = localStorage.getItem("token");
 
     const [form, setForm] = useState({ title: "", year: "", genre: "Боевик", rating: 0, description: "", poster: "" });
     const [tmdbQuery, setTmdbQuery] = useState("");
@@ -77,7 +76,7 @@ export default function CinemaPage() {
 
     const load = () => {
         fetch(`${import.meta.env.VITE_API_URL}/api/movies`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : []))
             .then(setMovies)
@@ -87,7 +86,7 @@ export default function CinemaPage() {
 
     const loadComments = (movieId: number) => {
         fetch(`${import.meta.env.VITE_API_URL}/api/movies/${movieId}/comments`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then((r) => (r.ok ? r.json() : []))
             .then(setComments)
@@ -181,10 +180,11 @@ export default function CinemaPage() {
     }, [socket]);
 
     const handleCreate = async () => {
-        if (!form.title || !token) return;
+        if (!form.title) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/movies`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({
                 title: form.title,
                 year: form.year ? Number(form.year) : null,
@@ -200,10 +200,11 @@ export default function CinemaPage() {
     };
 
     const handleEdit = async () => {
-        if (!selected || !token) return;
+        if (!selected) return;
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/movies/${selected.id}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({
                 title: editForm.title,
                 year: editForm.year ? Number(editForm.year) : null,
@@ -222,20 +223,20 @@ export default function CinemaPage() {
     };
 
     const handleDelete = async (id: number) => {
-        if (!token) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/movies/${id}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         });
         setSelected(null);
         load();
     };
 
     const handleAddComment = async () => {
-        if (!selected || !commentText.trim() || !token) return;
+        if (!selected || !commentText.trim()) return;
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/movies/${selected.id}/comments`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ content: commentText, rating: commentRating || null }),
         });
         if (res.ok) {
@@ -246,10 +247,10 @@ export default function CinemaPage() {
     };
 
     const handleDeleteComment = async (commentId: number) => {
-        if (!selected || !token) return;
+        if (!selected) return;
         await fetch(`${import.meta.env.VITE_API_URL}/api/movies/${selected.id}/comments/${commentId}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         });
         loadComments(selected.id);
     };

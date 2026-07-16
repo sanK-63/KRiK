@@ -70,15 +70,12 @@ export default function FeedPage() {
     const [liked, setLiked] = useState<Record<string, boolean>>({});
     const socket = useSocket();
 
-    const token = localStorage.getItem("token");
-    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-
     const fetchAll = useCallback(async () => {
         setLoading(true);
         const all: FeedEntry[] = [];
 
         const safe = async (url: string) => {
-            try { const r = await fetch(url, { headers }); return r.ok ? await r.json() : []; } catch { return []; }
+            try { const r = await fetch(url, { credentials: "include" }); return r.ok ? await r.json() : []; } catch { return []; }
         };
 
         const [forumPosts, events, tournaments, memes, recipes, movies, software] = await Promise.all([
@@ -279,12 +276,11 @@ export default function FeedPage() {
     };
 
     const votePoll = async (entryId: string, forumId: number, optionIndex: number) => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
         try {
             const r = await fetch(`${import.meta.env.VITE_API_URL}/api/forum/${forumId}/vote`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({ optionIndex }),
             });
             if (!r.ok) return;

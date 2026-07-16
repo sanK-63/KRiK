@@ -154,7 +154,7 @@ export default function SoftwarePage() {
                 </button>
             </div>
 
-            <div className="flex gap-1 border-b border-[#3b3b3b]">
+            <div className="flex gap-1 border-b border-[#3b3b3b] overflow-x-auto">
                 {tabs.map((tab) => (
                     <button
                         key={tab}
@@ -269,7 +269,7 @@ export default function SoftwarePage() {
                     style={{ background: "rgba(0,0,0,0.6)" }}
                     onClick={() => { setShowAdd(false); setEditItem(null); resetForm(); }}
                 >
-                    <div className="w-[550px] max-h-[85vh] overflow-y-auto bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-full max-w-[550px] mx-4 max-h-[85vh] overflow-y-auto bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
                         <h3 className="text-lg font-semibold mb-5">{editItem ? "Редактировать" : "Новая публикация"}</h3>
 
                         {currentCat && !editItem && (
@@ -333,7 +333,7 @@ export default function SoftwarePage() {
                             className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors mb-4"
                         />
 
-                        <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label className="block text-xs uppercase text-gray-400 mb-2">Версия</label>
                                 <input

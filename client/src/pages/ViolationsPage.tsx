@@ -35,8 +35,7 @@ interface UserOption {
 }
 
 function getAuthHeaders(): Record<string, string> {
-    const token = localStorage.getItem("token");
-    return { Authorization: `Bearer ${token || ""}`, "Content-Type": "application/json" };
+    return { "Content-Type": "application/json" };
 }
 
 function formatDate(d: string | null) {
@@ -85,9 +84,7 @@ export default function ViolationsPage() {
 
     // Fetch violations
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-        fetch(`${API}/api/violations`, { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${API}/api/violations`, { credentials: "include" })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((data) => setViolations(data))
             .catch(() => {})
@@ -96,9 +93,7 @@ export default function ViolationsPage() {
 
     // Fetch users for dropdown
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-        fetch(`${API}/api/users`, { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${API}/api/users`, { credentials: "include" })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((data) => setAllUsers(data.map((u: any) => ({ id: u.id, username: u.username, displayName: u.displayName, surname: u.surname }))))
             .catch(() => {});
@@ -111,7 +106,7 @@ export default function ViolationsPage() {
             setViolations((prev) => [v, ...prev]);
         });
         socket.on("violation:updated", ({ id }: { id: number }) => {
-            fetch(`${API}/api/violations/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` } })
+            fetch(`${API}/api/violations/${id}`, { credentials: "include" })
                 .then((r) => r.ok ? r.json() : null)
                 .then((updated) => {
                     if (updated) setViolations((prev) => prev.map((v) => (v.id === id ? updated : v)));
@@ -169,7 +164,7 @@ export default function ViolationsPage() {
                 // Update existing
                 const r = await fetch(`${API}/api/violations/${editViolation.id}`, {
                     method: "PUT",
-                    headers: getAuthHeaders(),
+                    headers: getAuthHeaders(), credentials: "include",
                     body: JSON.stringify({
                         title: formTitle,
                         description: formDescription,
@@ -195,7 +190,7 @@ export default function ViolationsPage() {
                 }
                 const r = await fetch(`${API}/api/violations`, {
                     method: "POST",
-                    headers: getAuthHeaders(),
+                    headers: getAuthHeaders(), credentials: "include",
                     body: JSON.stringify({
                         userId: formUserId,
                         title: formTitle,
@@ -219,14 +214,14 @@ export default function ViolationsPage() {
 
     async function resolveViolation(id: number) {
         try {
-            const r = await fetch(`${API}/api/violations/${id}/resolve`, { method: "PUT", headers: getAuthHeaders() });
+            const r = await fetch(`${API}/api/violations/${id}/resolve`, { method: "PUT", headers: getAuthHeaders(), credentials: "include" });
             if (r.ok) setViolations((prev) => prev.map((v) => (v.id === id ? { ...v, status: "resolved", resolvedAt: new Date().toISOString() } : v)));
         } catch {}
     }
 
     async function dismissViolation(id: number) {
         try {
-            const r = await fetch(`${API}/api/violations/${id}/dismiss`, { method: "PUT", headers: getAuthHeaders() });
+            const r = await fetch(`${API}/api/violations/${id}/dismiss`, { method: "PUT", headers: getAuthHeaders(), credentials: "include" });
             if (r.ok) setViolations((prev) => prev.map((v) => (v.id === id ? { ...v, status: "dismissed", resolvedAt: new Date().toISOString() } : v)));
         } catch {}
     }
@@ -234,7 +229,7 @@ export default function ViolationsPage() {
     async function deleteViolation(id: number) {
         if (!confirm("Удалить нарушение?")) return;
         try {
-            const r = await fetch(`${API}/api/violations/${id}`, { method: "DELETE", headers: getAuthHeaders() });
+            const r = await fetch(`${API}/api/violations/${id}`, { method: "DELETE", headers: getAuthHeaders(), credentials: "include" });
             if (r.ok) setViolations((prev) => prev.filter((v) => v.id !== id));
         } catch {}
     }

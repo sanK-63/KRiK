@@ -11,14 +11,38 @@ export function initSocket(httpServer: HttpServer): Server {
             origin: "*",
             methods: ["GET", "POST"],
         },
+        path: "/socket.io",
+        pingTimeout: 60000,
+        pingInterval: 25000,
+        transports: ["websocket", "polling"],
+        allowEIO3: true,
     });
 
     io.use((socket: Socket, next) => {
-        const token = socket.handshake.auth?.token;
+        let token: string | null = null;
+
+        // 1. Try auth token (for backward compat)
+        if (socket.handshake.auth?.token) {
+            token = socket.handshake.auth.token;
+        }
+
+        // 2. Try parsing cookie from headers
+        if (!token && socket.handshake.headers?.cookie) {
+            const cookies = socket.handshake.headers.cookie.split(";").map(c => c.trim());
+            for (const c of cookies) {
+                const [name, ...valueParts] = c.split("=");
+                if (name === "token") {
+                    token = valueParts.join("=");
+                    break;
+                }
+            }
+        }
+
         if (!token) {
             socket.data.user = null;
             return next();
         }
+
         try {
             const decoded = jwt.verify(token, config.jwtSecret) as { id: number };
             socket.data.user = decoded;
