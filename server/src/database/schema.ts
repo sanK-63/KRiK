@@ -436,6 +436,7 @@ export const conversations = sqliteTable("conversations", {
     title: text("title"),
     isGroup: integer("is_group", { mode: "boolean" }).notNull().default(false),
     createdBy: integer("created_by").references(() => users.id),
+    avatar: text("avatar"),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
@@ -444,6 +445,7 @@ export const conversationParticipants = sqliteTable("conversation_participants",
     userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     joinedAt: text("joined_at").notNull().default("CURRENT_TIMESTAMP"),
     lastReadAt: text("last_read_at"),
+    role: text("role").notNull().default("member"),
 });
 
 export const messages = sqliteTable("messages", {
@@ -454,6 +456,12 @@ export const messages = sqliteTable("messages", {
     attachmentPath: text("attachment_path"),
     attachmentName: text("attachment_name"),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export const messageReactions = sqliteTable("message_reactions", {
+    messageId: integer("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
+    userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    emoji: text("emoji").notNull(),
 });
 
 // ──────────────────────────────────────────────
@@ -570,6 +578,17 @@ export const libraryDocuments = sqliteTable("library_documents", {
     size: integer("size"),
     uploadedBy: integer("uploaded_by").references(() => users.id),
     downloads: integer("downloads").notNull().default(0),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export const logs = sqliteTable("logs", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id").references(() => users.id),
+    action: text("action").notNull(),
+    targetType: text("target_type"),
+    targetId: integer("target_id"),
+    details: text("details"),
+    ipAddress: text("ip_address"),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 

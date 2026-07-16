@@ -1,17 +1,20 @@
 import { db } from "../database";
-import { conversations, conversationParticipants, messages, users } from "../database/schema";
+import { conversations, conversationParticipants, messages, messageReactions, users } from "../database/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
-import { emitToUser } from "../socket";
+import { emitToUser, emitToConversation } from "../socket";
 
 interface ConversationResult {
     id: number;
     title: string | null;
     isGroup: boolean;
+    avatar: string | null;
     createdAt: string;
+    createdBy: number | null;
     otherUser: { id: number; username: string; displayName: string | null; avatar: string | null } | null;
     otherUsers?: { id: number; username: string; displayName: string | null; avatar: string | null }[];
     lastMessage: { content: string | null; senderId: number; createdAt: string; attachmentName: string | null } | null;
     unreadCount: number;
+    participantsCount?: number;
 }
 
 export function getUserConversations(userId: number): ConversationResult[] {
@@ -94,13 +97,16 @@ export function getUserConversations(userId: number): ConversationResult[] {
             id: conv.id,
             title: conv.title,
             isGroup: conv.isGroup,
+            avatar: conv.avatar,
             createdAt: conv.createdAt,
+            createdBy: conv.createdBy,
             otherUser,
             otherUsers,
             lastMessage: lastMsg
                 ? { content: lastMsg.content, senderId: lastMsg.senderId, createdAt: lastMsg.createdAt, attachmentName: lastMsg.attachmentName }
                 : null,
             unreadCount,
+            participantsCount: participants.length,
         });
     }
 
@@ -111,6 +117,39 @@ export function getUserConversations(userId: number): ConversationResult[] {
     });
 
     return results;
+}
+
+export function getConversationById(conversationId: number) {
+    const conv = db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .get();
+
+    if (!conv) return null;
+
+    const participants = db
+        .select()
+        .from(conversationParticipants)
+        .where(eq(conversationParticipants.conversationId, conversationId))
+        .all();
+
+    const participantsWithUser = participants.map((p) => {
+        const u = db
+            .select({ id: users.id, username: users.username, displayName: users.displayName, avatar: users.avatar })
+            .from(users)
+            .where(eq(users.id, p.userId))
+            .get();
+        return {
+            userId: p.userId,
+            joinedAt: p.joinedAt,
+            lastReadAt: p.lastReadAt,
+            role: p.role,
+            user: u || null,
+        };
+    });
+
+    return { ...conv, participants: participantsWithUser };
 }
 
 export function getConversationMessages(conversationId: number, userId: number, limit = 50, offset = 0) {
@@ -127,7 +166,7 @@ export function getConversationMessages(conversationId: number, userId: number, 
 
     if (!participant) return null;
 
-    return db
+    const rawMessages = db
         .select({
             id: messages.id,
             conversationId: messages.conversationId,
@@ -136,7 +175,6 @@ export function getConversationMessages(conversationId: number, userId: number, 
             attachmentPath: messages.attachmentPath,
             attachmentName: messages.attachmentName,
             createdAt: messages.createdAt,
-            senderIdRel: messages.senderId,
         })
         .from(messages)
         .where(eq(messages.conversationId, conversationId))
@@ -144,16 +182,40 @@ export function getConversationMessages(conversationId: number, userId: number, 
         .limit(limit)
         .offset(offset)
         .all()
-        .reverse()
-        .map((m) => {
-            const sender = db
-                .select({ id: users.id, username: users.username, displayName: users.displayName, avatar: users.avatar })
-                .from(users)
-                .where(eq(users.id, m.senderId))
-                .get();
-            const { senderIdRel, ...rest } = m;
-            return { ...rest, sender: sender || null };
-        });
+        .reverse();
+
+    const result = rawMessages.map((m) => {
+        const sender = db
+            .select({ id: users.id, username: users.username, displayName: users.displayName, avatar: users.avatar })
+            .from(users)
+            .where(eq(users.id, m.senderId))
+            .get();
+
+        const reactionRows = db
+            .select({
+                emoji: messageReactions.emoji,
+                userId: messageReactions.userId,
+            })
+            .from(messageReactions)
+            .where(eq(messageReactions.messageId, m.id))
+            .all();
+
+        const reactionsMap: Record<string, { emoji: string; userIds: number[] }> = {};
+        for (const r of reactionRows) {
+            if (!reactionsMap[r.emoji]) {
+                reactionsMap[r.emoji] = { emoji: r.emoji, userIds: [] };
+            }
+            reactionsMap[r.emoji].userIds.push(r.userId);
+        }
+
+        return {
+            ...m,
+            sender: sender || null,
+            reactions: Object.values(reactionsMap),
+        };
+    });
+
+    return result;
 }
 
 export function createConversation(creatorId: number, participantIds: number[], title?: string) {
@@ -173,7 +235,7 @@ export function createConversation(creatorId: number, participantIds: number[], 
 
     for (const uid of allIds) {
         db.insert(conversationParticipants)
-            .values({ conversationId: conv.id, userId: uid })
+            .values({ conversationId: conv.id, userId: uid, role: uid === creatorId ? "admin" : "member" })
             .run();
     }
 
@@ -255,27 +317,17 @@ export function sendMessage(
         )
         .run();
 
-    const participants = db
-        .select()
-        .from(conversationParticipants)
-        .where(eq(conversationParticipants.conversationId, conversationId))
-        .all();
-
     const sender = db
         .select({ id: users.id, username: users.username, displayName: users.displayName, avatar: users.avatar })
         .from(users)
         .where(eq(users.id, senderId))
         .get();
 
-    const messageWithSender = { ...msg, sender };
+    const messageWithSender = { ...msg, sender, reactions: [] };
 
-    for (const p of participants) {
-        if (p.userId !== senderId) {
-            try {
-                emitToUser(p.userId, "message:new", messageWithSender);
-            } catch {}
-        }
-    }
+    try {
+        emitToConversation(conversationId, "message:new", messageWithSender);
+    } catch {}
 
     return messageWithSender;
 }
@@ -332,4 +384,386 @@ export function getTotalUnread(userId: number) {
     }
 
     return total;
+}
+
+export function updateGroupTitle(conversationId: number, userId: number, title: string) {
+    const participant = db
+        .select()
+        .from(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, userId)
+            )
+        )
+        .get();
+
+    if (!participant) return { error: "Вы не участник этого чата" };
+    if (participant.role !== "admin") return { error: "Только администратор может изменить название" };
+
+    const conv = db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .get();
+
+    if (!conv || !conv.isGroup) return { error: "Это не групповой чат" };
+
+    db.update(conversations)
+        .set({ title })
+        .where(eq(conversations.id, conversationId))
+        .run();
+
+    try {
+        emitToConversation(conversationId, "conversation:titleUpdated", { conversationId, title });
+    } catch {}
+
+    return { ok: true, title };
+}
+
+export function updateGroupAvatar(conversationId: number, userId: number, avatarPath: string) {
+    const participant = db
+        .select()
+        .from(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, userId)
+            )
+        )
+        .get();
+
+    if (!participant) return { error: "Вы не участник этого чата" };
+    if (participant.role !== "admin") return { error: "Только администратор может изменить аватар" };
+
+    const conv = db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .get();
+
+    if (!conv || !conv.isGroup) return { error: "Это не групповой чат" };
+
+    db.update(conversations)
+        .set({ avatar: avatarPath })
+        .where(eq(conversations.id, conversationId))
+        .run();
+
+    try {
+        emitToConversation(conversationId, "conversation:avatarUpdated", { conversationId, avatar: avatarPath });
+    } catch {}
+
+    return { ok: true, avatar: avatarPath };
+}
+
+export function addParticipant(conversationId: number, userId: number, newUserId: number) {
+    const participant = db
+        .select()
+        .from(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, userId)
+            )
+        )
+        .get();
+
+    if (!participant) return { error: "Вы не участник этого чата" };
+    if (participant.role !== "admin") return { error: "Только администратор может добавлять участников" };
+
+    const conv = db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .get();
+
+    if (!conv || !conv.isGroup) return { error: "Это не групповой чат" };
+
+    const existing = db
+        .select()
+        .from(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, newUserId)
+            )
+        )
+        .get();
+
+    if (existing) return { error: "Пользователь уже является участником" };
+
+    const newUser = db
+        .select()
+        .from(users)
+        .where(eq(users.id, newUserId))
+        .get();
+
+    if (!newUser) return { error: "Пользователь не найден" };
+
+    db.insert(conversationParticipants)
+        .values({ conversationId, userId: newUserId, role: "member" })
+        .run();
+
+    try {
+        emitToConversation(conversationId, "conversation:memberAdded", { conversationId, userId: newUserId });
+    } catch {}
+
+    return { ok: true };
+}
+
+export function removeParticipant(conversationId: number, userId: number, targetUserId: number) {
+    const participant = db
+        .select()
+        .from(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, userId)
+            )
+        )
+        .get();
+
+    if (!participant) return { error: "Вы не участник этого чата" };
+    if (participant.role !== "admin") return { error: "Только администратор может удалять участников" };
+    if (userId === targetUserId) return { error: "Используйте функцию выхода из группы" };
+
+    const conv = db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .get();
+
+    if (!conv || !conv.isGroup) return { error: "Это не групповой чат" };
+
+    const targetParticipant = db
+        .select()
+        .from(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, targetUserId)
+            )
+        )
+        .get();
+
+    if (!targetParticipant) return { error: "Пользователь не является участником" };
+
+    db.delete(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, targetUserId)
+            )
+        )
+        .run();
+
+    try {
+        emitToConversation(conversationId, "conversation:memberRemoved", { conversationId, userId: targetUserId });
+    } catch {}
+
+    return { ok: true };
+}
+
+export function leaveGroup(conversationId: number, userId: number) {
+    const participant = db
+        .select()
+        .from(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, userId)
+            )
+        )
+        .get();
+
+    if (!participant) return { error: "Вы не участник этого чата" };
+
+    const conv = db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .get();
+
+    if (!conv || !conv.isGroup) return { error: "Это не групповой чат" };
+
+    db.delete(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, userId)
+            )
+        )
+        .run();
+
+    const remainingParticipants = db
+        .select()
+        .from(conversationParticipants)
+        .where(eq(conversationParticipants.conversationId, conversationId))
+        .all();
+
+    if (remainingParticipants.length === 0) {
+        db.delete(messages).where(eq(messages.conversationId, conversationId)).run();
+        db.delete(conversations).where(eq(conversations.id, conversationId)).run();
+    } else {
+        try {
+            emitToConversation(conversationId, "conversation:memberLeft", { conversationId, userId });
+        } catch {}
+    }
+
+    return { ok: true };
+}
+
+export function deleteConversation(conversationId: number, userId: number) {
+    const conv = db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .get();
+
+    if (!conv) return { error: "Чат не найден" };
+
+    const participant = db
+        .select()
+        .from(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, userId)
+            )
+        )
+        .get();
+
+    if (!participant) return { error: "Вы не участник этого чата" };
+
+    if (conv.isGroup) {
+        if (participant.role !== "admin") {
+            return { error: "Только администратор может удалить групповой чат" };
+        }
+    } else {
+        if (conv.createdBy !== userId) {
+            return { error: "Только создатель может удалить диалог" };
+        }
+    }
+
+    try {
+        emitToConversation(conversationId, "conversation:deleted", { conversationId });
+    } catch {}
+
+    db.delete(messages).where(eq(messages.conversationId, conversationId)).run();
+    db.delete(conversationParticipants).where(eq(conversationParticipants.conversationId, conversationId)).run();
+    db.delete(conversations).where(eq(conversations.id, conversationId)).run();
+
+    return { ok: true };
+}
+
+export function toggleReaction(conversationId: number, userId: number, messageId: number, emoji: string) {
+    const participant = db
+        .select()
+        .from(conversationParticipants)
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, userId)
+            )
+        )
+        .get();
+
+    if (!participant) return { error: "Вы не участник этого чата" };
+
+    const msg = db
+        .select()
+        .from(messages)
+        .where(
+            and(
+                eq(messages.id, messageId),
+                eq(messages.conversationId, conversationId)
+            )
+        )
+        .get();
+
+    if (!msg) return { error: "Сообщение не найдено" };
+
+    const existing = db
+        .select()
+        .from(messageReactions)
+        .where(
+            and(
+                eq(messageReactions.messageId, messageId),
+                eq(messageReactions.userId, userId),
+                eq(messageReactions.emoji, emoji)
+            )
+        )
+        .get();
+
+    if (existing) {
+        db.delete(messageReactions)
+            .where(
+                and(
+                    eq(messageReactions.messageId, messageId),
+                    eq(messageReactions.userId, userId),
+                    eq(messageReactions.emoji, emoji)
+                )
+            )
+            .run();
+    } else {
+        db.insert(messageReactions)
+            .values({ messageId, userId, emoji })
+            .run();
+    }
+
+    const reactionRows = db
+        .select({
+            emoji: messageReactions.emoji,
+            userId: messageReactions.userId,
+        })
+        .from(messageReactions)
+        .where(eq(messageReactions.messageId, messageId))
+        .all();
+
+    const reactionsMap: Record<string, { emoji: string; userIds: number[] }> = {};
+    for (const r of reactionRows) {
+        if (!reactionsMap[r.emoji]) {
+            reactionsMap[r.emoji] = { emoji: r.emoji, userIds: [] };
+        }
+        reactionsMap[r.emoji].userIds.push(r.userId);
+    }
+
+    const reactions = Object.values(reactionsMap);
+
+    try {
+        emitToConversation(conversationId, "message:reactionsUpdated", { messageId, reactions });
+    } catch {}
+
+    return { ok: true, reactions };
+}
+
+export function getParticipants(conversationId: number) {
+    const conv = db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .get();
+
+    if (!conv) return null;
+
+    const participants = db
+        .select()
+        .from(conversationParticipants)
+        .where(eq(conversationParticipants.conversationId, conversationId))
+        .all();
+
+    return participants.map((p) => {
+        const u = db
+            .select({ id: users.id, username: users.username, displayName: users.displayName, avatar: users.avatar })
+            .from(users)
+            .where(eq(users.id, p.userId))
+            .get();
+        return {
+            userId: p.userId,
+            joinedAt: p.joinedAt,
+            lastReadAt: p.lastReadAt,
+            role: p.role,
+            user: u || null,
+        };
+    });
 }

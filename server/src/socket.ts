@@ -41,6 +41,49 @@ export function initSocket(httpServer: HttpServer): Server {
         socket.on("disconnect", () => {
             console.log(`[Socket] Disconnected: ${socket.id}`);
         });
+
+        socket.on("conversation:join", (data: { conversationId: number }) => {
+            if (user && data.conversationId) {
+                socket.join(`conversation:${data.conversationId}`);
+                console.log(`[Socket] User ${user.id} joined conversation ${data.conversationId}`);
+            }
+        });
+
+        socket.on("conversation:leave", (data: { conversationId: number }) => {
+            if (user && data.conversationId) {
+                socket.leave(`conversation:${data.conversationId}`);
+                console.log(`[Socket] User ${user.id} left conversation ${data.conversationId}`);
+            }
+        });
+
+        socket.on("conversation:typing", (data: { conversationId: number; isTyping: boolean }) => {
+            if (user && data.conversationId) {
+                try {
+                    socket.to(`conversation:${data.conversationId}`).emit("conversation:typing", {
+                        conversationId: data.conversationId,
+                        userId: user.id,
+                        isTyping: data.isTyping,
+                    });
+                } catch {}
+            }
+        });
+
+        // WebRTC signaling — test
+        socket.on("call:test-offer", (data: { targetUserId: number; sdp: any }) => {
+            if (user && data.targetUserId) {
+                emitToUser(data.targetUserId, "call:test-offer", { fromUserId: user.id, sdp: data.sdp });
+            }
+        });
+        socket.on("call:test-answer", (data: { targetUserId: number; sdp: any }) => {
+            if (user && data.targetUserId) {
+                emitToUser(data.targetUserId, "call:test-answer", { fromUserId: user.id, sdp: data.sdp });
+            }
+        });
+        socket.on("call:test-ice", (data: { targetUserId: number; candidate: any }) => {
+            if (user && data.targetUserId) {
+                emitToUser(data.targetUserId, "call:test-ice", { fromUserId: user.id, candidate: data.candidate });
+            }
+        });
     });
 
     return io;
@@ -53,6 +96,10 @@ export function getIO(): Server {
 
 export function emitToUser(userId: number, event: string, data: any) {
     getIO().to(`user:${userId}`).emit(event, data);
+}
+
+export function emitToConversation(conversationId: number, event: string, data: any) {
+    getIO().to(`conversation:${conversationId}`).emit(event, data);
 }
 
 export function broadcast(event: string, data: any) {

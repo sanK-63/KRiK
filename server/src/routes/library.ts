@@ -2,7 +2,7 @@ import { Router, Response } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { db } from "../database";
+import { db, sqlite } from "../database";
 import { libraryCategories, libraryDocuments } from "../database/schema";
 import { eq, like, sql } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
@@ -30,7 +30,7 @@ const upload = multer({
 router.get("/categories", authMiddleware, (_req: AuthRequest, res: Response) => {
     const cats = db.select().from(libraryCategories).all().sort((a, b) => a.orderIndex - b.orderIndex);
     const result = cats.map((c) => {
-        const count = db.prepare("SELECT COUNT(*) as c FROM library_documents WHERE category_id = ?").get(c.id) as { c: number };
+        const count = sqlite.prepare("SELECT COUNT(*) as c FROM library_documents WHERE category_id = ?").get(c.id) as { c: number };
         return { ...c, documentCount: count.c };
     });
     res.json(result);
@@ -42,7 +42,7 @@ router.post("/categories", authMiddleware, (req: AuthRequest, res: Response) => 
         res.status(400).json({ error: "name is required" });
         return;
     }
-    const maxOrder = db.prepare("SELECT MAX(order_index) as m FROM library_categories").get() as { m: number | null };
+    const maxOrder = sqlite.prepare("SELECT MAX(order_index) as m FROM library_categories").get() as { m: number | null };
     const cat = db.insert(libraryCategories).values({
         name,
         icon: icon || null,
@@ -94,7 +94,7 @@ router.get("/", authMiddleware, (req: AuthRequest, res: Response) => {
 
     const result = docs.map((d) => {
         const cat = d.categoryId ? db.select().from(libraryCategories).where(eq(libraryCategories.id, d.categoryId)).get() : null;
-        const uploader = d.uploadedBy ? db.prepare("SELECT id, username, display_name FROM users WHERE id = ?").get(d.uploadedBy) as any : null;
+        const uploader = d.uploadedBy ? sqlite.prepare("SELECT id, username, display_name FROM users WHERE id = ?").get(d.uploadedBy) as any : null;
         return {
             ...d,
             categoryName: cat?.name || null,
@@ -106,10 +106,10 @@ router.get("/", authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 router.get("/stats", authMiddleware, (_req: AuthRequest, res: Response) => {
-    const totalDocs = db.prepare("SELECT COUNT(*) as c FROM library_documents").get() as { c: number };
-    const totalSize = db.prepare("SELECT COALESCE(SUM(size), 0) as s FROM library_documents").get() as { s: number };
-    const totalDownloads = db.prepare("SELECT COALESCE(SUM(downloads), 0) as d FROM library_documents").get() as { d: number };
-    const totalCategories = db.prepare("SELECT COUNT(*) as c FROM library_categories").get() as { c: number };
+    const totalDocs = sqlite.prepare("SELECT COUNT(*) as c FROM library_documents").get() as { c: number };
+    const totalSize = sqlite.prepare("SELECT COALESCE(SUM(size), 0) as s FROM library_documents").get() as { s: number };
+    const totalDownloads = sqlite.prepare("SELECT COALESCE(SUM(downloads), 0) as d FROM library_documents").get() as { d: number };
+    const totalCategories = sqlite.prepare("SELECT COUNT(*) as c FROM library_categories").get() as { c: number };
     res.json({
         documents: totalDocs.c,
         totalSize: totalSize.s,
@@ -126,7 +126,7 @@ router.get("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         return;
     }
     const cat = doc.categoryId ? db.select().from(libraryCategories).where(eq(libraryCategories.id, doc.categoryId)).get() : null;
-    const uploader = doc.uploadedBy ? db.prepare("SELECT id, username, display_name FROM users WHERE id = ?").get(doc.uploadedBy) as any : null;
+    const uploader = doc.uploadedBy ? sqlite.prepare("SELECT id, username, display_name FROM users WHERE id = ?").get(doc.uploadedBy) as any : null;
     res.json({
         ...doc,
         categoryName: cat?.name || null,

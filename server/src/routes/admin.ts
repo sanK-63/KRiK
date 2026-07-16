@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Response } from "express";
 import { sqlite } from "../database";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 

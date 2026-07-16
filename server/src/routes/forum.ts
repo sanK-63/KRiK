@@ -38,7 +38,7 @@ function enrichPost(post: any, userId?: number) {
     };
 }
 
-function enrichComment(comment: any) {
+function enrichComment(comment: any): any {
     if (!comment) return null;
     const author = sqlite.prepare("SELECT id, display_name, username, avatar FROM users WHERE id = ?").get(comment.user_id) as any;
     const likes = (sqlite.prepare("SELECT COUNT(*) as c FROM forum_likes WHERE comment_id = ?").get(comment.id) as any).c;

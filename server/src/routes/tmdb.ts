@@ -19,7 +19,7 @@ router.get("/search", async (req, res) => {
             { headers: tmdbHeaders() }
         );
         if (!r.ok) return res.status(502).json({ error: "TMDB error" });
-        const data = await r.json();
+        const data = await r.json() as any;
         const results = (data.results || []).slice(0, 8).map((m: any) => ({
             id: m.id,
             title: m.title,
@@ -42,7 +42,7 @@ router.get("/genres", async (_req, res) => {
     try {
         const r = await fetch(`${TMDB_BASE}/genre/movie/list?language=ru-RU`, { headers: tmdbHeaders() });
         if (!r.ok) return res.json([]);
-        const data = await r.json();
+        const data = await r.json() as any;
         res.json(data.genres || []);
     } catch {
         res.json([]);

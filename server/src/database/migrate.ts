@@ -471,6 +471,12 @@ const tables = [
         attachment_name TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )`,
+    `CREATE TABLE IF NOT EXISTS message_reactions (
+        message_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        emoji TEXT NOT NULL,
+        PRIMARY KEY(message_id, user_id)
+    )`,
 ];
 
 const indexes = [
@@ -487,6 +493,7 @@ const indexes = [
     `CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id)`,
     `CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id)`,
     `CREATE INDEX IF NOT EXISTS idx_conv_participants_user ON conversation_participants(user_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_message_reactions_msg ON message_reactions(message_id)`,
 ];
 
 export function migrate() {
@@ -886,6 +893,12 @@ export function migrate() {
         insMovie.run("Куроко но Баскет", 2012, "Аниме", 4, "Тацую Куроко — тихий плеймейкер «Невидимой тенью» из Золотого поколения баскетбола. Вместе с Сэйрином он бросает вызов другим игрокам Золотого поколения: Аоминэ (какаши), Мидорима (сияющий), Акаси (король) и Мурасакибаре (принц). Динамичная спортивная драма с уникальными способностями игроков.", "https://image.tmdb.org/t/p/w500/bf3eK6YcWq7l5G9eF8f8dC0wQ5x.jpg");
         console.log("Seeded 18 movies");
     }
+
+    // Add avatar column to conversations
+    try { sqlite.prepare("SELECT avatar FROM conversations LIMIT 1").get(); } catch { sqlite.exec("ALTER TABLE conversations ADD COLUMN avatar TEXT"); }
+
+    // Add role column to conversation_participants
+    try { sqlite.prepare("SELECT role FROM conversation_participants LIMIT 1").get(); } catch { sqlite.exec("ALTER TABLE conversation_participants ADD COLUMN role TEXT NOT NULL DEFAULT 'member'"); }
 
     console.log("Database migrated successfully");
 }

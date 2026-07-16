@@ -22,6 +22,7 @@ import forumRoutes from "./routes/forum";
 import adminRoutes from "./routes/admin";
 import messagesRoutes from "./routes/messages";
 import softwareRoutes from "./routes/software";
+import searchRoutes from "./routes/search";
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use("/api/tmdb", tmdbRoutes);
 app.use("/api/forum", forumRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/messages", messagesRoutes);
+app.use("/api/search", searchRoutes);
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));

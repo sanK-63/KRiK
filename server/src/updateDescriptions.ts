@@ -20,7 +20,7 @@ async function updateDescriptions() {
                 headers: { Authorization: `Bearer ${TMDB_TOKEN}` },
             });
             if (!r.ok) continue;
-            const data = await r.json();
+            const data = await r.json() as any;
             const results = data.results || [];
 
             let best = results[0];
