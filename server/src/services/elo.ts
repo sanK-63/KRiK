@@ -195,25 +195,25 @@ export function processTournamentEnd(tournamentId: number) {
 
 export function getLeaderboard(options: { page?: number; limit?: number } = {}) {
     const page = options.page || 1;
-    const limit = options.limit || 20;
+    const limit = options.limit || 50;
     const offset = (page - 1) * limit;
 
-    const total = db.select({ count: sql<number>`count(*)` }).from(userElo).get()?.count || 0;
+    const total = db.select({ count: sql<number>`count(*)` }).from(users).get()?.count || 0;
 
     const rows = db
         .select({
-            userId: userElo.userId,
-            elo: userElo.elo,
-            gamesPlayed: userElo.gamesPlayed,
-            wins: userElo.wins,
-            losses: userElo.losses,
+            userId: users.id,
+            elo: sql<number>`COALESCE(${userElo.elo}, 1000)`,
+            gamesPlayed: sql<number>`COALESCE(${userElo.gamesPlayed}, 0)`,
+            wins: sql<number>`COALESCE(${userElo.wins}, 0)`,
+            losses: sql<number>`COALESCE(${userElo.losses}, 0)`,
             username: users.username,
             displayName: users.displayName,
             avatar: users.avatar,
         })
-        .from(userElo)
-        .innerJoin(users, eq(userElo.userId, users.id))
-        .orderBy(desc(userElo.elo))
+        .from(users)
+        .leftJoin(userElo, eq(users.id, userElo.userId))
+        .orderBy(desc(sql`COALESCE(${userElo.elo}, 1000)`))
         .limit(limit)
         .offset(offset)
         .all();

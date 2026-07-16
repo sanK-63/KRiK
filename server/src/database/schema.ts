@@ -448,14 +448,14 @@ export const conversationParticipants = sqliteTable("conversation_participants",
     role: text("role").notNull().default("member"),
 });
 
-export const messages = sqliteTable("messages", {
+export const messages: ReturnType<typeof sqliteTable> = sqliteTable("messages", {
     id: integer("id").primaryKey({ autoIncrement: true }),
     conversationId: integer("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
     senderId: integer("sender_id").notNull().references(() => users.id),
     content: text("content"),
     attachmentPath: text("attachment_path"),
     attachmentName: text("attachment_name"),
-    replyToId: integer("reply_to_id").references(() => messages.id, { onDelete: "set null" }),
+    replyToId: integer("reply_to_id"),
     forwardedFromId: integer("forwarded_from_id").references(() => users.id, { onDelete: "set null" }),
     editedAt: text("edited_at"),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),

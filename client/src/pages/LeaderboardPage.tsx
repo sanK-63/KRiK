@@ -62,8 +62,6 @@ export default function LeaderboardPage() {
     const navigate = useNavigate();
     const [data, setData] = useState<LeaderboardResponse | null>(null);
     const [loading, setLoading] = useState(true);
-    const [page, setPage] = useState(1);
-    const limit = 20;
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -72,16 +70,14 @@ export default function LeaderboardPage() {
             return;
         }
         setLoading(true);
-        fetch(`${import.meta.env.VITE_API_URL}/api/elo/leaderboard?page=${page}&limit=${limit}`, {
+        fetch(`${import.meta.env.VITE_API_URL}/api/elo/leaderboard?page=1&limit=100`, {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then((r) => r.json())
             .then(setData)
             .catch(() => setData(null))
             .finally(() => setLoading(false));
-    }, [page, navigate]);
-
-    const totalPages = data ? Math.ceil(data.total / limit) : 1;
+    }, [navigate]);
 
     return (
         <div className="max-w-4xl space-y-6">
@@ -200,28 +196,6 @@ export default function LeaderboardPage() {
                             </tbody>
                         </table>
                     </div>
-
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-2">
-                            <button
-                                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className="text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#3b3b3b] text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                            >
-                                Назад
-                            </button>
-                            <span className="text-[10px] text-gray-500">
-                                {page} / {totalPages}
-                            </span>
-                            <button
-                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                                className="text-[10px] px-3 py-1.5 bg-[#2a2a2a] border border-[#3b3b3b] text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                            >
-                                Далее
-                            </button>
-                        </div>
-                    )}
                 </>
             )}
         </div>

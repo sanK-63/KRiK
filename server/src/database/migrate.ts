@@ -922,5 +922,14 @@ export function migrate() {
     // Add edited_at column to messages
     try { sqlite.prepare("SELECT edited_at FROM messages LIMIT 1").get(); } catch { sqlite.exec("ALTER TABLE messages ADD COLUMN edited_at TEXT"); }
 
+    // Reset all ELO to 1000 and ensure every user has an entry
+    sqlite.exec("UPDATE user_elo SET elo = 1000, games_played = 0, wins = 0, losses = 0");
+    sqlite.exec("DELETE FROM elo_history");
+    sqlite.exec(`
+        INSERT OR IGNORE INTO user_elo (user_id, elo, games_played, wins, losses, updated_at)
+        SELECT id, 1000, 0, 0, 0, datetime('now') FROM users
+    `);
+    console.log("ELO reset to 1000 for all users");
+
     console.log("Database migrated successfully");
 }
