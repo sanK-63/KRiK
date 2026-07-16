@@ -117,7 +117,9 @@ export default function MessagesPage() {
 
     const formatConvTime = (dateStr: string | null) => {
         if (!dateStr) return "";
-        const d = new Date(dateStr.replace(" ", "T"));
+        const normalized = dateStr.includes("T") ? dateStr : dateStr.replace(" ", "T") + "Z";
+        const d = new Date(normalized);
+        if (isNaN(d.getTime())) return "";
         const now = new Date();
         if (d.toDateString() === now.toDateString()) {
             return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });

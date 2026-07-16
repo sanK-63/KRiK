@@ -33,7 +33,7 @@ const upload = multer({
     storage,
     limits: { fileSize: 50 * 1024 * 1024 },
     fileFilter: (_req, file, cb) => {
-        const allowed = /jpeg|jpg|png|gif|webp|pdf|doc|docx|txt|zip|rar|7z|mp3|mp4|ogg|wav/;
+        const allowed = /jpeg|jpg|png|gif|webp|pdf|doc|docx|txt|zip|rar|7z|mp3|mp4|ogg|wav|webm|opus|m4a|mpeg/;
         const ext = path.extname(file.originalname).toLowerCase().replace(".", "");
         if (allowed.test(ext)) {
             cb(null, true);

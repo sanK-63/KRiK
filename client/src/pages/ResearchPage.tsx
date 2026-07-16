@@ -3,6 +3,16 @@ import { useState, useEffect, useRef, useCallback } from "react";
 const TABS = ["ИМТ", "Колесо Фартуны", "Рандомайзер", "Кости", "Метроном", "Тюнер", "Генератор частот"] as const;
 type Tab = typeof TABS[number];
 
+const TAB_META: Record<Tab, { icon: string; subtitle: string; color: string }> = {
+    "ИМТ": { icon: "ИМТ", subtitle: "Калькулятор веса", color: "#4CAF50" },
+    "Колесо Фартуны": { icon: "КОЛЕСО", subtitle: "Случайный выбор", color: "#FFB020" },
+    "Рандомайзер": { icon: "RNG", subtitle: "Генератор чисел", color: "#5B9BD5" },
+    "Кости": { icon: "D6", subtitle: "D4–D100", color: "#FA6814" },
+    "Метроном": { icon: "BPM", subtitle: "20–300 BPM", color: "#D32F2F" },
+    "Тюнер": { icon: "A4", subtitle: "Настройка по звуку", color: "#9C27B0" },
+    "Генератор частот": { icon: "Гц", subtitle: "20–20 000 Гц", color: "#00BCD4" },
+};
+
 // ═══════════════════════════════════════════════════════════════
 // ИМТ (BMI Calculator)
 // ═══════════════════════════════════════════════════════════════
@@ -215,9 +225,9 @@ function FortuneWheel() {
                 </div>
             </div>
 
-            <div className="px-4 flex justify-center">
-                <div className="relative" style={{ width: 320, height: 320 }}>
-                    <svg width={320} height={320} style={{ transform: `rotate(${rotation}deg)`, transition: spinning ? "transform 4.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)" : "none" }}>
+            <div className="px-4 flex justify-center overflow-hidden">
+                <div className="relative w-full max-w-[300px]">
+                    <svg viewBox="0 0 320 320" className="w-full h-auto" style={{ transform: `rotate(${rotation}deg)`, transition: spinning ? "transform 4.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)" : "none" }}>
                         {segments.map((_, i) => (
                             <path key={i} d={getSlicePath(i)} fill={WHEEL_COLORS[i % WHEEL_COLORS.length]} stroke="#1e1e1e" strokeWidth={2} />
                         ))}
@@ -229,7 +239,7 @@ function FortuneWheel() {
                         <circle cx={cx} cy={cy} r={18} fill="#1e1e1e" stroke="#FA6814" strokeWidth={3} />
                     </svg>
                     {/* Arrow */}
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0" style={{ borderLeft: "10px solid transparent", borderRight: "10px solid transparent", borderTop: "20px solid #FA6814" }} />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0" style={{ borderLeft: "10px solid transparent", borderRight: "10px solid transparent", borderTop: "20px solid #FA6814" }} />
                 </div>
             </div>
 
@@ -957,7 +967,7 @@ function ToneGenerator() {
 // ═══════════════════════════════════════════════════════════════
 
 export default function ResearchPage() {
-    const [tab, setTab] = useState<Tab>("ИМТ");
+    const [tab, setTab] = useState<Tab | null>(null);
 
     const renderTab = () => {
         switch (tab) {
@@ -968,30 +978,49 @@ export default function ResearchPage() {
             case "Метроном": return <Metronome />;
             case "Тюнер": return <Tuner />;
             case "Генератор частот": return <ToneGenerator />;
+            default: return null;
         }
     };
 
     return (
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-3xl mx-auto">
             {/* Header */}
             <div className="text-center mb-6">
                 <h1 className="text-[#FA6814] text-sm" style={{ fontFamily: '"Press Start 2P", system-ui' }}>Исследования</h1>
                 <p className="text-xs text-gray-500 mt-2">Калькуляторы, генераторы, игровые и музыкальные инструменты — всё в одном месте</p>
             </div>
 
-            {/* Tab bar */}
-            <div className="flex gap-1 mb-6 bg-[#1e1e1e] border border-[#3a3a3a] p-1 overflow-x-auto">
-                {TABS.map((t) => (
-                    <button key={t} onClick={() => setTab(t)} className="px-4 py-2.5 text-xs font-semibold whitespace-nowrap transition-all cursor-pointer" style={{ background: tab === t ? "#FA6814" : "transparent", color: tab === t ? "white" : "#808080" }}>
-                        {t}
+            {tab ? (
+                /* Open tool view */
+                <div>
+                    <button onClick={() => setTab(null)} className="flex items-center gap-2 text-gray-400 hover:text-[#FA6814] text-xs mb-4 transition-colors cursor-pointer bg-transparent border-none">
+                        <span className="text-base">←</span> Все инструменты
                     </button>
-                ))}
-            </div>
-
-            {/* Active tab content */}
-            <div className="bg-[#282828] border border-[#3a3a3a] overflow-hidden">
-                {renderTab()}
-            </div>
+                    <div className="bg-[#282828] border border-[#3a3a3a] overflow-hidden">
+                        {renderTab()}
+                    </div>
+                </div>
+            ) : (
+                /* Tool grid */
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {TABS.map((t) => {
+                        const m = TAB_META[t];
+                        return (
+                            <button
+                                key={t}
+                                onClick={() => setTab(t)}
+                                className="bg-[#282828] border border-[#3a3a3a] p-5 text-left hover:border-[#FA6814] transition-all cursor-pointer group"
+                                style={{ borderRadius: 6 }}
+                            >
+                                <div className="w-10 h-10 flex items-center justify-center text-[11px] font-bold mb-3" style={{ background: m.color + "20", color: m.color, borderRadius: 6 }}>{m.icon}</div>
+                                <h3 className="text-sm font-bold text-white group-hover:text-[#FA6814] transition-colors mb-1">{t}</h3>
+                                <p className="text-[11px] text-gray-500">{m.subtitle}</p>
+                                <div className="w-full h-0.5 mt-3 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: m.color }} />
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }

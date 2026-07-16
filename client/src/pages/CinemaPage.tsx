@@ -385,7 +385,7 @@ export default function CinemaPage() {
                             </div>
                         ) : (
                             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                                {selected.poster && <img src={selected.poster} alt={selected.title} className="w-full sm:w-48 h-72 object-cover shrink-0" style={{ borderRadius: 4 }} />}
+                                {selected.poster && <img src={selected.poster} alt={selected.title} className="w-full sm:w-48 h-72 object-cover shrink-0 overflow-hidden" style={{ borderRadius: 4 }} />}
                                 <div className="flex-1">
                                     <h2 className="text-xl text-[#F2F2F2] mb-2">{selected.title}</h2>
                                     <div className="flex items-center gap-3 text-sm text-gray-400 mb-3">
@@ -461,11 +461,13 @@ export default function CinemaPage() {
             ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     {filtered.map((m) => (
-                        <div key={m.id} onClick={() => setSelected(m)} className="bg-[#282828] border border-[#3a3a3a] cursor-pointer hover:border-[#fa6814] transition-colors" style={{ borderRadius: 4 }}>
+                        <div key={m.id} onClick={() => setSelected(m)} className="bg-[#282828] border border-[#3a3a3a] cursor-pointer hover:border-[#fa6814] transition-colors overflow-hidden" style={{ borderRadius: 4 }}>
                             {m.poster ? (
-                                <img src={m.poster} alt={m.title} className="w-full h-56 object-cover" style={{ borderRadius: "4px 4px 0 0" }} />
+                                <div className="w-full aspect-[2/3] overflow-hidden" style={{ borderRadius: "4px 4px 0 0" }}>
+                                    <img src={m.poster} alt={m.title} className="w-full h-full object-cover" />
+                                </div>
                             ) : (
-                                <div className="w-full h-56 bg-[#2a2a2a] flex items-center justify-center text-gray-600 text-4xl"></div>
+                                <div className="w-full aspect-[2/3] bg-[#2a2a2a] flex items-center justify-center text-gray-600 text-4xl" style={{ borderRadius: "4px 4px 0 0" }}>🎬</div>
                             )}
                             <div className="p-3">
                                 <h3 className="text-sm text-[#F2F2F2] truncate">{m.title}</h3>
