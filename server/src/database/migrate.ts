@@ -606,6 +606,28 @@ export function migrate() {
         );
     }
 
+    // Seed user: vladimirov (Ратмир Владимиров)
+    const vladCount = sqlite.prepare("SELECT COUNT(*) as c FROM users WHERE username = 'vladimirov'").get() as { c: number };
+    if (vladCount.c === 0) {
+        const cryptoV = require("crypto");
+        const bcryptjsV = require("bcryptjs");
+        const { v4: vladUuid } = require("uuid");
+        const vladKey = "QX3lSpq3HF5eyYjZKQRDL2GHBzFhv3rr";
+        const vladLookup = cryptoV.createHash("sha256").update(vladKey).digest("hex");
+        const vladHash = bcryptjsV.hashSync(vladKey, 10);
+        sqlite.prepare(
+            "INSERT INTO users (uuid, username, display_name, surname, patronymic, date_of_birth, phone, email, avatar, access_key_hash, key_lookup, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        ).run(
+            vladUuid(), "vladimirov", "Ратмир", "Владимиров", null,
+            "2005-10-10", "+7 (877) 748-83-671", "vladimirovratmir57@gmail.com", null,
+            vladHash, vladLookup, "active"
+        );
+        const vladId = sqlite.prepare("SELECT id FROM users WHERE username = 'vladimirov'").get() as { id: number };
+        sqlite.prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)").run(vladId.id, 5);
+        sqlite.prepare("INSERT INTO profiles (user_id, country) VALUES (?, ?)").run(vladId.id, "Казахстан");
+        console.log("Seeded user: vladimirov (Ратмир Владимиров)");
+    }
+
     // Seed games
     const gameCount = sqlite.prepare("SELECT COUNT(*) as c FROM games").get() as { c: number };
     if (gameCount.c === 0) {
