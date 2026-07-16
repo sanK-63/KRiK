@@ -89,31 +89,31 @@ export default function Header({ onToggleSidebar }: Props) {
     };
 
     return (
-        <header className="border-b border-[#393939] bg-[#252525]">
-            <div className="max-w-[1600px] 2xl:max-w-[2000px] h-14 mx-auto flex items-center justify-between px-4 sm:px-6">
-                <div className="flex items-center gap-4">
+        <header className="border-b border-[#393939] bg-[#252525] shrink-0">
+            <div className="h-12 sm:h-14 mx-auto flex items-center justify-between px-2 sm:px-4 lg:px-6">
+                <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                     <button
                         onClick={onToggleSidebar}
-                        className="text-gray-400 hover:text-white transition-colors cursor-pointer text-lg"
+                        className="text-gray-400 hover:text-white transition-colors cursor-pointer text-lg shrink-0"
                     >
                         ☰
                     </button>
                     <h1
-                        className="text-[#FA6814] text-xs sm:text-sm leading-tight whitespace-nowrap"
+                        className="text-[#FA6814] text-[8px] sm:text-xs leading-tight whitespace-nowrap"
                         style={{ fontFamily: '"Press Start 2P", system-ui' }}
                     >
                         Рога и Копыта
                     </h1>
                 </div>
 
-                <div className="flex items-center gap-3 sm:gap-6">
+                <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                     <form onSubmit={handleSearch}>
                         <input
                             type="text"
                             placeholder="Поиск..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="w-36 sm:w-56 lg:w-72 bg-[#1e1e1e] border border-[#3a3a3a] text-xs text-gray-300 px-3 py-1.5 outline-none focus:border-[#FA6814] transition-colors"
+                            className="w-28 sm:w-48 lg:w-72 bg-[#1e1e1e] border border-[#3a3a3a] text-xs text-gray-300 px-3 py-1.5 outline-none focus:border-[#FA6814] transition-colors"
                         />
                     </form>
                     {token && (

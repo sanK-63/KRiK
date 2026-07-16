@@ -26,7 +26,7 @@ export default function Sidebar() {
     const isAdmin = user?.username === "tunev";
     return (
         <aside
-            className="w-56 shrink-0 py-6 overflow-y-auto"
+            className="w-56 h-full py-4 overflow-y-auto"
             style={{ background: "#252525", borderRight: "1px solid #393939" }}
         >
             {links.map(([url, name]) => (
@@ -34,7 +34,7 @@ export default function Sidebar() {
                     key={url}
                     to={url}
                     className={({ isActive }) =>
-                        `block px-5 py-3 text-sm transition-colors relative ${
+                        `block px-4 py-2.5 text-[13px] transition-colors relative ${
                             isActive
                                 ? "text-[#FA6814] bg-[#2a2a2a]"
                                 : "text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
@@ -55,7 +55,7 @@ export default function Sidebar() {
                 <NavLink
                     to="/admin"
                     className={({ isActive }) =>
-                        `block px-5 py-3 text-sm transition-colors relative ${
+                        `block px-4 py-2.5 text-[13px] transition-colors relative ${
                             isActive
                                 ? "text-[#FA6814] bg-[#2a2a2a]"
                                 : "text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
