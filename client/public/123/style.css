@@ -1,0 +1,721 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  /*--- Generated with colorshader.com ---*/
+  --steel-0: hsl(230,10%,95%);
+  --steel-1: hsl(230,10%,90%);
+  --steel-2: hsl(230,10%,85%);
+  --steel-3: hsl(230,10%,80%);
+  --steel-4: hsl(230,10%,75%);
+  --steel-5: hsl(230,10%,70%);
+  --steel-6: hsl(230,10%,65%);
+  --steel-7: hsl(230,10%,60%);
+  --steel-8: hsl(230,10%,55%);
+  --steel-9: hsl(230,10%,50%);
+  --steel-10: hsl(230,10%,45%);
+  --steel-11: hsl(230,10%,40%);
+  --steel-12: hsl(230,10%,35%);
+  --steel-13: hsl(230,10%,30%);
+  --steel-14: hsl(230,10%,25%);
+  --steel-15: hsl(230,10%,20%);
+  --steel-16: hsl(230,10%,15%);
+  --steel-17: hsl(230,10%,10%);
+  --steel-18: hsl(230,10%,7%);
+
+  --blue-0: hsl(230,80%,95%);
+  --blue-1: hsl(230,80%,90%);
+  --blue-2: hsl(230,80%,85%);
+  --blue-3: hsl(230,80%,80%);
+  --blue-4: hsl(230,80%,75%);
+  --blue-5: hsl(230,80%,70%);
+  --blue-6: hsl(230,80%,65%);
+  --blue-7: hsl(230,80%,60%);
+  --blue-8: hsl(230,80%,55%);
+  --blue-9: hsl(230,80%,50%);
+  --blue-10: hsl(230,80%,45%);
+  --blue-11: hsl(230,80%,40%);
+  --blue-12: hsl(230,80%,35%);
+  --blue-13: hsl(230,80%,30%);
+  --blue-14: hsl(230,80%,25%);
+  --blue-15: hsl(230,80%,20%);
+  --blue-16: hsl(230,80%,15%);
+  --blue-17: hsl(230,80%,10%);
+  --blue-18: hsl(230,80%,7%);
+
+  /*--- set dice size ---*/
+  --dc-size: 100px; /*dice container*/
+  --d6-size: calc(var(--dc-size) * .8);
+  --d8-size: calc(var(--dc-size) * .8);
+  --d10-size: calc(var(--dc-size) * .9);
+  --d12-size: calc(var(--dc-size) * .6);
+  --d20-size: calc(var(--dc-size) * .6);
+  --perspective: calc(var(--dc-size) * 1.70);
+
+}
+
+::selection {
+  color: white;
+  background-color: var(--blue-8);
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: var(--steel-15);
+}
+
+/*---------- REMOVE DEFAULT NUMBER INCREMENT ARROWS ----------*/
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+input {
+  font-family: 'Poppins', sans-serif;
+}
+
+button {
+  margin: 0 auto; 
+  border: none;
+  background: none;
+}
+
+main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 48px;
+  width: 100vw;
+  height: 100vh;
+}
+
+#container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  position: relative;
+  /* border: solid 1px red; */
+}
+
+/*---------- NUMBER INCREMENT ----------*/
+.incr-cont {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  position: relative;
+}
+
+.num-incr {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  position: relative;
+  border: solid 3px var(--steel-17);
+  border-radius: 12px;
+  background-color: var(--steel-17);
+}
+
+.num-incr button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0px;
+  padding: 0px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 9px;
+  background-color: var(--steel-15);
+}
+
+.num-incr button:hover {
+  cursor: pointer;
+  background-color: var(--steel-13);
+}
+
+.num-incr button svg {
+  width: 10px;
+  height: auto;
+  stroke: var(--steel-0);
+  stroke-width: 3px;
+  stroke-linecap: square;
+  stroke-linejoin: square;
+}
+
+.num-incr button:hover svg {
+  stroke: var(--steel-0);
+}
+
+.num-incr button:focus-visible {
+  outline: solid 1px var(--steel-0);
+}
+
+.num-incr button:focus-visible svg {
+  stroke: var(--steel-0);
+}
+
+.num-incr input[type=number] {
+  width: 33px;
+  height: 100%;
+  padding: 0px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--steel-0);
+  text-align: center;
+  border: none;
+  border-radius: 0px;
+  background-color: var(--steel-17);
+}
+
+.num-incr input[type=number]:focus-visible {
+  outline: 0px;
+}
+
+/*---------- DICE ANIMATION ----------*/
+@keyframes spin {
+  from {
+    transform: rotateX(0) rotateY(0) rotateZ(0);
+  }
+  to {
+    transform: rotateX(360deg) rotateY(720deg) rotateZ(360deg);
+  }
+}
+
+/*---------- DICE STYLES ----------*/
+.dice-cont {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  position: relative;
+}
+
+.dice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--dc-size);
+}
+
+.outcome-cont {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.outcome {
+  font-size: 30px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/*--- adjust for tetra shape ---*/
+.outcome.d4 {
+  transform: translateY(12px);
+}
+
+.roll-button:hover {
+  cursor: pointer;
+}
+
+/*---------- d4 ----------*/
+/*--- ORIGINAL TETRAHEDRON CODE https://codepen.io/web-tiki/pen/wGmWOq?editors=1100 ---*/
+.tetra {
+  position: relative;
+  width: var(--dc-size); 
+  height: calc(var(--dc-size) * .866);
+  margin: 0 auto; 
+  border: none;
+  background: none;
+  transform-style:preserve-3d;
+  transform-origin: 50% 66%;
+  transition: transform 1s ease;
+  /* animation: spin 10s ease-in-out infinite; */
+}
+
+.tetra div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tetra .face:nth-child(1) {
+  transform-origin: 0% 100%;
+  transform: translateZ(calc(var(--dc-size) * -0.33)) rotate(0deg) rotatex(0deg);
+}
+
+/* Rotation of –109.5° is angle(C, M[AB], D), per http://www.f-lohmueller.de/pov_tut/geo/geom_200e.htm, 180° – atan(2 * sqrt(2)) ≈ 109.5° */
+.tetra .face:nth-child(2) {
+  transform-origin: 0% 100%;
+  transform: translateZ(calc(var(--dc-size) * -0.33)) rotate(-60deg) rotatex(-109.5deg);
+}
+.tetra .face:nth-child(3) {
+  transform-origin: 100% 100%;
+  transform: translateZ(calc(var(--dc-size) * -0.33)) rotate(60deg) rotatex(-109.5deg);
+}
+.tetra .face:nth-child(4) {
+  transform-origin: 50% 100%;
+  transform: translateZ(calc(var(--dc-size) * -0.33)) rotate(180deg) rotatex(-109.5deg);
+}
+
+.tetra svg {
+  fill: rgba(0,0,0,0.3);
+  stroke-width: 2px;
+  stroke: var(--blue-6);
+}
+
+/*---------- d6 ----------*/
+.cube {
+  position: relative;
+  width: var(--d6-size); 
+  height: var(--d6-size);
+  margin: 0 auto; 
+  transform-style: preserve-3d;
+  transform-origin: 50% 50%;
+  border: none;
+  background: none;
+  transition: transform 1s ease;
+  /* border: solid 1px green; */
+  /* animation: spin 10s ease-in-out infinite; */
+}
+
+.cube div {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cube .face:nth-child(1) {
+  transform-origin: 50% 100%;
+  transform: translateZ(calc(var(--d6-size) / 2)) rotatex(0deg);
+}
+
+.cube .face:nth-child(2) {
+  transform-origin: 50% 100%;
+  transform: translateZ(calc(var(--d6-size) / 2)) rotatex(90deg);
+}
+
+.cube .face:nth-child(3) {
+  transform-origin: 0% 50%;
+  transform: translateZ(calc(var(--d6-size) / 2)) rotateY(90deg);
+}
+
+.cube .face:nth-child(4) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d6-size) / 2)) rotatex(-90deg);
+}
+
+.cube .face:nth-child(5) {
+  transform-origin: 100% 50%;
+  transform: translateZ(calc(var(--d6-size) / 2)) rotateY(-90deg);
+}
+
+.cube .face:nth-child(6) {
+  transform-origin: 50% 50%;
+  transform: translateZ(calc(var(--d6-size) / -2));
+}
+
+.cube svg {
+  fill: rgba(0,0,0,0.3);
+  stroke-width: 2px;
+  stroke: var(--blue-6);
+}
+
+/*---------- d8 ----------*/
+.octa {
+  position: relative;
+  width: var(--d8-size); 
+  height: var(--d8-size);
+  margin: 0 auto; 
+  border: none;
+  background: none;
+  transform-style:preserve-3d;
+  transform-origin: 50% 50%;
+  /* transform: rotateX(90deg); */
+  transition: transform 1s ease;
+  /* animation: spin 10s ease-in-out infinite; */
+}
+
+.octa div {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(var(--d8-size) * .866);
+}
+
+.octa .face:nth-child(1) {
+  transform-origin: 50% 100%;
+  /* https://en.wikipedia.org/wiki/Platonic_solid#Angles 109.47 / 2 */
+  transform: rotatex(54.74deg);
+}
+
+.octa .face:nth-child(2) {
+  transform-origin: 0% 100%;
+  /* 180 - 54.74 */
+  transform: rotate(-90deg) rotatex(125.26deg);
+}
+
+.octa .face:nth-child(3) {
+  transform-origin: 100% 100%;
+  transform: rotate(90deg) rotatex(125.26deg);
+}
+
+.octa .face:nth-child(4) {
+  top: 0;
+  transform-origin: 50% 0%;
+  transform: rotatex(-54.74deg);
+}
+
+.octa .face:nth-child(5) {
+  top: 0;
+  transform-origin: 50% 0%;
+  transform: rotatex(54.74deg);
+}
+
+.octa .face:nth-child(6) {
+  top: 0;
+  transform-origin: 0% 0%;
+  transform: rotate(90deg) rotatex(125.26deg);
+}
+
+.octa .face:nth-child(7) {
+  top: 0;
+  transform-origin: 100% 0%;
+  transform: rotate(-90deg) rotatex(125.26deg);
+}
+
+.octa .face:nth-child(8) {
+  transform-origin: 50% 100%;
+  transform: rotatex(-54.74deg);
+}
+
+.octa svg {
+  fill: rgba(0,0,0,0.3);
+  stroke-width: 2px;
+  stroke: var(--blue-6);
+}
+
+/*---------- d10 ----------*/
+.pentrap {
+  position: relative;
+  width: var(--d10-size); 
+  height: var(--d10-size);
+  margin: 0 auto; 
+  border: none;
+  background: none;
+  transform-style:preserve-3d;
+  transform-origin: 50% 50%;
+  transition: transform 1s ease;
+  /* animation: spin 10s ease-in-out infinite; */
+}
+
+.pentrap div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 20%;
+  width: 60%;
+  height: auto;
+  /* border: solid 1px cyan; */
+}
+
+.pentrap .face:nth-child(1) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d10-size) * 0.5875)) rotate(0deg) rotatex(-128.18deg);
+}
+
+.pentrap .face:nth-child(2) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d10-size) * 0.5875)) rotate(72deg) rotatex(-128.18deg);
+}
+
+.pentrap .face:nth-child(3) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d10-size) * 0.5875)) rotate(144deg) rotatex(-128.18deg);
+}
+
+.pentrap .face:nth-child(4) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d10-size) * 0.5875)) rotate(216deg) rotatex(-128.18deg);
+}
+
+.pentrap .face:nth-child(5) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d10-size) * 0.5875)) rotate(288deg) rotatex(-128.18deg);
+}
+
+.pentrap .face:nth-child(6) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d10-size) * -0.5875)) rotate(36deg) rotatex(128.18deg);
+}
+
+.pentrap .face:nth-child(7) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d10-size) * -0.5875)) rotate(108deg) rotatex(128.18deg);
+}
+
+.pentrap .face:nth-child(8) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d10-size) * -0.5875)) rotate(180deg) rotatex(128.18deg);
+}
+
+.pentrap .face:nth-child(9) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d10-size) * -0.5875)) rotate(252deg) rotatex(128.18deg);
+}
+
+.pentrap .face:nth-child(10) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d10-size) * -0.58)) rotate(324deg) rotatex(128.18deg);
+}
+
+.pentrap svg {
+  fill: rgba(0,0,0,0.3);
+  stroke-width: 1px;
+  stroke: var(--blue-6);
+}
+
+/*---------- d12 ----------*/
+.dodec {
+  position: relative;
+  width: var(--dc-size); 
+  height: calc(var(--dc-size) * 0.9511);
+  margin: 0 auto; 
+  border: none;
+  background: none;
+  transform-style:preserve-3d;
+  transform-origin: 50% 50%;
+  transition: transform 1s ease;
+  /* border: solid 1px green; */
+  /* animation: spin 10s ease-in-out infinite; */
+}
+
+.dodec div {
+  display: flex;
+  position: absolute;
+  top: 16.75%;
+  left: 19.75%;
+  width: var(--d12-size);
+  height: auto;
+  transform-origin: 50% 55.27%;
+  /* border: solid 1px cyan; */
+}
+
+/*--- TOP ---*/
+.dodec .face:nth-child(1) {
+  transform: translateZ(calc(var(--d12-size) * .69)) rotate(0deg) rotatex(0deg); /* .38 + .31*/
+}
+
+.dodec .face:nth-child(2) {
+  transform: translateY(65%) translateZ(calc(var(--d12-size) * .31)) rotate(180deg) rotatex(63.4deg);
+}
+
+.dodec .face:nth-child(3) {
+  transform: translateX(-58.7%) translateY(20.15%) translateZ(calc(var(--d12-size) * .31)) rotate(-108deg) rotatex(63.4deg);
+}
+
+.dodec .face:nth-child(4) {
+  transform: translateX(58.7%) translateY(20.15%) translateZ(calc(var(--d12-size) * .31)) rotate(108deg) rotatex(63.4deg);
+}
+
+.dodec .face:nth-child(5) {
+  transform: translateX(-36.3%) translateY(-52.45%) translateZ(calc(var(--d12-size) * .31)) rotate(-36deg) rotatex(63.4deg);
+}
+
+.dodec .face:nth-child(6) {
+  transform: translateX(36.3%) translateY(-52.45%) translateZ(calc(var(--d12-size) * .31)) rotate(36deg) rotatex(63.4deg);
+}
+
+/*--- BOTTOM ---*/
+.dodec .face:nth-child(7) {
+  transform: translateZ(calc(var(--d12-size) * -0.69)) rotate(180deg) rotatex(0deg);
+}
+
+.dodec .face:nth-child(8) {
+  transform: translateY(-65%) translateZ(calc(var(--d12-size) * -0.31)) rotate(0deg) rotatex(-63.4deg);
+}
+
+.dodec .face:nth-child(9) {
+  transform: translateX(58.7%) translateY(-20.15%) translateZ(calc(var(--d12-size) * -0.31)) rotate(72deg) rotatex(-63.4deg);
+}
+
+.dodec .face:nth-child(10) {
+  transform: translateX(-58.7%) translateY(-20.15%) translateZ(calc(var(--d12-size) * -0.31)) rotate(-72deg) rotatex(-63.4deg);
+}
+
+.dodec .face:nth-child(11) {
+  transform: translateX(36.3%) translateY(52.45%) translateZ(calc(var(--d12-size) * -0.31)) rotate(144deg) rotatex(-63.4deg);
+}
+
+.dodec .face:nth-child(12) {
+  transform: translateX(-36.3%) translateY(52.45%) translateZ(calc(var(--d12-size) * -0.31)) rotate(-144deg) rotatex(-63.4deg);
+}
+
+.dodec svg {
+  fill: rgba(0,0,0,0.3);
+  stroke-width: 2px;
+  stroke: var(--blue-6);
+}
+
+/*---------- d20 ----------*/
+.icosa {
+  position: relative;
+  width: var(--dc-size); 
+  height: var(--dc-size);
+  margin: 0 auto; 
+  transform-style:preserve-3d;
+  transform-origin: 50% 50%;
+  border: none;
+  background: none;
+  transition: transform 1s ease;
+  /* animation: spin 10s ease-in-out infinite; */
+}
+
+.icosa div {
+  display: flex;
+  position: absolute;
+  top: 50%;
+  left: 19.75%;
+  width: var(--d20-size);
+  height: calc(var(--d20-size) * .866);
+  /* border: solid 1px cyan; */
+}
+
+/* TOP */
+.icosa .face:nth-child(1) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d20-size) * 0.95)) rotatex(-37.35deg); /* .95 */
+}
+
+.icosa .face:nth-child(2) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d20-size) * 0.95)) rotate(72deg) rotatex(-37.35deg);
+}
+
+.icosa .face:nth-child(3) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d20-size) * 0.95)) rotate(144deg) rotatex(-37.35deg);
+}
+
+.icosa .face:nth-child(4) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d20-size) * 0.95)) rotate(216deg) rotatex(-37.35deg);
+}
+
+.icosa .face:nth-child(5) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d20-size) * 0.95)) rotate(288deg) rotatex(-37.35deg);
+}
+
+/* TOP MIDDLE */
+.icosa .face:nth-child(6) {
+  transform-origin: 50% 100%;
+  transform: translateY(-20.5%) translateZ(calc(var(--d20-size) * 0.425)) rotate(180deg) rotatex(79.2deg); /* .425 */
+}
+
+.icosa .face:nth-child(7) {
+  transform-origin: 50% 100%;
+  transform: translateX(-65.5%) translateY(-75.5%) translateZ(calc(var(--d20-size) * 0.425)) rotate(-108deg) rotatex(79.2deg);
+}
+
+.icosa .face:nth-child(8) {
+  transform-origin: 50% 100%;
+  transform: translateX(65.5%) translateY(-75.5%) translateZ(calc(var(--d20-size) * 0.425)) rotate(108deg) rotatex(79.2deg);
+}
+
+.icosa .face:nth-child(9) {
+  transform-origin: 50% 100%;
+  transform: translateX(-40.5%) translateY(-164.3%) translateZ(calc(var(--d20-size) * 0.425)) rotate(-36deg) rotatex(79.2deg);
+}
+
+.icosa .face:nth-child(10) {
+  transform-origin: 50% 100%;
+  transform: translateX(40.5%) translateY(-164.3%) translateZ(calc(var(--d20-size) * 0.425)) rotate(36deg) rotatex(79.2deg);
+}
+
+/* BOTTOM */
+.icosa .face:nth-child(11) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d20-size) * -0.95)) rotate(180deg) rotatex(37.35deg);
+}
+
+.icosa .face:nth-child(12) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d20-size) * -0.95)) rotate(108deg) rotatex(37.35deg);
+}
+
+.icosa .face:nth-child(13) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d20-size) * -0.95)) rotate(36deg) rotatex(37.35deg);
+}
+
+.icosa .face:nth-child(14) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d20-size) * -0.95)) rotate(252deg) rotatex(37.35deg);
+}
+
+.icosa .face:nth-child(15) {
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d20-size) * -0.95)) rotate(324deg) rotatex(37.35deg);
+}
+
+/* BOTTOM MIDDLE */
+.icosa .face:nth-child(16) {
+  transform-origin: 50% 100%;
+  transform: translateY(-179.5%) translateZ(calc(var(--d20-size) * -0.425)) rotate(0deg) rotatex(-79.2deg);
+}
+
+.icosa .face:nth-child(17) {
+  transform-origin: 50% 100%;
+  transform: translateX(-65.5%) translateY(-124.5%) translateZ(calc(var(--d20-size) * -0.425)) rotate(-72deg) rotatex(-79.2deg);
+}
+
+.icosa .face:nth-child(18) {
+  transform-origin: 50% 100%;
+  transform: translateX(65.5%) translateY(-124.5%) translateZ(calc(var(--d20-size) * -0.425)) rotate(72deg) rotatex(-79.2deg);
+}
+
+.icosa .face:nth-child(19) {
+  transform-origin: 50% 100%;
+  transform: translateX(-40.5%) translateY(-35.7%) translateZ(calc(var(--d20-size) * -0.425)) rotate(-144deg) rotatex(-79.2deg);
+}
+
+.icosa .face:nth-child(20) {
+  transform-origin: 50% 100%;
+  transform: translateX(40.5%) translateY(-35.7%) translateZ(calc(var(--d20-size) * -0.425)) rotate(144deg) rotatex(-79.2deg);
+}
+
+.icosa svg {
+  fill: rgba(0,0,0,0.3);
+  stroke-width: 2px;
+  stroke: var(--blue-6);
+}

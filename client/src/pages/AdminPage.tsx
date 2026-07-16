@@ -259,7 +259,7 @@ function ForumTab({ API, auth }: { API: string; auth: Record<string, string> }) 
                     <div key={p.id} className="bg-[#282828] border border-[#3a3a3a] p-4 flex items-center gap-4">
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                                {p.pinned ? <span className="text-[10px] text-[#FA6814]" style={{ fontFamily: '"Press Start 2P", system-ui' }}>📌</span> : null}
+                                {p.pinned ? <span className="text-[10px] text-[#FA6814]" style={{ fontFamily: '"Press Start 2P", system-ui' }}></span> : null}
                                 <span className="text-white text-sm font-medium truncate">{p.title}</span>
                                 <span className="text-[10px] px-1.5 py-0.5 bg-[#2a2a2a] border border-[#3a3a3a] text-gray-400">{p.category}</span>
                             </div>
@@ -335,7 +335,7 @@ function ContentTab({ API, auth }: { API: string; auth: Record<string, string> }
                             {m.image && <img src={m.image} alt="" className="w-10 h-10 object-cover shrink-0" />}
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm text-white truncate">{m.title || "Без названия"}</p>
-                                <p className="text-xs text-gray-500">{m.category} · ❤ {m.likes}</p>
+                                <p className="text-xs text-gray-500">{m.category} · ♥ {m.likes}</p>
                             </div>
                             <button onClick={() => del("memes", m.id)} className="text-xs px-3 py-1 bg-[#D32F2F]/20 border border-[#D32F2F]/40 text-red-400 hover:bg-[#D32F2F]/30 shrink-0">Удалить</button>
                         </div>

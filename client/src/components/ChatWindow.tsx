@@ -207,7 +207,7 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
             if (msg.conversationId !== conversationId) {
                 if (Notification.permission === "granted" && msg.senderId !== user?.id) {
                     new Notification(msg.sender?.displayName || "Новое сообщение", {
-                        body: msg.content || "📎 Файл",
+                        body: msg.content || "Файл",
                         icon: msg.sender?.avatar ? `${API}${msg.sender.avatar}` : undefined,
                     });
                 }
@@ -656,7 +656,6 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
                                                 className="flex items-center gap-2 mt-1 px-3 py-2 bg-[#1e1e1e] border border-[#3b3b3b] text-xs text-gray-300 hover:text-[#FA6814] transition-colors"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
-                                                <span>📄</span>
                                                 <span className="truncate">{msg.attachmentName}</span>
                                             </a>
                                         )}
@@ -854,14 +853,14 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
                                         onClick={() => copyText(msg.content!)}
                                         className="w-full text-left text-xs text-gray-300 hover:bg-[#3b3b3b] px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
                                     >
-                                        <span>📋</span> Копировать текст
+                                        Копировать текст
                                     </button>
                                 )}
                                 <button
                                     onClick={() => { setContextMenu(null); setReactionPickerMsgId(contextMenu.msgId); }}
                                     className="w-full text-left text-xs text-gray-300 hover:bg-[#3b3b3b] px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
                                 >
-                                    <span>😊</span> Реакция
+                                    Реакция
                                 </button>
                             </>
                         );

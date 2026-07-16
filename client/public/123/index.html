@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Dice Roller</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main>
+  <div id="container">
+    <div class="dice-cont">
+      <div class="dice">
+        <span class="outcome-cont"><h3 class="outcome d4"></h3></span>
+        <button class="tetra roll-button" data-min="1" data-max="4" style="transform: rotateX(0deg) rotateY(180deg) rotateZ(0deg);">
+          <div class="face"><svg viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+        </button>
+      </div>
+      <div class="incr-cont">
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="1" class="num dice-num" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="0" class="num modifier" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dice-cont">
+      <div class="dice">
+        <span class="outcome-cont"><h3 class="outcome"></h3></span>
+        <button class="cube roll-button" data-min="1" data-max="6" style="transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);">
+          <div class="face"><svg class="square" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100%" height="100%"/></svg></div>
+          <div class="face"><svg class="square" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100%" height="100%"/></svg></div>
+          <div class="face"><svg class="square" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100%" height="100%"/></svg></div>
+          <div class="face"><svg class="square" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100%" height="100%"/></svg></div>
+          <div class="face"><svg class="square" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100%" height="100%"/></svg></div>
+          <div class="face"><svg class="square" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100%" height="100%"/></svg></div>
+        </button>
+      </div>
+      <div class="incr-cont">
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="1" class="num dice-num" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="0" class="num modifier" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dice-cont">
+      <div class="dice">
+        <span class="outcome-cont"><h3 class="outcome"></h3></span>
+        <button class="octa roll-button" data-min="1" data-max="8" style="transform: rotateX(90deg) rotateY(0deg) rotateZ(0deg);">
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-d" viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M200,0l-100,173.205l-100,-173.205l200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-d" viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M200,0l-100,173.205l-100,-173.205l200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-d" viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M200,0l-100,173.205l-100,-173.205l200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-d" viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M200,0l-100,173.205l-100,-173.205l200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 174" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+        </button>
+      </div>
+      <div class="incr-cont">
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="1" class="num dice-num" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="0" class="num modifier" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dice-cont">
+      <div class="dice">
+        <span class="outcome-cont"><h3 class="outcome"></h3></span>
+        <button class="pentrap roll-button" data-min="1" data-max="10" style="transform: rotateX(90deg) rotateY(0deg) rotateZ(0deg);">
+          <div class="face"><svg viewBox="0 0 88.167 121.331" xmlns="http://www.w3.org/2000/svg"><polygon points="44.083,0 88.167,98.157 44.083,121.331 0,98.157"/></svg></div>
+          <div class="face"><svg viewBox="0 0 88.167 121.331" xmlns="http://www.w3.org/2000/svg"><polygon points="44.083,0 88.167,98.157 44.083,121.331 0,98.157"/></svg></div>
+          <div class="face"><svg viewBox="0 0 88.167 121.331" xmlns="http://www.w3.org/2000/svg"><polygon points="44.083,0 88.167,98.157 44.083,121.331 0,98.157"/></svg></div>
+          <div class="face"><svg viewBox="0 0 88.167 121.331" xmlns="http://www.w3.org/2000/svg"><polygon points="44.083,0 88.167,98.157 44.083,121.331 0,98.157"/></svg></div>
+          <div class="face"><svg viewBox="0 0 88.167 121.331" xmlns="http://www.w3.org/2000/svg"><polygon points="44.083,0 88.167,98.157 44.083,121.331 0,98.157"/></svg></div>
+          <div class="face"><svg viewBox="0 0 88.167 121.331" xmlns="http://www.w3.org/2000/svg"><polygon points="44.083,0 88.167,98.157 44.083,121.331 0,98.157"/></svg></div>
+          <div class="face"><svg viewBox="0 0 88.167 121.331" xmlns="http://www.w3.org/2000/svg"><polygon points="44.083,0 88.167,98.157 44.083,121.331 0,98.157"/></svg></div>
+          <div class="face"><svg viewBox="0 0 88.167 121.331" xmlns="http://www.w3.org/2000/svg"><polygon points="44.083,0 88.167,98.157 44.083,121.331 0,98.157"/></svg></div>
+          <div class="face"><svg viewBox="0 0 88.167 121.331" xmlns="http://www.w3.org/2000/svg"><polygon points="44.083,0 88.167,98.157 44.083,121.331 0,98.157"/></svg></div>
+          <div class="face"><svg viewBox="0 0 88.167 121.331" xmlns="http://www.w3.org/2000/svg"><polygon points="44.083,0 88.167,98.157 44.083,121.331 0,98.157"/></svg></div>
+        </button>
+      </div>
+      <div class="incr-cont">
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="1" class="num dice-num" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="0" class="num modifier" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dice-cont">
+      <div class="dice">
+        <span class="outcome-cont"><h3 class="outcome"></h3></span>
+        <button class="dodec roll-button" data-min="1" data-max="12" style="transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);">
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+          <div class="face"><svg viewBox="0 0 200 190.211" xmlns="http://www.w3.org/2000/svg"><polygon points="38.197,190.211 0,72.655 100,0 200,72.655 161.803,190.211 "/></svg></div>
+        </button>
+      </div>
+      <div class="incr-cont">
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="1" class="num dice-num" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="0" class="num modifier" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dice-cont">
+      <div class="dice">
+        <span class="outcome-cont"><h3 class="outcome"></h3></span>
+        <button class="icosa roll-button" data-min="1" data-max="20" style="transform: rotateX(90deg) rotateY(0deg) rotateZ(0deg);">
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+          <div class="face"><svg class="tri-u" viewBox="0 0 200 173.205" xmlns="http://www.w3.org/2000/svg"><path d="M0,173.205l100,-173.205l100,173.205l-200,0Z"/></svg></div>
+        </button>
+      </div>
+      <div class="incr-cont">
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="1" class="num dice-num" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+        <div class="num-incr">
+          <button class="num-minus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+          <input type="number" value="0" class="num modifier" readonly>
+          <button class="num-plus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>

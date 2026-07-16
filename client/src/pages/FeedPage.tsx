@@ -362,7 +362,7 @@ export default function FeedPage() {
                                 className="w-10 h-10 flex items-center justify-center bg-transparent border border-[#3a3a3a] text-lg cursor-pointer transition-colors hover:border-[#FA6814]"
                                 style={{ color: "#808080" }}
                             >
-                                💬
+                                
                             </button>
                             <span className="text-xs text-gray-500">{entry.commentsCount}</span>
                         </div>

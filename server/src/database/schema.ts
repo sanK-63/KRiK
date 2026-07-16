@@ -455,6 +455,9 @@ export const messages = sqliteTable("messages", {
     content: text("content"),
     attachmentPath: text("attachment_path"),
     attachmentName: text("attachment_name"),
+    replyToId: integer("reply_to_id").references(() => messages.id, { onDelete: "set null" }),
+    forwardedFromId: integer("forwarded_from_id").references(() => users.id, { onDelete: "set null" }),
+    editedAt: text("edited_at"),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 

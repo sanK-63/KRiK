@@ -48,14 +48,14 @@ interface Stats {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-    "Приказы": "📋",
-    "Протоколы": "📝",
-    "Договоры": "📄",
-    "Уставы": "📖",
-    "Отчёты": "📊",
-    "Презентации": "📽️",
-    "Шаблоны": "📑",
-    "Другое": "📁",
+    "Приказы": "",
+    "Протоколы": "",
+    "Договоры": "",
+    "Уставы": "",
+    "Отчёты": "",
+    "Презентации": "",
+    "Шаблоны": "",
+    "Другое": "",
 };
 
 function formatSize(bytes: number | null): string {
@@ -66,16 +66,16 @@ function formatSize(bytes: number | null): string {
 }
 
 function getFileIcon(mime: string | null): string {
-    if (!mime) return "📄";
-    if (mime.includes("pdf")) return "📕";
-    if (mime.includes("word") || mime.includes("docx")) return "📘";
-    if (mime.includes("excel") || mime.includes("sheet") || mime.includes("xlsx")) return "📗";
-    if (mime.includes("presentation") || mime.includes("pptx")) return "📙";
-    if (mime.includes("image")) return "🖼️";
-    if (mime.includes("video")) return "🎬";
-    if (mime.includes("zip") || mime.includes("rar") || mime.includes("7z")) return "📦";
-    if (mime.includes("text")) return "📝";
-    return "📄";
+    if (!mime) return "";
+    if (mime.includes("pdf")) return "";
+    if (mime.includes("word") || mime.includes("docx")) return "";
+    if (mime.includes("excel") || mime.includes("sheet") || mime.includes("xlsx")) return "";
+    if (mime.includes("presentation") || mime.includes("pptx")) return "";
+    if (mime.includes("image")) return "";
+    if (mime.includes("video")) return "";
+    if (mime.includes("zip") || mime.includes("rar") || mime.includes("7z")) return "";
+    if (mime.includes("text")) return "";
+    return "";
 }
 
 export default function LibraryPage() {
@@ -90,7 +90,7 @@ export default function LibraryPage() {
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [editingDoc, setEditingDoc] = useState<Document | null>(null);
     const [newCatName, setNewCatName] = useState("");
-    const [newCatIcon, setNewCatIcon] = useState("📁");
+    const [newCatIcon, setNewCatIcon] = useState("");
 
     const loadCategories = useCallback(() => {
         api<Category[]>("/api/library/categories").then(setCategories).catch(() => {});
@@ -144,7 +144,7 @@ export default function LibraryPage() {
             body: JSON.stringify({ name: newCatName, icon: newCatIcon }),
         });
         setNewCatName("");
-        setNewCatIcon("📁");
+        setNewCatIcon("");
         setShowCategoryModal(false);
         loadCategories();
     };
@@ -251,7 +251,7 @@ export default function LibraryPage() {
                                         color: selectedCategory === c.id ? "white" : "#9ca3af",
                                     }}
                                 >
-                                    {CATEGORY_ICONS[c.name] || c.icon || "📁"} {c.name}
+                                    {CATEGORY_ICONS[c.name] || c.icon || ""} {c.name}
                                     <span className="ml-2 text-[10px] opacity-60">{c.documentCount}</span>
                                 </button>
                                 <button
@@ -281,7 +281,7 @@ export default function LibraryPage() {
                         <div className="text-gray-400 text-sm py-10 text-center">Загрузка...</div>
                     ) : documents.length === 0 ? (
                         <div className="bg-[#1e1e1e] border border-[#3b3b3b] p-10 text-center">
-                            <div className="text-4xl mb-2">📂</div>
+                            <div className="text-4xl mb-2"></div>
                             <p className="text-gray-400 text-sm">Нет документов</p>
                         </div>
                     ) : (

@@ -16,7 +16,7 @@ const TAB_META: Record<Tab, { icon: string; subtitle: string; color: string; cat
     "Гармоники": { icon: "≈", subtitle: "Гармонический анализ", color: "#9C27B0", category: "Инженерия" },
     "Видео": { icon: "HD", subtitle: "Объём видеофайлов", color: "#00BCD4", category: "Медиа" },
     "Конвертер": { icon: "⇄", subtitle: "Конвертер единиц", color: "#4CAF50", category: "Инструменты" },
-    "Пароли": { icon: "🔑", subtitle: "Генератор паролей", color: "#D32F2F", category: "Инструменты" },
+    "Пароли": { icon: "", subtitle: "Генератор паролей", color: "#D32F2F", category: "Инструменты" },
     "Хеши": { icon: "#", subtitle: "Хеши и кодирование", color: "#FFB020", category: "Инструменты" },
     "Подсеть": { icon: "IP", subtitle: "Подсети CIDR", color: "#5B9BD5", category: "Инструменты" },
 };
@@ -864,7 +864,7 @@ function Tuner() {
                         </>
                     ) : (
                         <div>
-                            <div className="text-4xl mb-3">🎵</div>
+                            <div className="text-4xl mb-3"></div>
                             <p className="text-gray-500 text-sm">{listening ? "Играйте в инструмент..." : "Нажмите для начала настройки"}</p>
                         </div>
                     )}
@@ -880,7 +880,7 @@ function Tuner() {
 
             <div className="px-4 flex justify-center pb-4">
                 <button onClick={listening ? stopListening : startListening} className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold transition-all cursor-pointer border-2" style={{ background: listening ? "#D32F2F" : "#FA6814", borderColor: listening ? "#D32F2F" : "#FA6814", color: "white", boxShadow: listening ? "0 0 20px #D32F2F40" : "0 0 20px #FA681440" }}>
-                    {listening ? "⏹" : "🎤"}
+                    {listening ? "■" : "♪"}
                 </button>
             </div>
         </div>

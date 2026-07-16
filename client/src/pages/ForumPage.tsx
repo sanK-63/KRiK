@@ -146,7 +146,7 @@ export default function ForumPage() {
                             >
                                 <div className="flex items-center gap-3 mb-2">
                                     {post.pinned ? (
-                                        <span className="text-xs text-[#FA6814] uppercase font-semibold">📌 Закреплено</span>
+                                        <span className="text-xs text-[#FA6814] uppercase font-semibold">Закреплено</span>
                                     ) : null}
                                     <span
                                         className="text-[10px] uppercase font-semibold px-2 py-0.5"
@@ -160,7 +160,7 @@ export default function ForumPage() {
                                     </span>
                                     {post.pollOptions && (
                                         <span className="text-[10px] uppercase font-semibold px-2 py-0.5 text-[#FFB020] bg-[#FFB02015] border border-[#FFB02030]">
-                                            📊 Голосование
+                                            Голосование
                                         </span>
                                     )}
                                 </div>
@@ -175,7 +175,7 @@ export default function ForumPage() {
                                         <span>{timeAgo(post.created_at)}</span>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <span>💬 {post.commentCount}</span>
+                                        <span>{post.commentCount}</span>
                                         {user && (user.id === (post as any).author_id || user.username === "tunev") && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleDelete(post.id); }}

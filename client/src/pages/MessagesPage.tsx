@@ -553,7 +553,7 @@ export default function MessagesPage() {
                         </div>
                     ) : filteredConversations.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 gap-3">
-                            <div className="text-3xl text-gray-600">💬</div>
+                            <div className="text-3xl text-gray-600"></div>
                             <p className="text-xs text-gray-500">
                                 {conversations.length === 0
                                     ? "Нет сообщений"
@@ -946,7 +946,7 @@ export default function MessagesPage() {
                     </div>
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center gap-3">
-                        <div className="text-4xl text-gray-600">💬</div>
+                        <div className="text-4xl text-gray-600"></div>
                         <p className="text-xs text-gray-500">
                             Выберите диалог или начните новый
                         </p>

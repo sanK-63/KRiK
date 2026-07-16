@@ -913,5 +913,14 @@ export function migrate() {
     // Add role column to conversation_participants
     try { sqlite.prepare("SELECT role FROM conversation_participants LIMIT 1").get(); } catch { sqlite.exec("ALTER TABLE conversation_participants ADD COLUMN role TEXT NOT NULL DEFAULT 'member'"); }
 
+    // Add reply_to_id column to messages
+    try { sqlite.prepare("SELECT reply_to_id FROM messages LIMIT 1").get(); } catch { sqlite.exec("ALTER TABLE messages ADD COLUMN reply_to_id INTEGER REFERENCES messages(id) ON DELETE SET NULL"); }
+
+    // Add forwarded_from_id column to messages
+    try { sqlite.prepare("SELECT forwarded_from_id FROM messages LIMIT 1").get(); } catch { sqlite.exec("ALTER TABLE messages ADD COLUMN forwarded_from_id INTEGER REFERENCES users(id) ON DELETE SET NULL"); }
+
+    // Add edited_at column to messages
+    try { sqlite.prepare("SELECT edited_at FROM messages LIMIT 1").get(); } catch { sqlite.exec("ALTER TABLE messages ADD COLUMN edited_at TEXT"); }
+
     console.log("Database migrated successfully");
 }

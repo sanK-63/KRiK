@@ -280,7 +280,8 @@ export function sendMessage(
     senderId: number,
     content: string | null,
     attachmentPath?: string,
-    attachmentName?: string
+    attachmentName?: string,
+    replyToId?: number | null
 ) {
     const participant = db
         .select()
@@ -303,6 +304,7 @@ export function sendMessage(
             content: content || null,
             attachmentPath: attachmentPath || null,
             attachmentName: attachmentName || null,
+            replyToId: replyToId || null,
         })
         .returning()
         .get();

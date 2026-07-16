@@ -280,7 +280,7 @@ export default function Dashboard() {
                     >
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <span className="text-lg">⚙️</span>
+                                <span className="text-lg"></span>
                                 <div>
                                     <p className="text-[11px] text-white font-medium">Nox App</p>
                                     <p className="text-[9px] text-gray-500">v2.0.0 · Скачать</p>

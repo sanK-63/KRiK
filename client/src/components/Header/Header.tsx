@@ -122,8 +122,7 @@ export default function Header({ onToggleSidebar }: Props) {
                                 onClick={toggleNotifs}
                                 className="relative text-gray-400 hover:text-white transition-colors cursor-pointer text-lg"
                             >
-                                🔔
-                                {unread > 0 && (
+                                                                {unread > 0 && (
                                     <span className="absolute -top-1.5 -right-1.5 bg-[#D32F2F] text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center">
                                         {unread > 9 ? "9+" : unread}
                                     </span>

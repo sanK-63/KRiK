@@ -467,7 +467,7 @@ export default function CinemaPage() {
                                     <img src={m.poster} alt={m.title} className="w-full h-full object-cover" />
                                 </div>
                             ) : (
-                                <div className="w-full aspect-[2/3] bg-[#2a2a2a] flex items-center justify-center text-gray-600 text-4xl" style={{ borderRadius: "4px 4px 0 0" }}>🎬</div>
+                                <div className="w-full aspect-[2/3] bg-[#2a2a2a] flex items-center justify-center text-gray-600 text-4xl" style={{ borderRadius: "4px 4px 0 0" }}></div>
                             )}
                             <div className="p-3">
                                 <h3 className="text-sm text-[#F2F2F2] truncate">{m.title}</h3>

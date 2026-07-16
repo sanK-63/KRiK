@@ -315,7 +315,7 @@ export default function ThreadPage() {
             <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-6 mb-6">
                 <div className="flex items-center gap-3 mb-3">
                     {post.pinned ? (
-                        <span className="text-xs text-[#FA6814] uppercase font-semibold">📌 Закреплено</span>
+                        <span className="text-xs text-[#FA6814] uppercase font-semibold">Закреплено</span>
                     ) : null}
                     <span
                         className="text-[10px] uppercase font-semibold px-2 py-0.5"
@@ -329,7 +329,7 @@ export default function ThreadPage() {
                     </span>
                     {post.pollOptions && (
                         <span className="text-[10px] uppercase font-semibold px-2 py-0.5 text-[#FFB020] bg-[#FFB02015] border border-[#FFB02030]">
-                            📊 Голосование
+                            Голосование
                         </span>
                     )}
                 </div>

@@ -256,7 +256,7 @@ export default function MemesPage() {
                                     </svg>
                                     {selected.likes}
                                 </button>
-                                <span className="text-sm text-gray-500">💬 {selected.commentCount || 0}</span>
+                                <span className="text-sm text-gray-500">{selected.commentCount || 0}</span>
                                 {isOwner(selected) && (
                                     <button onClick={() => handleDelete(selected.id)} className="ml-auto text-xs text-gray-500 hover:text-[#d32f2f] bg-transparent border-none cursor-pointer">Удалить</button>
                                 )}
@@ -346,7 +346,7 @@ export default function MemesPage() {
                                         onClick={() => { setSelected(m); loadDetail(m.id); }}
                                         className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-sm text-gray-500 hover:text-gray-300"
                                     >
-                                        💬 {m.commentCount || 0}
+                                        {m.commentCount || 0}
                                     </button>
                                     {isOwner(m) && (
                                         <button onClick={() => handleDelete(m.id)} className="ml-auto text-xs text-gray-500 hover:text-[#d32f2f] bg-transparent border-none cursor-pointer">Удалить</button>
