@@ -1,0 +1,41 @@
+{
+  "name": "corporate-portal-desktop",
+  "version": "1.0.0",
+  "description": "Corporate Portal — Desktop Client",
+  "main": "electron/main.js",
+  "author": "Corporate Portal Team",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "package": "vite build && electron-builder --win",
+    "package:win": "vite build && electron-builder --win",
+    "package:mac": "vite build && electron-builder --mac",
+    "package:linux": "vite build && electron-builder --linux"
+  },
+  "dependencies": {
+    "axios": "^1.18.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.42.2",
+    "lucide-react": "^1.24.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-router-dom": "^7.18.1",
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.2",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "concurrently": "^9.1.0",
+    "electron": "33.4.0",
+    "electron-builder": "^26.0.0",
+    "tailwindcss": "^4.3.2",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.0",
+    "wait-on": "^8.0.0"
+  }
+}

@@ -1,0 +1,9 @@
+C:/Users/stts0/OneDrive/Desktop/сайт/cpp-migration-plan/cpp-portal/build/CMakeFiles/CorporatePortal.dir
+C:/Users/stts0/OneDrive/Desktop/сайт/cpp-migration-plan/cpp-portal/build/CMakeFiles/edit_cache.dir
+C:/Users/stts0/OneDrive/Desktop/сайт/cpp-migration-plan/cpp-portal/build/CMakeFiles/rebuild_cache.dir
+C:/Users/stts0/OneDrive/Desktop/сайт/cpp-migration-plan/cpp-portal/build/CMakeFiles/list_install_components.dir
+C:/Users/stts0/OneDrive/Desktop/сайт/cpp-migration-plan/cpp-portal/build/CMakeFiles/install.dir
+C:/Users/stts0/OneDrive/Desktop/сайт/cpp-migration-plan/cpp-portal/build/CMakeFiles/install/local.dir
+C:/Users/stts0/OneDrive/Desktop/сайт/cpp-migration-plan/cpp-portal/build/CMakeFiles/install/strip.dir
+C:/Users/stts0/OneDrive/Desktop/сайт/cpp-migration-plan/cpp-portal/build/CMakeFiles/CorporatePortal_autogen_timestamp_deps.dir
+C:/Users/stts0/OneDrive/Desktop/сайт/cpp-migration-plan/cpp-portal/build/CMakeFiles/CorporatePortal_autogen.dir
