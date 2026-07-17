@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import Input from "../components/UI/Input";
 import Button from "../components/UI/Button";
@@ -8,7 +8,7 @@ type LoginState = "idle" | "loading" | "granted" | "error";
 
 export default function LoginPage() {
     const navigate = useNavigate();
-    const { setUser } = useUser();
+    const { user, setUser } = useUser();
     const [key, setKey] = useState("");
     const [state, setState] = useState<LoginState>("idle");
     const [progress, setProgress] = useState(0);
@@ -66,6 +66,8 @@ export default function LoginPage() {
         }, 120);
     };
 
+
+    if (user) return <Navigate to="/" replace />;
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#212121]">

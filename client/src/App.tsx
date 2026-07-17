@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { UserProvider } from "./context/UserContext";
+import { UserProvider, useUser } from "./context/UserContext";
 import { SocketProvider } from "./context/SocketContext";
 import AuthLayout from "./layouts/AuthLayout";
 import MainLayout from "./layouts/MainLayout";
@@ -33,6 +33,9 @@ import ResearchPage from "./pages/ResearchPage";
 import MenuPage from "./pages/MenuPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
+    const { user, loading } = useUser();
+    if (loading) return null;
+    if (!user) return <Navigate to="/login" replace />;
     return <>{children}</>;
 }
 
