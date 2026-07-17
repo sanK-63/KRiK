@@ -42,7 +42,6 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
     const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -484,7 +483,7 @@ export default function ChatWindow({ conversationId, onBack, onOpenSettings }: C
                                     key={msg.id}
                                     msg={msg}
                                     isMe={isMe}
-                                    isConsecutive={isConsecutive}
+                                    isConsecutive={!!isConsecutive}
                                     convInfo={convInfo}
                                     participantsRead={participantsRead}
                                     onReply={setReplyToMsg}

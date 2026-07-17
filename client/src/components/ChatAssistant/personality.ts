@@ -233,17 +233,45 @@ const personalityData: Record<Category, PersonalityEntry[]> = {
             text: `Твоё "я забыл" — это диагноз. В следующий раз я забуду о твоём существовании в базе данных.`,
         },
     ],
+
+    gaming: [
+        {
+            text: `Ты снова тратишь время на игры? У тебя есть задачи, а не квесты. Возвращайся к работе.`,
+        },
+        {
+            text: `Если бы ты проводил столько же времени в коде, сколько в играх, Контора уже была бы на бирже.`,
+        },
+        {
+            text: `Игровой сервер не спасёт тебя от дедлайна. Закрывай Steam и делай задачи.`,
+        },
+    ],
+
+    update: [
+        {
+            text: `Система обновлена. Ты — нет. Может, стоит пройти свою собственную перекомпиляцию?`,
+        },
+        {
+            text: `Новое обновление внесло 147 исправлений. 146 из них связаны с твоим кодом.`,
+        },
+        {
+            text: `Обновление прошло успешно. К сожалению, патч "компетентность пользователя" не входит в пакет.`,
+        },
+    ],
+
+    confusion: [
+        {
+            text: `Я не понял, что ты хотел сказать. Переформулируй, как будто я — твой руководитель, а не телепат.`,
+        },
+        {
+            text: `Этот запрос настолько бессмысленный, что даже база данных отказалась его обрабатывать.`,
+        },
+        {
+            text: `Ты уверен, что хотел именно это написать? Потому что я вижу тут больше загадок, чем в энциклопедии.`,
+        },
+    ],
 };
 
 const LAST_CATEGORY_KEY = "knight-last-category";
-
-function getLastCategory(): string | null {
-    try {
-        return localStorage.getItem(LAST_CATEGORY_KEY);
-    } catch {
-        return null;
-    }
-}
 
 function setLastCategory(category: Category) {
     try {
@@ -288,7 +316,7 @@ export function getGreetingText(userName: string): string {
             break;
     }
 
-    const entry = pickRandom(greetings, getLastCategory() as Category | null);
+    const entry = pickRandom(greetings, null);
     setLastCategory("greeting");
 
     const text = typeof entry.text === "function" ? entry.text(userName) : entry.text;
@@ -302,8 +330,7 @@ export function getPersonalityReply(
     const entries = personalityData[category];
     if (!entries || entries.length === 0) return "";
 
-    const lastCat = getLastCategory() as Category | null;
-    const entry = pickRandom(entries, lastCat);
+    const entry = pickRandom(entries, null);
     setLastCategory(category);
 
     const text = typeof entry.text === "function" ? entry.text(userName || "Рыцарь") : entry.text;

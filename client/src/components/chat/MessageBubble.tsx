@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useUser } from "../../context/UserContext";
 import { API, EMOJI_OPTIONS, type Message, type ConversationInfo } from "./types";
 import { parseDate, fmtTime, fmtFullDate, isVoiceMessage, isImageFile } from "./helpers";
@@ -23,8 +22,8 @@ interface MessageBubbleProps {
 
 export default function MessageBubble({
     msg, isMe, isConsecutive, convInfo, participantsRead,
-    onReply, onEdit, onForward, onCopy, onReact, onLightbox,
-    onContextMenu, onMsgClick, reactionPickerMsgId, contextMenuMsgId,
+    onReply: _onReply, onEdit: _onEdit, onForward: _onForward, onCopy: _onCopy, onReact, onLightbox,
+    onContextMenu, onMsgClick, reactionPickerMsgId, contextMenuMsgId: _contextMenuMsgId,
 }: MessageBubbleProps) {
     const { user } = useUser();
     const voice = isVoiceMessage(msg.attachmentName);

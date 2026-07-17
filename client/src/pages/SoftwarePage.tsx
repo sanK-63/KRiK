@@ -117,7 +117,7 @@ export default function SoftwarePage() {
         setEditItem(item);
     };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, _isEdit: boolean) => {
         const file = e.target.files?.[0];
         if (!file) return;
         setUploading(true);

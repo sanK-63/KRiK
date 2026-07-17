@@ -19,7 +19,7 @@ interface ChatInputProps {
 }
 
 export default function ChatInput({
-    input, setInput, file, setFile, sending, recording, recordTime,
+    input, setInput: _setInput, file: _file, setFile, sending, recording, recordTime,
     canSend, onSend, onKeyDown, onInput,
     onStartRecording, onStopRecording, onCancelRecording,
 }: ChatInputProps) {
