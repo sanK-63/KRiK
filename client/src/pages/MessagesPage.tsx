@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import { useSocket } from "../context/SocketContext";
-import ChatWindow from "../components/ChatWindow";
+import ChatWindow from "../components/chat/ChatWindow";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -332,7 +332,7 @@ export default function MessagesPage() {
 
     const formatConvTime = (dateStr: string | null) => {
         if (!dateStr) return "";
-        const normalized = dateStr.includes("T") ? dateStr : dateStr.replace(" ", "T") + "Z";
+        const normalized = dateStr.includes("T") ? dateStr : dateStr.replace(" ", "T");
         const d = new Date(normalized);
         if (isNaN(d.getTime())) return "";
         const now = new Date();
@@ -364,7 +364,7 @@ export default function MessagesPage() {
     };
 
     return (
-        <div className="flex max-sm:h-[calc(100vh-152px)] sm:h-[calc(100vh-80px)] lg:h-[calc(100vh-104px)]">
+        <div className="flex h-full overflow-hidden">
             <div
                 className={`w-full lg:w-80 border-r border-[#3b3b3b] flex flex-col bg-[#252525] ${
                     mobileShowChat ? "hidden lg:flex" : "flex"
@@ -726,7 +726,7 @@ export default function MessagesPage() {
                                                         <div className="w-16 h-16 bg-[#333] border border-[#3b3b3b] flex items-center justify-center text-2xl text-[#FA6814] font-bold overflow-hidden">
                                                             {convInfo.avatar ? (
                                                                 <img
-                                                                    src={`${API}${convInfo.avatar}`}
+                                                                    src={convInfo.avatar}
                                                                     alt=""
                                                                     className="w-full h-full object-cover"
                                                                 />
@@ -935,7 +935,7 @@ export default function MessagesPage() {
                                                             <div className="w-16 h-16 bg-[#333] border border-[#3b3b3b] flex items-center justify-center text-2xl text-[#FA6814] font-bold overflow-hidden">
                                                                 {other?.avatar ? (
                                                                     <img
-                                                                        src={`${API}${other.avatar}`}
+                                                                        src={other.avatar}
                                                                         alt=""
                                                                         className="w-full h-full object-cover"
                                                                     />

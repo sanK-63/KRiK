@@ -279,7 +279,13 @@ export default function EventsPage() {
                                 </div>
                                 {e.author && (
                                     <div className="flex items-center gap-1.5 mt-2">
-                                        {e.author.avatar && <img src={e.author.avatar} className="w-4 h-4" style={{ borderRadius: 4, objectFit: "cover" }} />}
+                                        {e.author.avatar ? (
+                                            <img src={e.author.avatar} className="w-4 h-4" style={{ borderRadius: 4, objectFit: "cover" }} />
+                                        ) : (
+                                            <div className="w-4 h-4 bg-[#2a2a2a] flex items-center justify-center text-[8px] text-gray-400 font-semibold shrink-0" style={{ borderRadius: 4 }}>
+                                                {(e.author.displayName || e.author.username || "?").charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
                                         <span className="text-[10px] text-gray-500">{e.author.displayName || e.author.username}</span>
                                     </div>
                                 )}

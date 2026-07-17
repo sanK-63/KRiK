@@ -445,6 +445,8 @@ const tables = [
         version TEXT,
         download_url TEXT,
         download_label TEXT,
+        file_url TEXT,
+        file_name TEXT,
         author_id INTEGER NOT NULL REFERENCES users(id),
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )`,
@@ -804,6 +806,9 @@ export function migrate() {
         sqlite.exec("ALTER TABLE events ADD COLUMN video TEXT");
     }
 
+    // Add last_delivered_at column to conversation_participants
+    try { sqlite.prepare("SELECT last_delivered_at FROM conversation_participants LIMIT 1").get(); } catch { sqlite.exec("ALTER TABLE conversation_participants ADD COLUMN last_delivered_at TEXT"); }
+
     // Forum tables (drop and recreate if schema changed)
     sqlite.exec(`DROP TABLE IF EXISTS forum_poll_votes`);
     sqlite.exec(`DROP TABLE IF EXISTS forum_likes`);
@@ -866,6 +871,18 @@ export function migrate() {
         console.log("Seeded 5 forum posts with comments");
     }
 
+    // Add file upload columns to software_items if missing
+    const swCols = sqlite.prepare("PRAGMA table_info(software_items)").all() as { name: string }[];
+    const swColNames = swCols.map((c) => c.name);
+    if (!swColNames.includes("file_url")) {
+        sqlite.exec("ALTER TABLE software_items ADD COLUMN file_url TEXT");
+        console.log("Added file_url column to software_items");
+    }
+    if (!swColNames.includes("file_name")) {
+        sqlite.exec("ALTER TABLE software_items ADD COLUMN file_name TEXT");
+        console.log("Added file_name column to software_items");
+    }
+
     // Seed software items
     const swCount = sqlite.prepare("SELECT COUNT(*) as c FROM software_items").get() as { c: number };
     if (swCount.c === 0) {
@@ -878,7 +895,20 @@ export function migrate() {
         insSw.run("инструкции", "Как создать турнир", "Подробная инструкция по созданию турнира в корпоративном портале: от настройки формата до генерации сетки и подведения итогов.", JSON.stringify(["Турниры", "Инструкция"]), null, null, null, 1, "-1 days");
         insSw.run("оптимизация", "Настройка Discord бота", "Гайд по развёртыванию и настройке Discord-бота для автоматического создания голосовых каналов для турниров и уведомлений.", JSON.stringify(["Discord", "Бот", "Настройка"]), null, null, null, 2, "-3 days");
         insSw.run("файлы", "Шаблоны документов", "Готовые шаблоны .docx для внутренних документов: приказы, протоколы, заявки. Автоматическая генерация через портал.", JSON.stringify(["Шаблоны", "Документы"]), null, "#", "Скачать шаблоны", 1, "-10 days");
-        console.log("Seeded 8 software items");
+
+        insSw.run("игры", "Counter-Strike 2", "Легендарный тактический шутер от Valve. Обновленный движок Source 2, улучшенная графика, redesigned maps. Минимальные требования: Windows 10, 8GB RAM, GTX 1060. Скачивайте бесплатно через Steam.", JSON.stringify(["CS2", "Шутер", "Steam", "Free"]), null, "https://store.steampowered.com/app/730/Counter-Strike_2/", "В Steam", 1, "-20 days");
+        insSw.run("игры", "Dota 2", "Стратегия в реальном времени от Valve. Два отряда по 5 героев сражаются за контроль карты. Более 120 героев, глубокая система лутинга и киберспортивная сцена. Бесплатно через Steam.", JSON.stringify(["Dota 2", "MOBA", "Steam", "Free"]), null, "https://store.steampowered.com/app/570/Dota_2/", "В Steam", 1, "-20 days");
+        insSw.run("игры", "Valorant", "Тактический шутер от Riot Games. 5v5 матчи с уникальными агентами, каждый из которых обладает особыми способностями. Сочетание точности и стратегии. Бесплатно.", JSON.stringify(["Valorant", "Шутер", "Riot Games", "Free"]), null, "https://playvalorant.com/", "Скачать бесплатно", 1, "-18 days");
+        insSw.run("игры", "Battlefield 6", "Масштабные командные сражения от EA DICE. 128 игроков на карте, уничтожаемое окружение, широкий арсенал техники и оружия. Динамичные мультиплеерные матчи на больших картах.", JSON.stringify(["BF6", "Шутер", "EA", "Мультиплеер"]), null, "https://www.ea.com/games/battlefield/battlefield-6", "Купить", 1, "-15 days");
+        insSw.run("игры", "PUBG: Battlegrounds", "Королевская битва на 100 игроков. Собирайте оружие и снаряжение, оставайтесь в зоне и последний выживший побеждает. Реалистичная баллистика и тактический геймплей.", JSON.stringify(["PUBG", "Battle Royale", "Krafton"]), null, "https://store.steampowered.com/app/578080/PUBG_BATTLEGROUNDS/", "В Steam", 1, "-14 days");
+        insSw.run("игры", "Minecraft", "Песочница от Mojang. Стройте, исследуйте и выживайте в процедурно генерируемом мире из блоков. Креативный и выживание режимы, мультиплеер, моды. Идеален для творчества и отдыха.", JSON.stringify(["Minecraft", "Песочница", "Mojang", "Microsoft"]), null, "https://www.minecraft.net/", "Купить", 2, "-12 days");
+        insSw.run("игры", "World of Tanks", "Многопользовательская онлайн-игра от Wargaming. Бои на танках разных эпох и стран. 100+ машин, тактические командные сражения, клановые войны и турниры. Бесплатно.", JSON.stringify(["WoT", "Танки", "Wargaming", "Free"]), null, "https://worldoftanks.com/", "Играть бесплатно", 1, "-10 days");
+        insSw.run("игры", "Battlefield V", "Шутер от EA, действие которого происходит во Второй мировой войне. Эпичные мультиплеерные сражения на 64 игрока, разрушаемое окружение, широкий выбор техники: танки, самолёты, джипы.", JSON.stringify(["BFV", "Шутер", "EA", "WW2"]), null, "https://www.ea.com/games/battlefield/battlefield-v", "Купить", 2, "-8 days");
+        insSw.run("игры", "Assetto Corsa Competizione", "Реалистичный гоночный симулятор от Kunos Simulazioni. Официальный лицензионный гоночный симулятор GT3. Физика на уровне реальных гонок, поддержка VR и рулей.", JSON.stringify(["ACC", "Гонки", "Симулятор", "GT3"]), null, "https://store.steampowered.com/app/805550/Assetto_Corsa_Competizione/", "В Steam", 1, "-6 days");
+        insSw.run("игры", "Assetto Corsa", "Симулятор автогонок с продвинутой физикой вождения. Более 200 автомобилей, 30 трасс. Поддержка модов, VR, управления рулём. Идеален для любителей реалистичных гонок.", JSON.stringify(["AC", "Гонки", "Симулятор"]), null, "https://store.steampowered.com/app/244210/Assetto_Corsa/", "В Steam", 1, "-4 days");
+        insSw.run("софт", "Discord", "Бесплатный голосовой чат для геймеров. Голосовые и видеозвонки, текстовые каналы, интеграция с играми, боты. Незаменим для координации в турнирах.", JSON.stringify(["Discord", "Чат", "Голос"]), null, "https://discord.com/", "Скачать", 1, "-3 days");
+        insSw.run("софт", "OBS Studio", "Бесплатный софт для стриминга и записи экрана. Захват видео, звука, создание сцен, переходов. Поддержка Twitch, YouTube, Kick. Незаменим для трансляций.", JSON.stringify(["OBS", "Стриминг", "Запись"]), null, "https://obsproject.com/", "Скачать", 2, "-2 days");
+        console.log("Seeded 20 software items");
     }
 
     // Seed movies / cinema

@@ -12,7 +12,7 @@ export default function UserMenu() {
 
     const name = user?.displayName || user?.username || "—";
     const initial = (user?.displayName?.[0] || user?.username?.[0] || "?").toUpperCase();
-    const avatarUrl = user?.avatar ? `${import.meta.env.VITE_API_URL}${user.avatar}` : null;
+    const avatarUrl = user?.avatar || null;
 
     return (
         <div className="flex items-center gap-3">

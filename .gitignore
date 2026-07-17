@@ -9,3 +9,4 @@ dist/
 data/
 server/test-email.js
 server/check_movies.js
+server/send-welcome.js

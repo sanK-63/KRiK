@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useUser } from "../context/UserContext";
 import { useSocket } from "../context/SocketContext";
 import { softwareApi, type SoftwareItemData } from "../services/software";
 
 const CATEGORY_LABELS: Record<string, string> = {
     софт: "Софт",
+    игры: "Игры",
     файлы: "Файлы",
     оптимизация: "Оптимизация",
     инструкции: "Инструкции",
@@ -12,6 +13,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const CATEGORY_COLORS: Record<string, string> = {
     софт: "#FA6814",
+    игры: "#9C27B0",
     файлы: "#4CAF50",
     оптимизация: "#5B9BD5",
     инструкции: "#FFB020",
@@ -19,15 +21,16 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const CATEGORY_ICONS: Record<string, string> = {
     софт: "📦",
+    игры: "🎮",
     файлы: "📁",
     оптимизация: "⚡",
     инструкции: "📖",
 };
 
-const tabs = ["Лента", "Софт", "Файлы", "Оптимизация", "Инструкции"];
+const tabs = ["Лента", "Софт", "Игры", "Файлы", "Оптимизация", "Инструкции"];
 
 const catForTab: Record<string, string | null> = {
-    "Лента": null, "Софт": "софт", "Файлы": "файлы", "Оптимизация": "оптимизация", "Инструкции": "инструкции",
+    "Лента": null, "Софт": "софт", "Игры": "игры", "Файлы": "файлы", "Оптимизация": "оптимизация", "Инструкции": "инструкции",
 };
 
 function getCatForTab(tab: string): string | null {
@@ -39,6 +42,17 @@ function formatDate(d: Date): string {
     return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+function getFileIcon(name: string): string {
+    const ext = name.split(".").pop()?.toLowerCase() || "";
+    if (["zip","rar","7z","tar","gz"].includes(ext)) return "📦";
+    if (ext === "torrent") return "🧲";
+    if (["exe","msi"].includes(ext)) return "⚙️";
+    if (["pdf"].includes(ext)) return "📄";
+    if (["doc","docx","txt"].includes(ext)) return "📝";
+    if (["png","jpg","jpeg","gif","webp"].includes(ext)) return "🖼️";
+    return "📎";
+}
+
 export default function SoftwarePage() {
     const { user } = useUser();
     const socket = useSocket();
@@ -47,10 +61,14 @@ export default function SoftwarePage() {
     const [loading, setLoading] = useState(true);
     const [showAdd, setShowAdd] = useState(false);
     const [editItem, setEditItem] = useState<SoftwareItemData | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const editFileInputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
 
     const [form, setForm] = useState({
         title: "", description: "", tags: "", version: "", downloadUrl: "", downloadLabel: "", category: "софт",
     });
+    const [formFile, setFormFile] = useState<{ fileUrl: string; fileName: string } | null>(null);
 
     const currentCat = getCatForTab(activeTab);
 
@@ -74,7 +92,10 @@ export default function SoftwarePage() {
         return items.filter((i) => i.category === currentCat).sort((a, b) => b.id - a.id);
     }, [items, currentCat]);
 
-    const resetForm = () => setForm({ title: "", description: "", tags: "", version: "", downloadUrl: "", downloadLabel: "", category: "софт" });
+    const resetForm = () => {
+        setForm({ title: "", description: "", tags: "", version: "", downloadUrl: "", downloadLabel: "", category: "софт" });
+        setFormFile(null);
+    };
 
     const openAdd = () => {
         resetForm();
@@ -92,7 +113,23 @@ export default function SoftwarePage() {
             downloadLabel: item.downloadLabel || "",
             category: item.category,
         });
+        setFormFile(item.fileUrl ? { fileUrl: item.fileUrl, fileName: item.fileName || "" } : null);
         setEditItem(item);
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const result = await softwareApi.uploadFile(file);
+            setFormFile({ fileUrl: result.fileUrl, fileName: result.fileName });
+        } catch (err) {
+            alert("Ошибка загрузки файла");
+        } finally {
+            setUploading(false);
+            e.target.value = "";
+        }
     };
 
     const handleAdd = async () => {
@@ -107,6 +144,8 @@ export default function SoftwarePage() {
                 version: form.version.trim() || undefined,
                 downloadUrl: form.downloadUrl.trim() || undefined,
                 downloadLabel: form.downloadLabel.trim() || undefined,
+                fileUrl: formFile?.fileUrl || undefined,
+                fileName: formFile?.fileName || undefined,
             });
             setItems((prev) => [created, ...prev]);
             resetForm();
@@ -125,6 +164,8 @@ export default function SoftwarePage() {
                 version: form.version.trim() || null,
                 downloadUrl: form.downloadUrl.trim() || null,
                 downloadLabel: form.downloadLabel.trim() || null,
+                fileUrl: formFile?.fileUrl || null,
+                fileName: formFile?.fileName || null,
             });
             setItems((prev) => prev.map((i) => i.id === updated.id ? updated : i));
             setEditItem(null);
@@ -139,6 +180,8 @@ export default function SoftwarePage() {
             setItems((prev) => prev.filter((i) => i.id !== id));
         } catch {}
     };
+
+    const removeFormFile = () => setFormFile(null);
 
     return (
         <div className="max-w-4xl xl:max-w-5xl space-y-6">
@@ -241,21 +284,39 @@ export default function SoftwarePage() {
                                 <p className="text-xs text-gray-300 leading-relaxed">{item.description}</p>
                             </div>
 
-                            {(item.downloadUrl || item.version) && (
+                            {(item.downloadUrl || item.fileUrl || item.version) && (
                                 <div className="px-5 py-3 border-t border-[#3b3b3b] flex items-center justify-between">
                                     <span className="text-[10px] text-gray-500">
                                         {item.version && <>Версия: <span className="text-white">{item.version}</span></>}
+                                        {item.fileName && (
+                                            <>
+                                                {item.version ? " · " : ""}
+                                                <span className="text-gray-400">{getFileIcon(item.fileName)} {item.fileName}</span>
+                                            </>
+                                        )}
                                     </span>
-                                    {item.downloadUrl && (
-                                        <a
-                                            href={item.downloadUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-[10px] uppercase px-5 py-2 bg-[#FA6814] text-white font-medium hover:bg-[#FF7D30] transition-colors inline-block"
-                                        >
-                                            {item.downloadLabel || "Скачать"}
-                                        </a>
-                                    )}
+                                    <div className="flex items-center gap-2">
+                                        {item.fileUrl && (
+                                            <a
+                                                href={`${import.meta.env.VITE_API_URL}${item.fileUrl}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-[10px] uppercase px-5 py-2 bg-[#4CAF50] text-white font-medium hover:bg-[#5CBF60] transition-colors inline-block"
+                                            >
+                                                {item.downloadLabel || "Скачать файл"}
+                                            </a>
+                                        )}
+                                        {item.downloadUrl && (
+                                            <a
+                                                href={item.downloadUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-[10px] uppercase px-5 py-2 bg-[#FA6814] text-white font-medium hover:bg-[#FF7D30] transition-colors inline-block"
+                                            >
+                                                {item.downloadLabel || "Скачать"}
+                                            </a>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -290,8 +351,8 @@ export default function SoftwarePage() {
                         {(!currentCat || editItem) && (
                             <>
                                 <label className="block text-xs uppercase text-gray-400 mb-2">Категория *</label>
-                                <div className="flex gap-2 mb-4">
-                                    {(["софт", "файлы", "оптимизация", "инструкции"] as const).map((cat) => (
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {(["софт", "игры", "файлы", "оптимизация", "инструкции"] as const).map((cat) => (
                                         <button
                                             key={cat}
                                             onClick={() => setForm({ ...form, category: cat })}
@@ -366,13 +427,46 @@ export default function SoftwarePage() {
                             </>
                         )}
 
+                        <div className="mb-4">
+                            <label className="block text-xs uppercase text-gray-400 mb-2">Файл (торент / архив / установщик)</label>
+                            {formFile ? (
+                                <div className="flex items-center gap-3 bg-[#1e1e1e] border border-[#3a3a3a] px-3 py-2.5">
+                                    <span className="text-sm">{getFileIcon(formFile.fileName)}</span>
+                                    <span className="text-xs text-gray-300 flex-1 truncate">{formFile.fileName}</span>
+                                    <button
+                                        onClick={removeFormFile}
+                                        className="text-gray-600 hover:text-[#D32F2F] text-[10px] transition-colors cursor-pointer"
+                                    >
+                                        ✕ Удалить
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    <input
+                                        ref={editItem ? editFileInputRef : fileInputRef}
+                                        type="file"
+                                        onChange={(e) => handleFileUpload(e, !!editItem)}
+                                        className="hidden"
+                                        accept=".zip,.rar,.7z,.tar,.gz,.torrent,.exe,.msi,.dmg,.deb,.rpm,.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.gif,.webp"
+                                    />
+                                    <button
+                                        onClick={() => (editItem ? editFileInputRef : fileInputRef).current?.click()}
+                                        disabled={uploading}
+                                        className="w-full border border-dashed border-[#3a3a3a] bg-[#1e1e1e] text-gray-400 text-xs px-3 py-4 hover:border-[#FA6814] hover:text-[#FA6814] transition-colors cursor-pointer disabled:opacity-50"
+                                    >
+                                        {uploading ? "⏳ Загрузка..." : "📎 Нажмите для загрузки файла (.zip, .torrent, .rar, .exe и др.)"}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+
                         <div className="flex justify-end gap-3 mt-5">
                             <button onClick={() => { setShowAdd(false); setEditItem(null); resetForm(); }} className="bg-[#303030] border border-[#404040] text-white px-5 py-2.5 text-sm font-semibold hover:bg-[#3a3a3a] transition-colors cursor-pointer">
                                 Отмена
                             </button>
                             <button
                                 onClick={editItem ? handleEdit : handleAdd}
-                                disabled={!form.title.trim() || !form.description.trim()}
+                                disabled={!form.title.trim() || !form.description.trim() || uploading}
                                 className="bg-[#FA6814] text-white px-5 py-2.5 text-sm font-semibold hover:bg-[#ff7a2a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                             >
                                 {editItem ? "Сохранить" : "Опубликовать"}

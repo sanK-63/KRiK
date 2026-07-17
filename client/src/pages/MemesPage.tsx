@@ -228,7 +228,13 @@ export default function MemesPage() {
 
                     <article className="bg-[#282828] border border-[#3a3a3a] mb-4" style={{ borderRadius: 4 }}>
                         <div className="flex items-center gap-3 p-4 pb-2">
-                            {selected.author?.avatar && <img src={selected.author.avatar} className="w-9 h-9" style={{ borderRadius: 4, objectFit: "cover" }} />}
+                            {selected.author?.avatar ? (
+                                <img src={selected.author.avatar} className="w-9 h-9" style={{ borderRadius: 4, objectFit: "cover" }} />
+                            ) : (
+                                <div className="w-9 h-9 bg-[#2a2a2a] flex items-center justify-center text-[10px] text-gray-400 font-semibold shrink-0" style={{ borderRadius: 4 }}>
+                                    {(selected.author?.displayName || selected.author?.username || "?").charAt(0).toUpperCase()}
+                                </div>
+                            )}
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm text-[#F2F2F2] truncate">{selected.author?.displayName || selected.author?.username || "—"}</p>
                                 <p className="text-[10px] text-gray-500">{timeAgo(selected.createdAt)} назад</p>
@@ -288,7 +294,13 @@ export default function MemesPage() {
                             <div className="space-y-3">
                                 {selected.comments.map((c) => (
                                     <div key={c.id} className="flex items-start gap-2">
-                                        {c.author?.avatar && <img src={c.author.avatar} className="w-7 h-7 shrink-0" style={{ borderRadius: 4, objectFit: "cover" }} />}
+                                        {c.author?.avatar ? (
+                                            <img src={c.author.avatar} className="w-7 h-7 shrink-0" style={{ borderRadius: 4, objectFit: "cover" }} />
+                                        ) : (
+                                            <div className="w-7 h-7 bg-[#2a2a2a] flex items-center justify-center text-[9px] text-gray-400 font-semibold shrink-0" style={{ borderRadius: 4 }}>
+                                                {(c.author?.displayName || c.author?.username || "?").charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-0.5">
                                                 <span className="text-xs text-[#F2F2F2]">{c.author?.displayName || c.author?.username || "—"}</span>
@@ -314,7 +326,13 @@ export default function MemesPage() {
                     {memes.map((m) => (
                         <article key={m.id} className="bg-[#282828] border border-[#3a3a3a]" style={{ borderRadius: 4 }}>
                             <div className="flex items-center gap-3 p-4 pb-2">
-                                {m.author?.avatar && <img src={m.author.avatar} className="w-9 h-9" style={{ borderRadius: 4, objectFit: "cover" }} />}
+                                {m.author?.avatar ? (
+                                    <img src={m.author.avatar} className="w-9 h-9" style={{ borderRadius: 4, objectFit: "cover" }} />
+                                ) : (
+                                    <div className="w-9 h-9 bg-[#2a2a2a] flex items-center justify-center text-[10px] text-gray-400 font-semibold shrink-0" style={{ borderRadius: 4 }}>
+                                        {(m.author?.displayName || m.author?.username || "?").charAt(0).toUpperCase()}
+                                    </div>
+                                )}
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm text-[#F2F2F2] truncate">{m.author?.displayName || m.author?.username || "—"}</p>
                                     <p className="text-[10px] text-gray-500">{timeAgo(m.createdAt)} назад</p>

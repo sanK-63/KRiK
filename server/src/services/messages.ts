@@ -235,7 +235,17 @@ export function getConversationMessages(conversationId: number, userId: number, 
         };
     });
 
-    return result;
+    const allParticipants = db
+        .select({ 
+            userId: conversationParticipants.userId, 
+            lastReadAt: conversationParticipants.lastReadAt,
+            lastDeliveredAt: conversationParticipants.lastDeliveredAt,
+        })
+        .from(conversationParticipants)
+        .where(eq(conversationParticipants.conversationId, conversationId))
+        .all();
+
+    return { messages: result, participants: allParticipants };
 }
 
 export function createConversation(creatorId: number, participantIds: number[], title?: string) {
@@ -474,6 +484,29 @@ export function markAsRead(conversationId: number, userId: number) {
             )
         )
         .run();
+
+    try {
+        emitToConversation(conversationId, "conversation:read", { userId, conversationId });
+    } catch {}
+
+    return { ok: true };
+}
+
+export function markAsDelivered(conversationId: number, userId: number) {
+    db.update(conversationParticipants)
+        .set({ lastDeliveredAt: new Date().toISOString() })
+        .where(
+            and(
+                eq(conversationParticipants.conversationId, conversationId),
+                eq(conversationParticipants.userId, userId)
+            )
+        )
+        .run();
+
+    try {
+        emitToConversation(conversationId, "conversation:delivered", { userId, conversationId });
+    } catch {}
+
     return { ok: true };
 }
 

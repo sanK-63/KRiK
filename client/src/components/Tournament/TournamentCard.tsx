@@ -68,7 +68,13 @@ export default function TournamentCard({ tournament, onClick }: Props) {
 
             {t.creatorName && (
                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#3a3a3a]">
-                    {t.creatorAvatar && <img src={t.creatorAvatar} className="w-5 h-5" style={{ borderRadius: 4, objectFit: "cover" }} />}
+                    {t.creatorAvatar ? (
+                        <img src={t.creatorAvatar} className="w-5 h-5" style={{ borderRadius: 4, objectFit: "cover" }} />
+                    ) : (
+                        <div className="w-5 h-5 bg-[#2a2a2a] flex items-center justify-center text-[9px] text-gray-400 font-semibold shrink-0" style={{ borderRadius: 4 }}>
+                            {(t.creatorName || "?").charAt(0).toUpperCase()}
+                        </div>
+                    )}
                     <span className="text-[10px] text-gray-500">Создатель: {t.creatorName}</span>
                 </div>
             )}

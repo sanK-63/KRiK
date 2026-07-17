@@ -78,7 +78,13 @@ export default function TournamentControlPanel({ tournament, currentUserId, onBa
                 {t.creatorName && (
                     <div className="text-xs text-gray-500 ml-4 flex items-center gap-1">
                         Создатель:
-                        {t.creatorAvatar && <img src={t.creatorAvatar} className="w-4 h-4" style={{ borderRadius: 4, objectFit: "cover" }} />}
+                        {t.creatorAvatar ? (
+                            <img src={t.creatorAvatar} className="w-4 h-4" style={{ borderRadius: 4, objectFit: "cover" }} />
+                        ) : (
+                            <div className="w-4 h-4 bg-[#2a2a2a] flex items-center justify-center text-[8px] text-gray-400 font-semibold shrink-0" style={{ borderRadius: 4 }}>
+                                {(t.creatorName || "?").charAt(0).toUpperCase()}
+                            </div>
+                        )}
                         <span className="text-gray-300">{t.creatorName}</span>
                     </div>
                 )}

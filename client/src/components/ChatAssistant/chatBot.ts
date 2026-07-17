@@ -1,3 +1,18 @@
+import {
+    getPersonalityReply,
+    getGreetingText,
+    getSmartReply,
+    incrementErrorCount,
+    resetErrorCount,
+    getSobererLevel,
+    type Category,
+} from "./personality";
+import {
+    addExperience,
+    getExperienceTitle,
+    getExperience,
+} from "./context";
+
 export interface QuickButton {
     label: string;
     url: string;
@@ -15,6 +30,7 @@ interface Rule {
     keywords: string[];
     reply: string | ((name: string) => string);
     buttons?: QuickButton[];
+    personality?: Category;
 }
 
 const rules: Rule[] = [
@@ -658,6 +674,87 @@ const rules: Rule[] = [
         keywords: ["помощь нужна", "нужна помощь", "не могу", "затрудняюсь"],
         reply: `Расскажи подробнее, что не получается — помогу разобраться! Я знаю все разделы и функции сайта.`,
     },
+
+    // === ЛЕНЬ И ПРОКРАСТИНАЦИЯ ===
+    {
+        keywords: ["лень", "не хочу", "не буду", "надоело", "нет настроения", "неинтересно", "хочу спать", "устал"],
+        reply: (name) => getPersonalityReply("procrastination", name),
+        personality: "procrastination",
+    },
+
+    // === ХВАСТОВСТВО ===
+    {
+        keywords: ["я лучший", "я гений", "мой код идеален", "я всё могу", "я король", "я красавчик", "я молодец"],
+        reply: (name) => getPersonalityReply("soberer", name),
+        personality: "soberer",
+    },
+
+    // === ЖАЛОБЫ ===
+    {
+        keywords: ["ненавижу", "как же бесит", "не справедливо", "я злой", "все против меня", "меня обижают"],
+        reply: (name) => getPersonalityReply("advice", name),
+        personality: "advice",
+    },
+
+    // === СПЛЕТНИ И ИНТРИГИ ===
+    {
+        keywords: ["тунов", "админ", "создатель", "основатель", "директор", "кто тут главный"],
+        reply: (name) => getPersonalityReply("system", name),
+        personality: "system",
+    },
+
+    // === ИГРОВОЙ ЮМОР ===
+    {
+        keywords: ["valorant", "ваблант", "валорант"],
+        reply: `Valorant — тактический шутер от Riot Games. Режимы: Competitive, Unrated, Spike Rush, Deathmatch.\n\nПрофиль игры с картами и деталями в разделе «Турниры».`,
+        buttons: [{ label: "Открыть Турниры →", url: "/tournament" }],
+        personality: "gaming",
+    },
+    {
+        keywords: ["counter-strike", "cs2", "cs go", "кс"],
+        reply: `Counter-Strike 2 — классический тактический шутер. Карты: Dust2, Mirage, Inferno, Nuke, Overpass.\n\nПрофиль в разделе «Турниры».`,
+        buttons: [{ label: "Открыть Турниры →", url: "/tournament" }],
+        personality: "gaming",
+    },
+    {
+        keywords: ["dota", "дота", "дота 2"],
+        reply: `Dota 2 — MOBA от Valve. Роли: Керри, Середина, Саппорт.\n\nПрофиль игры с картами и деталями в «Турниры».`,
+        buttons: [{ label: "Открыть Турниры →", url: "/tournament" }],
+        personality: "gaming",
+    },
+    {
+        keywords: ["minecraft", "майнкрафт", "майн"],
+        reply: `Minecraft — песочница от Mojang. Сервер Конторы: стройте, выживайте, исследуйте!\n\nПрофиль в «Турниры».`,
+        buttons: [{ label: "Открыть Турниры →", url: "/tournament" }],
+        personality: "gaming",
+    },
+
+    // === ОБНОВЛЕНИЯ ===
+    {
+        keywords: ["обновление", "что нового", "чейнджлог", "changelog", "нововведения"],
+        reply: `Обновления сайта отслеживаются через ивенты с категорией «Обновление» в разделе «Ивенты».`,
+        buttons: [{ label: "Открыть Ивенты →", url: "/events" }],
+        personality: "update",
+    },
+
+    // === СПАСИБО И ПРОЩАНИЯ ===
+    {
+        keywords: ["спасибо", "благодарю", "thanks", "спс", "сенкс", "премного", "респект"],
+        reply: (name) => getPersonalityReply("special", name),
+        personality: "special",
+    },
+    {
+        keywords: ["пока", "прощай", "bye", "бай", "до встречи", "увидимся", "покедова"],
+        reply: (name) => getPersonalityReply("special", name),
+        personality: "special",
+    },
+
+    // === ПОЛНОЕ НЕПОНИМАНИЕ ===
+    {
+        keywords: ["asjdhaskjd", "asdf", "123", "тест", "test", "чаво", "чего", "а?", "а", "ну", "хм", "ммм"],
+        reply: (name) => getPersonalityReply("confusion", name),
+        personality: "confusion",
+    },
 ];
 
 function normalize(text: string): string {
@@ -673,23 +770,65 @@ export function getBotReply(
     userText: string,
     userName: string
 ): { text: string; buttons?: QuickButton[] } {
+    let matched = false;
+    let personalityCategory: Category | undefined;
+
     for (const rule of rules) {
         if (matchRule(userText, rule)) {
             const text = typeof rule.reply === "function" ? rule.reply(userName) : rule.reply;
+            personalityCategory = rule.personality;
+
+            if (personalityCategory && ["soberer", "threats"].includes(personalityCategory)) {
+                incrementErrorCount();
+            } else {
+                resetErrorCount();
+            }
+
+            matched = true;
             return { text, buttons: rule.buttons };
         }
     }
 
-    return {
-        text: `Я пока не знаю ответа на этот вопрос. Вот что я умею:\n\n• Подсказать по разделам сайта\n• Объяснить как пользоваться функциями\n• Направить к нужной странице\n\nСпроси, например:\n• «Как создать турнир?»\n• «Как добавить фильм?»\n• «Где форум?»\n• «Как работает ELO?»`,
-    };
+    if (!matched) {
+        incrementErrorCount();
+        const errorLevel = getSobererLevel();
+
+        if (errorLevel >= 8) {
+            return {
+                text: getPersonalityReply("threats", userName),
+            };
+        }
+        if (errorLevel >= 5) {
+            return {
+                text: getPersonalityReply("soberer", userName),
+            };
+        }
+
+        const smart = getSmartReply(userText, userName);
+        if (smart.text) {
+            return { text: smart.text };
+        }
+
+        return {
+            text: `Я пока не знаю ответа на этот вопрос. Вот что я умею:\n\n• Подсказать по разделам сайта\n• Объяснить как пользоваться функциями\n• Направить к нужной странице\n\nСпроси, например:\n• «Как создать турнир?»\n• «Как добавить фильм?»\n• «Где форум?»\n• «Как работает ELO?»`,
+        };
+    }
+
+    return { text: "" };
 }
 
 export function getGreeting(userName: string): ChatMessage {
+    addExperience(1);
+
+    const exp = getExperience();
+    const title = getExperienceTitle(exp);
+
+    const text = getGreetingText(userName);
+
     return {
         id: crypto.randomUUID(),
         sender: "bot",
-        text: `Привет, ${userName}!\n\nЯ Рыцарь-помощник Конторы «Рога и Копыта». Знаю каждый угол этого сайта. Спрашивай — помогу!`,
+        text: `${text}\n\nТвой ранг: ${title} (${exp} обращений)`,
         buttons: [
             { label: "Конституция", url: "/constitution" },
             { label: "Форум", url: "/forum" },

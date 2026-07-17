@@ -8,6 +8,7 @@ import {
     findDirectConversation,
     sendMessage,
     markAsRead,
+    markAsDelivered,
     getTotalUnread,
     updateGroupTitle,
     updateGroupAvatar,
@@ -121,6 +122,13 @@ router.patch("/conversations/:id/read", authMiddleware, (req: AuthRequest, res: 
     const id = Number(req.params.id);
     markAsRead(id, req.userId);
     res.json({ ok: true });
+});
+
+router.patch("/conversations/:id/delivered", authMiddleware, (req: AuthRequest, res: Response) => {
+    if (!req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    const conversationId = Number(req.params.id);
+    const result = markAsDelivered(conversationId, req.userId);
+    res.json(result);
 });
 
 router.get("/find-or-create/:userId", authMiddleware, (req: AuthRequest, res: Response) => {

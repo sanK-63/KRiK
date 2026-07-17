@@ -108,7 +108,11 @@ function CommentItem({ comment, postId, depth = 0 }: { comment: CommentData; pos
             <div className="flex items-center gap-2 mb-1">
                 {comment.authorAvatar ? (
                     <img src={comment.authorAvatar} alt="" className="w-5 h-5 rounded-full object-cover object-top" />
-                ) : null}
+                ) : (
+                    <div className="w-5 h-5 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[9px] text-gray-400 font-semibold shrink-0">
+                        {(comment.authorName || "?").charAt(0).toUpperCase()}
+                    </div>
+                )}
                 <span className="text-xs font-semibold">{comment.authorName}</span>
                 <span className="text-[10px] text-gray-500">{timeAgo(comment.created_at)}</span>
             </div>

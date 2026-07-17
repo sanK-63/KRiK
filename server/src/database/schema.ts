@@ -445,6 +445,7 @@ export const conversationParticipants = sqliteTable("conversation_participants",
     userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     joinedAt: text("joined_at").notNull().default("CURRENT_TIMESTAMP"),
     lastReadAt: text("last_read_at"),
+    lastDeliveredAt: text("last_delivered_at"),
     role: text("role").notNull().default("member"),
 });
 
@@ -604,6 +605,8 @@ export const softwareItems = sqliteTable("software_items", {
     version: text("version"),
     downloadUrl: text("download_url"),
     downloadLabel: text("download_label"),
+    fileUrl: text("file_url"),
+    fileName: text("file_name"),
     authorId: integer("author_id").notNull().references(() => users.id),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });

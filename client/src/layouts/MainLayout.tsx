@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar";
@@ -17,15 +17,17 @@ function useScreenWidth() {
 
 export default function MainLayout() {
     const width = useScreenWidth();
+    const location = useLocation();
     const isSmallScreen = width < 1280;
     const [sidebarOpen, setSidebarOpen] = useState(!isSmallScreen);
+    const isMessenger = location.pathname.startsWith("/messages");
 
     useEffect(() => {
         setSidebarOpen(!isSmallScreen);
     }, [isSmallScreen]);
 
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex flex-col h-screen overflow-hidden">
             <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
             <div className="flex flex-1 overflow-hidden relative">
                 {isSmallScreen && sidebarOpen && (
@@ -43,15 +45,17 @@ export default function MainLayout() {
                     <Sidebar />
                 </div>
                 <main
-                    className={`flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 xl:pb-6 pb-20`}
+                    className={`flex-1 ${isMessenger ? "overflow-hidden" : "overflow-y-auto"} ${
+                        isMessenger ? "" : "p-3 sm:p-4 lg:p-6 xl:pb-6 pb-20"
+                    }`}
                     style={{ background: "#212121" }}
                 >
-                    <div className="max-w-[1600px] 2xl:max-w-[2000px] mx-auto">
+                    <div className={`${isMessenger ? "h-full" : "max-w-[1600px] 2xl:max-w-[2000px] mx-auto"}`}>
                         <Outlet />
                     </div>
                 </main>
             </div>
-            <BottomNav />
+            {!isMessenger && <BottomNav />}
             <ChatAssistant />
         </div>
     );

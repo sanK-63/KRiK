@@ -170,6 +170,13 @@ export default function ForumPage() {
 
                                 <div className="flex items-center justify-between text-xs text-gray-500">
                                     <div className="flex items-center gap-4">
+                                        {post.authorAvatar ? (
+                                            <img src={post.authorAvatar} alt="" className="w-6 h-6 rounded-full object-cover" />
+                                        ) : (
+                                            <span className="w-6 h-6 rounded-full bg-[#FA6814] text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
+                                                {post.authorName?.charAt(0)?.toUpperCase() || "?"}
+                                            </span>
+                                        )}
                                         <span>{post.authorName}</span>
                                         <span>{timeAgo(post.created_at)}</span>
                                     </div>

@@ -73,6 +73,10 @@ app.get("/api/health", (req, res) => {
     res.json({ status: "ok", message: "Corporate Portal API" });
 });
 
+app.get("/api/time", (_req, res) => {
+    res.json({ serverTime: Date.now() });
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/templates", templatesRoutes);

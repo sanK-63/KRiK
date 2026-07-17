@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
 import {
     getBotReply,
@@ -10,18 +10,25 @@ import {
     markGreeted,
     type ChatMessage,
 } from "./chatBot";
+import { setPageContext, getSmartPageButtons, addExperience } from "./context";
 
 export default function ChatAssistant() {
     const { user } = useUser();
     const navigate = useNavigate();
+    const location = useLocation();
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
     const [bouncing, setBouncing] = useState(false);
+    const [typing, setTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const userName = user?.displayName || user?.username || "Рыцарь";
+
+    useEffect(() => {
+        setPageContext(location.pathname);
+    }, [location.pathname]);
 
     useEffect(() => {
         const saved = loadHistory();
@@ -44,7 +51,7 @@ export default function ChatAssistant() {
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+    }, [messages, typing]);
 
     const toggleOpen = () => {
         if (!open) {
@@ -54,7 +61,7 @@ export default function ChatAssistant() {
         setOpen(!open);
     };
 
-    const send = (text?: string) => {
+    const send = useCallback((text?: string) => {
         const msg = (text || input).trim();
         if (!msg) return;
 
@@ -65,20 +72,29 @@ export default function ChatAssistant() {
             timestamp: Date.now(),
         };
 
-        const reply = getBotReply(msg, userName);
-        const botMsg: ChatMessage = {
-            id: crypto.randomUUID(),
-            sender: "bot",
-            text: reply.text,
-            buttons: reply.buttons,
-            timestamp: Date.now() + 1,
-        };
-
-        const updated = [...messages, userMsg, botMsg];
+        const updated = [...messages, userMsg];
         setMessages(updated);
         saveHistory(updated);
         setInput("");
-    };
+        addExperience(1);
+
+        setTyping(true);
+        const delay = 500 + Math.random() * 700;
+        setTimeout(() => {
+            const reply = getBotReply(msg, userName);
+            const botMsg: ChatMessage = {
+                id: crypto.randomUUID(),
+                sender: "bot",
+                text: reply.text,
+                buttons: reply.buttons,
+                timestamp: Date.now(),
+            };
+            const finalMessages = [...updated, botMsg];
+            setMessages(finalMessages);
+            saveHistory(finalMessages);
+            setTyping(false);
+        }, delay);
+    }, [input, messages, userName]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -91,6 +107,8 @@ export default function ChatAssistant() {
         navigate(url);
         setOpen(false);
     };
+
+    const smartButtons = getSmartPageButtons(location.pathname);
 
     return (
         <>
@@ -170,7 +188,7 @@ export default function ChatAssistant() {
                         }}
                     >
                         {messages.map((msg) => (
-                            <div key={msg.id}>
+                            <div key={msg.id} style={{ animation: "msgFadeIn 0.2s ease-out" }}>
                                 {msg.sender === "bot" ? (
                                     <div className="flex gap-2.5 items-start">
                                         <img
@@ -236,8 +254,65 @@ export default function ChatAssistant() {
                                 )}
                             </div>
                         ))}
+
+                        {/* Typing indicator */}
+                        {typing && (
+                            <div className="flex gap-2.5 items-start" style={{ animation: "msgFadeIn 0.2s ease-out" }}>
+                                <img
+                                    src="/Рыцарь.png"
+                                    alt=""
+                                    className="w-7 h-7 shrink-0 mt-0.5"
+                                    style={{ imageRendering: "pixelated" }}
+                                />
+                                <div
+                                    className="px-3 py-2.5 text-[13px]"
+                                    style={{
+                                        background: "#222",
+                                        border: "1px solid #3a3a3a",
+                                        color: "#666",
+                                    }}
+                                >
+                                    <span className="typing-dots">
+                                        <span>.</span><span>.</span><span>.</span>
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
                         <div ref={messagesEndRef} />
                     </div>
+
+                    {/* Quick actions (context-aware) */}
+                    {open && messages.length > 0 && !typing && (
+                        <div
+                            className="flex gap-1.5 px-4 py-2 shrink-0 overflow-x-auto"
+                            style={{ background: "#1a1a1a", borderTop: "1px solid #2a2a2a" }}
+                        >
+                            {smartButtons.slice(0, 3).map((btn) => (
+                                <button
+                                    key={btn.url}
+                                    onClick={() => go(btn.url)}
+                                    className="text-[10px] px-2 py-1 whitespace-nowrap cursor-pointer transition-colors shrink-0"
+                                    style={{
+                                        background: "#222",
+                                        border: "1px solid #3a3a3a",
+                                        color: "#888",
+                                        fontFamily: '"Press Start 2P", system-ui',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.borderColor = "#FA6814";
+                                        e.currentTarget.style.color = "#FA6814";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.borderColor = "#3a3a3a";
+                                        e.currentTarget.style.color = "#888";
+                                    }}
+                                >
+                                    {btn.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Input */}
                     <div
@@ -280,6 +355,23 @@ export default function ChatAssistant() {
                 @keyframes chatSlideIn {
                     from { opacity: 0; transform: translateY(10px) scale(0.95); }
                     to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                @keyframes msgFadeIn {
+                    from { opacity: 0; transform: translateY(4px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .typing-dots span {
+                    animation: typingBounce 1.4s infinite ease-in-out;
+                    font-size: 18px;
+                    line-height: 1;
+                    display: inline-block;
+                }
+                .typing-dots span:nth-child(1) { animation-delay: 0s; }
+                .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+                .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+                @keyframes typingBounce {
+                    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+                    30% { transform: translateY(-4px); opacity: 1; }
                 }
             `}</style>
         </>
