@@ -139,7 +139,7 @@ export default function ConstitutionPage() {
     if (loading) {
         return (
             <>
-                <h1 className="text-3xl mb-8">Конституция</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl mb-8">Конституция</h1>
                 <div className="bg-[#2b2b2b] border border-[#3b3b3b] p-10 text-center text-gray-500">Загрузка...</div>
             </>
         );
@@ -148,7 +148,7 @@ export default function ConstitutionPage() {
     return (
         <>
             <div className="flex items-center justify-between mb-8">
-                <h1 className="text-3xl">Конституция</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl">Конституция</h1>
                 <div className="flex gap-2">
                     {isAdmin && !editing && currentVersion && (
                         <button

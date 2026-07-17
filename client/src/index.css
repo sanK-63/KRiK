@@ -26,7 +26,36 @@ body,
     color: var(--color-text-primary);
     font-family: "Press Start 2P", system-ui;
     -webkit-tap-highlight-color: transparent;
+    transition: background 0.3s, color 0.3s;
 }
+
+body.light-theme {
+    --color-bg-primary: #F5F5F5;
+    --color-bg-secondary: #FFFFFF;
+    --color-bg-panel: #FAFAFA;
+    --color-border: #E0E0E0;
+    --color-text-primary: #1A1A1A;
+    --color-text-secondary: #666666;
+    --color-input-bg: #FFFFFF;
+    --color-card-bg: #FFFFFF;
+}
+
+body.light-theme .btn-secondary {
+    background: #E8E8E8;
+    border-color: #D0D0D0;
+    color: #1A1A1A;
+}
+body.light-theme .btn-secondary:hover {
+    background: #D8D8D8;
+}
+body.light-theme ::-webkit-scrollbar-track { background: #F5F5F5; }
+body.light-theme ::-webkit-scrollbar-thumb { background: #D0D0D0; }
+body.light-theme ::-webkit-scrollbar-thumb:hover { background: #FA6814; }
+body.light-theme .dice-type-btn { border-color: #D0D0D0; background: #FFFFFF; color: #666666; }
+body.light-theme .dice-type-btn.active { background: rgba(250,104,20,0.1); border-color: #FA6814; color: #FA6814; }
+body.light-theme .dice-increment-group { border-color: #E0E0E0; background-color: #FFFFFF; }
+body.light-theme .dice-increment-group button { background-color: #F5F5F5; color: #1A1A1A; }
+body.light-theme .dice-increment-group span { color: #1A1A1A; }
 
 * {
     box-sizing: border-box;

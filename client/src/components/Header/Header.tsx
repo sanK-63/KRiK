@@ -87,12 +87,12 @@ export default function Header({ onToggleSidebar }: Props) {
     };
 
     return (
-        <header className="border-b border-[#393939] bg-[#252525] shrink-0">
+        <header className="border-b shrink-0" style={{ borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}>
             <div className="h-12 sm:h-14 mx-auto flex items-center justify-between px-2 sm:px-4 lg:px-6">
                 <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                     <button
                         onClick={onToggleSidebar}
-                        className="text-gray-400 hover:text-white transition-colors cursor-pointer text-lg shrink-0 hidden xl:block"
+                        className="text-gray-400 hover:text-white transition-colors cursor-pointer text-lg shrink-0"
                     >
                         ☰
                     </button>
@@ -111,7 +111,8 @@ export default function Header({ onToggleSidebar }: Props) {
                             placeholder="Поиск..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="w-28 sm:w-48 lg:w-72 bg-[#1e1e1e] border border-[#3a3a3a] text-xs text-gray-300 px-3 py-1.5 outline-none focus:border-[#FA6814] transition-colors"
+                            className="w-28 sm:w-48 lg:w-72 text-xs px-3 py-1.5 outline-none transition-colors"
+                            style={{ background: "var(--color-input-bg)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                         />
                     </form>
                     {user && (
@@ -128,10 +129,10 @@ export default function Header({ onToggleSidebar }: Props) {
                             </button>
                             {showNotifs && (
                                 <div
-                                    className="absolute right-0 top-full mt-2 w-80 max-h-[400px] overflow-y-auto bg-[#2a2a2a] border border-[#3b3b3b] z-50"
-                                    style={{ scrollbarWidth: "thin", scrollbarColor: "#3a3a3a #2a2a2a" }}
+                                    className="absolute right-0 top-full mt-2 w-80 max-h-[400px] overflow-y-auto z-50"
+                                    style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-border)", scrollbarWidth: "thin" }}
                                 >
-                                    <div className="p-3 border-b border-[#3b3b3b]">
+                                    <div className="p-3 border-b" style={{ borderColor: "var(--color-border)" }}>
                                         <span className="text-[10px] uppercase text-gray-400 font-semibold">Уведомления</span>
                                     </div>
                                     {notifs.length === 0 ? (
@@ -140,9 +141,10 @@ export default function Header({ onToggleSidebar }: Props) {
                                         notifs.map((n) => (
                                             <div
                                                 key={n.id}
-                                                className={`p-3 border-b border-[#2a2a2a] hover:bg-[#303030] transition-colors ${n.read ? "opacity-60" : ""}`}
+                                                className="p-3 border-b transition-colors hover:opacity-80"
+                                                style={{ borderColor: "var(--color-border)" }}
                                             >
-                                                <p className="text-xs text-white font-medium mb-0.5">{n.title}</p>
+                                                <p className="text-xs font-medium mb-0.5" style={{ color: "var(--color-text-primary)" }}>{n.title}</p>
                                                 {n.body && <p className="text-[10px] text-gray-400">{n.body}</p>}
                                             </div>
                                         ))

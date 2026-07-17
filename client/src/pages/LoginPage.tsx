@@ -76,7 +76,7 @@ export default function LoginPage() {
                 style={{ background: "#292929", border: "1px solid #3a3a3a", borderRadius: 4 }}
             >
                 <h1
-                    className="text-center text-3xl uppercase mb-2"
+                    className="text-center text-xl sm:text-2xl lg:text-3xl uppercase mb-2"
                     style={{ color: "#FA6814", fontFamily: '"Press Start 2P", system-ui' }}
                 >
                     Контора

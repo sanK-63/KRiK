@@ -12,9 +12,10 @@ const items = [
 export default function BottomNav() {
     return (
         <nav
-            className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch border-t border-[#393939] xl:hidden"
+            className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch border-t xl:hidden"
             style={{
-                background: "#252525",
+                background: "var(--color-bg-secondary)",
+                borderColor: "var(--color-border)",
                 paddingBottom: "env(safe-area-inset-bottom)",
             }}
         >

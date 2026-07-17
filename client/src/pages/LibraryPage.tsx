@@ -183,7 +183,7 @@ export default function LibraryPage() {
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-3xl">Библиотека</h2>
+                <h2 className="text-xl sm:text-2xl lg:text-3xl">Библиотека</h2>
                 <div className="flex gap-2">
                     <button
                         onClick={() => setShowCategoryModal(true)}
@@ -297,7 +297,7 @@ export default function LibraryPage() {
                                             )}
                                         </div>
                                         {doc.description && <p className="text-xs text-gray-500 mt-1 truncate">{doc.description}</p>}
-                                        <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-600">
+                                        <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-600 flex-wrap">
                                             <span>{doc.originalName}</span>
                                             <span>{formatSize(doc.size)}</span>
                                             <span>{doc.downloads} загрузок</span>

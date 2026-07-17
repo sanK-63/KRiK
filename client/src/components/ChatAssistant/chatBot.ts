@@ -643,15 +643,49 @@ const rules: Rule[] = [
         buttons: [{ label: "Открыть Ивенты →", url: "/events" }],
     },
 
-    // === РАЗНОЕ / ОБЩИЕ ВОПРОСЫ ===
+    // === РАЗГОВОРНЫЕ ФРАЗЫ ===
+    {
+        keywords: ["как дела", "как поживаешь", "как ты", "как жизнь", "как оно"],
+        reply: (name) => getPersonalityReply("quip", name),
+        personality: "quip",
+    },
+    {
+        keywords: ["что делаешь", "чем занимаешься", "что делаешь тут", "чем шугаешь"],
+        reply: (name) => getPersonalityReply("system", name),
+        personality: "system",
+    },
+    {
+        keywords: ["как тебя зовут", "твоё имя", "твое имя", "представься", "ты кто"],
+        reply: (name) => getPersonalityReply("greeting", name),
+        personality: "greeting",
+    },
     {
         keywords: ["погода", "天气"],
-        reply: `Я рыцарь-помощник, а не метеоролог! 🛡️\n\nНо могу подсказать, где найти нужный раздел на сайте.`,
+        reply: (name) => getPersonalityReply("quip", name),
+        personality: "quip",
+    },
+    {
+        keywords: ["я не знаю где ты", "где ты", "ты где", "где находишься", "ты тут"],
+        reply: `Но я тебя вижу.`,
+    },
+    {
+        keywords: ["я тебя вижу", "вижу тебя", "ты видишь меня", "следишь за мной", "наблюдаешь"],
+        reply: (name) => getPersonalityReply("discipline", name),
+        personality: "discipline",
+    },
+    {
+        keywords: ["ты настоящий", "ты живой", "ты реальный", "ты человек", "ты бот", "ты искуственный"],
+        reply: (name) => getPersonalityReply("system", name),
+        personality: "system",
+    },
+    {
+        keywords: ["расскажи о себе", "что ты можешь", "что умеешь", "твои возможности"],
+        reply: `Я Рыцарь-помощник Конторы «Рога и Копыта». Знаю каждый угол этого сайта:\n\n• Навигация — подскажу куда перейти\n• Функции — объясню как пользоваться\n• Правила — кратко расскажу\n• Шутки — поддержу разговор\n• Дисциплина — напомню о порядке\n\nПросто спроси!`,
     },
     {
         keywords: ["шутка", "анекдот", "рассмеши", "смешное", "joke"],
-        reply: `Почему программист путает Хеллоуин и Рождество?\n\nПотому что Oct 31 == Dec 25! 🛡️\n\nЕщё шутки ищи в разделе «Мемы»!`,
-        buttons: [{ label: "Открыть Мемы →", url: "/memes" }],
+        reply: (name) => getPersonalityReply("advice", name),
+        personality: "advice",
     },
     {
         keywords: ["что нового", "новости", "обновления сайта"],
@@ -660,19 +694,23 @@ const rules: Rule[] = [
     },
     {
         keywords: ["устал", "надоело", "хочу спать", "отдых"],
-        reply: `Отдыхай! А я буду тут стоять на страже. 🛡️\n\nКогда вернёшься — помогу с чем угодно.`,
+        reply: (name) => getPersonalityReply("procrastination", name),
+        personality: "procrastination",
     },
     {
         keywords: ["музыка", "песня", "трек", "слушать"],
-        reply: `Я не умею играть музыку, но могу помочь с навигацией по сайту! 🛡️`,
+        reply: (name) => getPersonalityReply("quip", name),
+        personality: "quip",
     },
     {
         keywords: ["время", "сколько времени", "который час", "time"],
-        reply: `Я не часы, но могу сказать: время — это лучшее лекарство. 🛡️\n\nА ещё — время проверить уведомления!`,
+        reply: (name) => getPersonalityReply("special", name),
+        personality: "special",
     },
     {
         keywords: ["помощь нужна", "нужна помощь", "не могу", "затрудняюсь"],
-        reply: `Расскажи подробнее, что не получается — помогу разобраться! Я знаю все разделы и функции сайта.`,
+        reply: (name) => getPersonalityReply("advice", name),
+        personality: "advice",
     },
 
     // === ЛЕНЬ И ПРОКРАСТИНАЦИЯ ===
@@ -751,7 +789,7 @@ const rules: Rule[] = [
 
     // === ПОЛНОЕ НЕПОНИМАНИЕ ===
     {
-        keywords: ["asjdhaskjd", "asdf", "123", "тест", "test", "чаво", "чего", "а?", "а", "ну", "хм", "ммм"],
+        keywords: ["asjdhaskjd", "asdf", "тест", "test", "чаво", "чего"],
         reply: (name) => getPersonalityReply("confusion", name),
         personality: "confusion",
     },

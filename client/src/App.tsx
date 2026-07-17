@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { UserProvider, useUser } from "./context/UserContext";
 import { SocketProvider } from "./context/SocketContext";
 import { TimeProvider } from "./context/TimeContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import AuthLayout from "./layouts/AuthLayout";
 import MainLayout from "./layouts/MainLayout";
 import LoginPage from "./pages/LoginPage";
@@ -45,6 +46,7 @@ function App() {
         <SocketProvider>
         <UserProvider>
         <TimeProvider>
+        <ThemeProvider>
             <BrowserRouter>
                 <Routes>
                     <Route element={<AuthLayout />}>
@@ -90,6 +92,7 @@ function App() {
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </BrowserRouter>
+        </ThemeProvider>
         </TimeProvider>
         </UserProvider>
         </SocketProvider>

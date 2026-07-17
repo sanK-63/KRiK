@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "../context/UserContext";
 
-const TABS = ["Дашборд", "Пользователи", "Форум", "Контент", "Уведомления", "Исследования"] as const;
+const TABS = ["Дашборд", "Пользователи", "Форум", "Контент", "Уведомления", "Исследования", "Настройки"] as const;
 type Tab = typeof TABS[number];
 
 interface Stats {
@@ -80,6 +80,7 @@ export default function AdminPage() {
             {tab === "Контент" && <ContentTab API={API} auth={auth} />}
             {tab === "Уведомления" && <NotificationsTab API={API} auth={auth} />}
             {tab === "Исследования" && <ResearchTab />}
+            {tab === "Настройки" && <SettingsTab API={API} auth={auth} />}
         </div>
     );
 }
@@ -152,21 +153,50 @@ function DashboardTab({ API, auth }: { API: string; auth: Record<string, string>
 function UsersTab({ API, auth }: { API: string; auth: Record<string, string> }) {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
 
-    useEffect(() => {
-        fetch(`${API}/api/users`, { headers: auth, credentials: "include" })
+    const load = useCallback(() => {
+        fetch(`${API}/api/admin/users`, { headers: auth, credentials: "include" })
             .then((r) => r.ok ? r.json() : [])
             .then(setUsers)
             .catch(() => {})
             .finally(() => setLoading(false));
     }, []);
 
+    useEffect(() => { load(); }, [load]);
+
+    const toggleStatus = async (id: number, current: string) => {
+        const newStatus = current === "active" ? "banned" : "active";
+        if (!confirm(newStatus === "banned" ? "Забанить пользователя?" : "Разбанить пользователя?")) return;
+        await fetch(`${API}/api/admin/users/${id}/status`, {
+            method: "PUT", headers: auth, credentials: "include",
+            body: JSON.stringify({ status: newStatus }),
+        });
+        load();
+    };
+
+    const deleteUser = async (id: number) => {
+        if (!confirm("Удалить пользователя навсегда? Это действие необратимо!")) return;
+        await fetch(`${API}/api/admin/users/${id}`, { method: "DELETE", headers: auth, credentials: "include" });
+        load();
+    };
+
+    const filtered = users.filter((u) => {
+        const q = search.toLowerCase();
+        return !q || (u.displayName || "").toLowerCase().includes(q) || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+    });
+
     if (loading) return <div className="text-gray-500 text-sm">Загрузка...</div>;
 
     return (
         <div className="space-y-3">
-            <div className="flex items-center justify-between">
-                <p className="text-xs text-gray-500">{users.length} пользователей</p>
+            <div className="flex items-center justify-between gap-3">
+                <p className="text-xs text-gray-500">{filtered.length} из {users.length} пользователей</p>
+                <input
+                    type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Поиск..."
+                    className="bg-[#1a1a1a] border border-[#3a3a3a] text-white text-xs px-3 py-1.5 w-60 focus:border-[#FA6814] outline-none"
+                />
             </div>
             <div className="bg-[#282828] border border-[#3a3a3a] overflow-x-auto">
                 <table className="w-full text-sm">
@@ -178,10 +208,11 @@ function UsersTab({ API, auth }: { API: string; auth: Record<string, string> }) 
                             <th className="px-4 py-3">Статус</th>
                             <th className="px-4 py-3">Создан</th>
                             <th className="px-4 py-3">Активен</th>
+                            <th className="px-4 py-3 text-right">Действия</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {users.map((u) => {
+                        {filtered.map((u) => {
                             const online = u.last_active && (Date.now() - new Date(u.last_active).getTime()) < 300000;
                             return (
                                 <tr key={u.id} className="border-b border-[#3a3a3a] last:border-0 hover:bg-[#2a2a2a]">
@@ -201,13 +232,37 @@ function UsersTab({ API, auth }: { API: string; auth: Record<string, string> }) 
                                     </td>
                                     <td className="px-4 py-3 text-gray-400">{u.email}</td>
                                     <td className="px-4 py-3">
-                                        <span className={`text-xs px-2 py-0.5 ${u.status === "active" ? "bg-green-900/40 text-green-400" : "bg-red-900/40 text-red-400"}`}>
-                                            {u.status === "active" ? "Активен" : u.status}
+                                        <span className={`text-[10px] px-2 py-0.5 font-semibold uppercase ${
+                                            u.status === "active" ? "bg-green-900/40 text-green-400 border border-green-800/50" :
+                                            u.status === "banned" ? "bg-red-900/40 text-red-400 border border-red-800/50" :
+                                            "bg-gray-800/40 text-gray-400 border border-gray-700/50"
+                                        }`}>
+                                            {u.status === "active" ? "Активен" : u.status === "banned" ? "Забанен" : u.status}
                                         </span>
-                                        {online && <span className="ml-2 inline-block w-2 h-2 rounded-full bg-green-400" />}
+                                        {online && <span className="ml-2 inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse" />}
                                     </td>
                                     <td className="px-4 py-3 text-xs text-gray-500">{u.created_at?.slice(0, 10)}</td>
                                     <td className="px-4 py-3 text-xs text-gray-500">{u.last_active?.slice(0, 16).replace("T", " ")}</td>
+                                    <td className="px-4 py-3 text-right">
+                                        <div className="flex items-center justify-end gap-1">
+                                            <a href={`/profile/${u.id}`} target="_blank" rel="noopener noreferrer"
+                                                className="text-[10px] px-2 py-1 bg-[#1a1a1a] border border-[#3a3a3a] text-gray-400 hover:text-white hover:border-[#FA6814] transition-colors">
+                                                Профиль
+                                            </a>
+                                            <button onClick={() => toggleStatus(u.id, u.status)}
+                                                className={`text-[10px] px-2 py-1 border transition-colors ${
+                                                    u.status === "active"
+                                                        ? "bg-[#D32F2F]/10 border-[#D32F2F]/30 text-red-400 hover:bg-[#D32F2F]/20"
+                                                        : "bg-[#4CAF50]/10 border-[#4CAF50]/30 text-green-400 hover:bg-[#4CAF50]/20"
+                                                }`}>
+                                                {u.status === "active" ? "Бан" : "Разбан"}
+                                            </button>
+                                            <button onClick={() => deleteUser(u.id)}
+                                                className="text-[10px] px-2 py-1 bg-[#D32F2F]/20 border border-[#D32F2F]/40 text-red-400 hover:bg-[#D32F2F]/30 transition-colors">
+                                                Удалить
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             );
                         })}
@@ -505,7 +560,7 @@ function ResearchTab() {
 
     return (
         <div className="space-y-4">
-            <div className="flex gap-1 border-b border-[#3a3a3a]">
+            <div className="flex gap-1 border-b border-[#3a3a3a] overflow-x-auto whitespace-nowrap">
                 {calcTypes.map((c) => (
                     <button key={c.key} onClick={() => setCalcType(c.key)} className="px-4 py-2.5 text-sm"
                         style={{ borderBottom: calcType === c.key ? "2px solid #FA6814" : "2px solid transparent", color: calcType === c.key ? "#F2F2F2" : "#808080" }}>
@@ -660,6 +715,70 @@ function ProbCalc() {
                 <div className="bg-[#282828] border border-[#3a3a3a] p-4 text-center">
                     <p className="text-3xl font-bold text-[#FFB020]">{Math.round(elo)}</p>
                     <p className="text-xs text-gray-500 mt-1">ELO Рейтинг</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ── НАСТРОЙКИ ──────────────────────────────
+function SettingsTab({ API, auth }: { API: string; auth: Record<string, string> }) {
+    const [dbInfo, setDbInfo] = useState<{ tables: string[]; size: number } | null>(null);
+
+    useEffect(() => {
+        fetch(`${API}/api/admin/stats`, { headers: auth, credentials: "include" })
+            .then((r) => r.ok ? r.json() : null)
+            .then((d) => {
+                if (d) setDbInfo({ tables: Object.keys(d.counts), size: d.dbSize });
+            })
+            .catch(() => {});
+    }, []);
+
+    return (
+        <div className="space-y-6 max-w-3xl">
+            <div className="bg-[#282828] border border-[#3a3a3a] p-5">
+                <h3 className="text-[10px] text-gray-500 mb-4" style={{ fontFamily: '"Press Start 2P", system-ui' }}>ИНФОРМАЦИЯ О СИСТЕМЕ</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="bg-[#1a1a1a] border border-[#3a3a3a] p-3 text-center">
+                        <p className="text-xl font-bold text-[#FA6814]">{dbInfo?.size || "—"}</p>
+                        <p className="text-[10px] text-gray-500 mt-1">Размер БД (KB)</p>
+                    </div>
+                    <div className="bg-[#1a1a1a] border border-[#3a3a3a] p-3 text-center">
+                        <p className="text-xl font-bold text-white">{dbInfo?.tables?.length || "—"}</p>
+                        <p className="text-[10px] text-gray-500 mt-1">Таблиц</p>
+                    </div>
+                    <div className="bg-[#1a1a1a] border border-[#3a3a3a] p-3 text-center">
+                        <p className="text-xl font-bold text-[#4CAF50]">v1.0</p>
+                        <p className="text-[10px] text-gray-500 mt-1">Версия портала</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-[#282828] border border-[#3a3a3a] p-5">
+                <h3 className="text-[10px] text-gray-500 mb-4" style={{ fontFamily: '"Press Start 2P", system-ui' }}>ТАБЛИЦЫ БАЗЫ ДАННЫХ</h3>
+                <div className="flex flex-wrap gap-2">
+                    {dbInfo?.tables?.map((t) => (
+                        <span key={t} className="text-[10px] px-2 py-1 bg-[#1a1a1a] border border-[#3a3a3a] text-gray-400 font-mono">
+                            {t}
+                        </span>
+                    ))}
+                </div>
+            </div>
+
+            <div className="bg-[#282828] border border-[#3a3a3a] p-5">
+                <h3 className="text-[10px] text-gray-500 mb-4" style={{ fontFamily: '"Press Start 2P", system-ui' }}>СТЕК ТЕХНОЛОГИЙ</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="space-y-2">
+                        <div className="flex justify-between"><span className="text-gray-400">Frontend</span><span className="text-white">React 19 + Vite 8</span></div>
+                        <div className="flex justify-between"><span className="text-gray-400">UI</span><span className="text-white">Tailwind CSS 4</span></div>
+                        <div className="flex justify-between"><span className="text-gray-400">Backend</span><span className="text-white">Express 4 + TS</span></div>
+                        <div className="flex justify-between"><span className="text-gray-400">БД</span><span className="text-white">SQLite + Drizzle</span></div>
+                    </div>
+                    <div className="space-y-2">
+                        <div className="flex justify-between"><span className="text-gray-400">WebSocket</span><span className="text-white">Socket.io</span></div>
+                        <div className="flex justify-between"><span className="text-gray-400">Формы</span><span className="text-white">React Hook Form + Zod</span></div>
+                        <div className="flex justify-between"><span className="text-gray-400">Линтер</span><span className="text-white">OxLint</span></div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -48,7 +48,7 @@ export default function MainLayout() {
                     className={`flex-1 ${isMessenger ? "overflow-hidden" : "overflow-y-auto"} ${
                         isMessenger ? "" : "p-3 sm:p-4 lg:p-6 xl:pb-6 pb-20"
                     }`}
-                    style={{ background: "#212121" }}
+                    style={{ background: "var(--color-bg-primary)" }}
                 >
                     <div className={`${isMessenger ? "h-full" : "max-w-[1600px] 2xl:max-w-[2000px] mx-auto"}`}>
                         <Outlet />

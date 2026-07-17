@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import { useTheme } from "../context/ThemeContext";
 import {
     Newspaper,
     MessageSquare,
@@ -18,6 +19,8 @@ import {
     BookMarked,
     Archive,
     Shield,
+    Sun,
+    Moon,
     type LucideIcon,
 } from "lucide-react";
 
@@ -43,12 +46,14 @@ const links: [string, string, LucideIcon][] = [
 
 export default function Sidebar() {
     const { user } = useUser();
+    const { theme, toggle } = useTheme();
     const isAdmin = user?.username === "tunev";
     return (
         <aside
-            className="w-56 h-full py-4 overflow-y-auto"
-            style={{ background: "#252525", borderRight: "1px solid #393939" }}
+            className="w-56 h-full py-4 flex flex-col overflow-y-auto"
+            style={{ background: "var(--color-bg-secondary)", borderRight: "1px solid var(--color-border)" }}
         >
+            <div className="flex-1">
             {links.map(([url, name, Icon]) => (
                 <NavLink
                     key={url}
@@ -94,6 +99,14 @@ export default function Sidebar() {
                     )}
                 </NavLink>
             )}
+            </div>
+            <button
+                onClick={toggle}
+                className="flex items-center gap-3 px-4 py-2.5 text-[13px] text-gray-400 hover:text-white hover:bg-[#2a2a2a] transition-colors mx-0 mt-2"
+            >
+                {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+                {theme === "dark" ? "Светлая тема" : "Тёмная тема"}
+            </button>
         </aside>
     );
 }

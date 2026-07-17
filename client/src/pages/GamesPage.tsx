@@ -101,7 +101,7 @@ export default function GamesPage({ embedded = false }: Props) {
         <>
             {!embedded && (
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-3xl">Игры</h2>
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl">Игры</h2>
                     <button
                         onClick={() => setShowAdd(true)}
                         className="bg-[#FA6814] text-white px-5 py-2.5 text-sm font-semibold uppercase hover:bg-[#ff7a2a] transition-colors cursor-pointer"
@@ -144,7 +144,7 @@ export default function GamesPage({ embedded = false }: Props) {
                     style={{ background: "rgba(0,0,0,0.6)" }}
                     onClick={() => setShowAdd(false)}
                 >
-                    <div className="w-[500px] bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-full max-w-[500px] mx-4 bg-[#2a2a2a] border border-[#3b3b3b] p-6" onClick={(e) => e.stopPropagation()}>
                         <h3 className="text-lg font-semibold mb-5">Добавить игру</h3>
                         <label className="block text-xs uppercase text-gray-400 mb-2">Название *</label>
                         <input type="text" placeholder="Counter-Strike 2" value={newGame.name} onChange={(e) => setNewGame({ ...newGame, name: e.target.value })} className="w-full bg-[#1e1e1e] border border-[#3a3a3a] text-sm text-gray-300 px-3 py-2.5 outline-none focus:border-[#FA6814] transition-colors mb-4" />

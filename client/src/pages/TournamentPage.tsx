@@ -351,7 +351,7 @@ export default function TournamentPage() {
     return (
         <>
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-3xl">Турниры</h2>
+                <h2 className="text-xl sm:text-2xl lg:text-3xl">Турниры</h2>
                 <button
                     onClick={() => setShowWizard(true)}
                     className="bg-[#FA6814] text-white px-5 py-2.5 text-sm font-semibold uppercase hover:bg-[#ff7a2a] transition-colors cursor-pointer"
@@ -456,19 +456,19 @@ export default function TournamentPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-5">
                         <div className="text-xs uppercase text-gray-400">Всего турниров</div>
-                        <div className="text-3xl text-[#FA6814] mt-2">{tournaments.length}</div>
+                        <div className="text-xl sm:text-2xl lg:text-3xl text-[#FA6814] mt-2">{tournaments.length}</div>
                     </div>
                     <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-5">
                         <div className="text-xs uppercase text-gray-400">Активных</div>
-                        <div className="text-3xl text-[#4CAF50] mt-2">{tournaments.filter((t) => t.status === "registration" || t.status === "active").length}</div>
+                        <div className="text-xl sm:text-2xl lg:text-3xl text-[#4CAF50] mt-2">{tournaments.filter((t) => t.status === "registration" || t.status === "active").length}</div>
                     </div>
                     <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-5">
                         <div className="text-xs uppercase text-gray-400">Всего участников</div>
-                        <div className="text-3xl text-[#FA6814] mt-2">{tournaments.reduce((s, t) => s + t.registrationCount, 0)}</div>
+                        <div className="text-xl sm:text-2xl lg:text-3xl text-[#FA6814] mt-2">{tournaments.reduce((s, t) => s + t.registrationCount, 0)}</div>
                     </div>
                     <div className="bg-[#2a2a2a] border border-[#3b3b3b] p-5">
                         <div className="text-xs uppercase text-gray-400">Всего матчей</div>
-                        <div className="text-3xl text-[#FA6814] mt-2">{tournaments.reduce((s, t) => s + t.matchCount, 0)}</div>
+                        <div className="text-xl sm:text-2xl lg:text-3xl text-[#FA6814] mt-2">{tournaments.reduce((s, t) => s + t.matchCount, 0)}</div>
                     </div>
                 </div>
             )}
