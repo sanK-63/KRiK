@@ -19,6 +19,7 @@ import {
 import { eq, and, sql } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 import { processMatchResult, processTournamentEnd } from "../services/elo";
+import { auditLog } from "../core/audit";
 
 const router = Router();
 
@@ -171,6 +172,7 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
         db.insert(tournamentRules).values({ tournamentId: tournament.id, markdown: rules }).run();
     }
 
+    auditLog({ userId: req.userId ?? undefined, action: "tournament.create", targetType: "tournament", targetId: tournament.id, details: { title, gameId }, ipAddress: req.ip });
     res.status(201).json({ id: tournament.id, title: tournament.title, status: tournament.status });
 });
 
@@ -215,6 +217,7 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         db.insert(tournamentRules).values({ tournamentId: id, markdown: rules, version: maxVersion + 1 }).run();
     }
 
+    auditLog({ userId: req.userId ?? undefined, action: "tournament.update", targetType: "tournament", targetId: id, details: { title: title ?? t.title }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 
@@ -230,6 +233,7 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         return;
     }
     db.delete(tournaments).where(eq(tournaments.id, id)).run();
+    auditLog({ userId: req.userId ?? undefined, action: "tournament.delete", targetType: "tournament", targetId: id, details: { title: t.title }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 
@@ -270,6 +274,7 @@ router.patch("/:id/status", authMiddleware, (req: AuthRequest, res: Response) =>
         eloResult = processTournamentEnd(id);
     }
 
+    auditLog({ userId: req.userId ?? undefined, action: "tournament.status_change", targetType: "tournament", targetId: id, details: { from: t.status, to: status }, ipAddress: req.ip });
     res.json({ id, status, elo: eloResult });
 });
 
@@ -338,6 +343,7 @@ router.post("/:id/register", authMiddleware, (req: AuthRequest, res: Response) =
         }
     }
 
+    auditLog({ userId: req.userId ?? undefined, action: "tournament.register", targetType: "tournament_registration", targetId: reg.id, details: { tournamentId, teamId: teamId || null }, ipAddress: req.ip });
     res.status(201).json({ id: reg.id, status: reg.status });
 });
 
@@ -351,6 +357,7 @@ router.delete("/:id/register", authMiddleware, (req: AuthRequest, res: Response)
         return;
     }
     db.delete(registrations).where(eq(registrations.id, reg.id)).run();
+    auditLog({ userId: req.userId ?? undefined, action: "tournament.unregister", targetType: "tournament_registration", targetId: reg.id, details: { tournamentId }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 
@@ -368,6 +375,7 @@ router.patch("/:id/registrations/:regId/approve", authMiddleware, (req: AuthRequ
         return;
     }
     db.update(registrations).set({ status: "approved" }).where(eq(registrations.id, regId)).run();
+    auditLog({ userId: req.userId ?? undefined, action: "tournament.registration.approve", targetType: "tournament_registration", targetId: regId, details: { tournamentId: Number(req.params.id) }, ipAddress: req.ip });
     res.json({ ok: true, status: "approved" });
 });
 
@@ -385,6 +393,7 @@ router.patch("/:id/registrations/:regId/reject", authMiddleware, (req: AuthReque
         return;
     }
     db.update(registrations).set({ status: "rejected" }).where(eq(registrations.id, regId)).run();
+    auditLog({ userId: req.userId ?? undefined, action: "tournament.registration.reject", targetType: "tournament_registration", targetId: regId, details: { tournamentId: Number(req.params.id) }, ipAddress: req.ip });
     res.json({ ok: true, status: "rejected" });
 });
 
@@ -588,6 +597,7 @@ router.patch("/:tournamentId/matches/:matchId", authMiddleware, (req: AuthReques
         }
     }
 
+    auditLog({ userId: req.userId ?? undefined, action: "tournament.match.update", targetType: "match", targetId: matchId, details: { tournamentId, ...updates }, ipAddress: req.ip });
     res.json({ id: matchId, ...updates, elo: eloResult });
 });
 
@@ -693,6 +703,7 @@ router.post("/:id/generate-bracket", authMiddleware, (req: AuthRequest, res: Res
         db.update(tournaments).set({ status: "active" }).where(eq(tournaments.id, tournamentId)).run();
     }
 
+    auditLog({ userId: req.userId ?? undefined, action: "tournament.bracket.generate", targetType: "tournament", targetId: tournamentId, details: { bracketId: bracket.id, rounds: roundObjects.length, matchesInFirstRound }, ipAddress: req.ip });
     res.json({ ok: true, bracketId: bracket.id, rounds: roundObjects.length, matchesInFirstRound });
 });
 

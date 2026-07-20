@@ -4,6 +4,7 @@ import { movies, movieComments, users } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 import { getIO } from "../socket";
+import { auditLog } from "../core/audit";
 
 const router = Router();
 
@@ -68,6 +69,7 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
 
     try { getIO().emit("movie:created", enrichMovie(result)); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "movie.create", targetType: "movie", targetId: result.id, details: { title }, ipAddress: req.ip });
     res.json(result);
 });
 
@@ -99,6 +101,7 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
 
     try { getIO().emit("movie:updated", enrichMovie(updated)); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "movie.update", targetType: "movie", targetId: id, details: { title: title ?? movie.title }, ipAddress: req.ip });
     res.json(enrichMovie(updated));
 });
 
@@ -117,6 +120,7 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
 
     try { getIO().emit("movie:deleted", { id }); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "movie.delete", targetType: "movie", targetId: id, details: { title: movie.title }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 
@@ -150,6 +154,7 @@ router.post("/:id/comments", authMiddleware, (req: AuthRequest, res: Response) =
 
     try { getIO().emit("movie_comment:created", { movieId, comment: enriched }); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "movie.comment.create", targetType: "movie_comment", targetId: result.id, details: { movieId }, ipAddress: req.ip });
     res.json(enriched);
 });
 
@@ -173,6 +178,7 @@ router.delete("/:movieId/comments/:commentId", authMiddleware, (req: AuthRequest
 
     try { getIO().emit("movie_comment:deleted", { movieId, commentId }); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "movie.comment.delete", targetType: "movie_comment", targetId: commentId, details: { movieId }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 

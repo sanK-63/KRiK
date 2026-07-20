@@ -6,6 +6,7 @@ import { db, sqlite } from "../database";
 import { libraryCategories, libraryDocuments, users } from "../database/schema";
 import { eq, like, sql } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { auditLog } from "../core/audit";
 
 const router = Router();
 
@@ -157,6 +158,7 @@ router.post("/", authMiddleware, upload.single("file"), (req: AuthRequest, res: 
         uploadedBy: req.userId || null,
     }).returning().get();
 
+    auditLog({ userId: req.userId ?? undefined, action: "library.document.upload", targetType: "library_document", targetId: doc.id, details: { title: doc.title, filename: doc.filename }, ipAddress: req.ip });
     res.status(201).json({ id: doc.id, title: doc.title, filename: doc.filename });
 });
 
@@ -177,6 +179,7 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         ...(description !== undefined && { description }),
         ...(categoryId !== undefined && { categoryId: categoryId ? Number(categoryId) : null }),
     }).where(eq(libraryDocuments.id, id)).run();
+    auditLog({ userId: req.userId ?? undefined, action: "library.document.update", targetType: "library_document", targetId: id, details: { title: title ?? doc.title }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 
@@ -196,6 +199,7 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         fs.unlinkSync(filePath);
     }
     db.delete(libraryDocuments).where(eq(libraryDocuments.id, id)).run();
+    auditLog({ userId: req.userId ?? undefined, action: "library.document.delete", targetType: "library_document", targetId: id, details: { title: doc.title }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 

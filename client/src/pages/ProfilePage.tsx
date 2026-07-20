@@ -1,24 +1,7 @@
 import { useState, useEffect } from "react";
 import { useUser } from "../context/UserContext";
 
-const mockLoginHistory = [
-    { date: "2026-07-14 11:05", ip: "192.168.1.1", device: "Windows / Chrome" },
-    { date: "2026-07-13 22:30", ip: "192.168.1.1", device: "Windows / Chrome" },
-    { date: "2026-07-12 18:15", ip: "10.0.0.5", device: "Windows / Firefox" },
-    { date: "2026-07-10 09:40", ip: "192.168.1.1", device: "Windows / Chrome" },
-];
-
-const mockTournaments = [
-    { name: "CS2 Major Spring 2026", status: "Идёт", role: "Капитан" },
-    { name: "Dota 2 Weekly #12", status: "Завершён", role: "Участник" },
-];
-
-const mockTeams = [
-    { name: "Rога", game: "CS2", role: "Капитан" },
-    { name: "Копыта", game: "Dota 2", role: "Участник" },
-];
-
-type Tab = "Профиль" | "История входов" | "Турниры" | "Команды" | "ELO рейтинг";
+const VITE_API = import.meta.env.VITE_API_URL;
 
 const roleColors: Record<string, string> = {
     Administrator: "#D32F2F",
@@ -63,26 +46,60 @@ function getEloRank(elo: number): string {
     return "Рекрут";
 }
 
+type Tab = "Профиль" | "История входов" | "Турниры" | "Команды" | "ELO рейтинг";
+
 export default function ProfilePage() {
     const { user, setUser } = useUser();
     const [tab, setTab] = useState<Tab>("Профиль");
     const [newEmail, setNewEmail] = useState("");
     const [emailMessage, setEmailMessage] = useState("");
-    const tabs: Tab[] = ["Профиль", "История входов", "Турниры", "Команды", "ELO рейтинг"];
     const [elo, setElo] = useState<EloData | null>(null);
     const [eloHistory, setEloHistory] = useState<EloHistoryEntry[]>([]);
+    const [editing, setEditing] = useState(false);
+    const [saveMsg, setSaveMsg] = useState("");
+    const [saving, setSaving] = useState(false);
+
+    const [form, setForm] = useState({
+        displayName: "",
+        surname: "",
+        patronymic: "",
+        phone: "",
+        dateOfBirth: "",
+        email: "",
+        discord: "",
+        steam: "",
+        ea: "",
+        battleNet: "",
+        country: "",
+        bio: "",
+    });
+
+    useEffect(() => {
+        if (user) {
+            setForm({
+                displayName: user.displayName || "",
+                surname: user.surname || "",
+                patronymic: user.patronymic || "",
+                phone: user.phone || "",
+                dateOfBirth: user.dateOfBirth || "",
+                email: user.email || "",
+                discord: user.profile?.discord || "",
+                steam: user.profile?.steam || "",
+                ea: user.profile?.ea || "",
+                battleNet: user.profile?.battleNet || "",
+                country: user.profile?.country || "",
+                bio: user.profile?.bio || "",
+            });
+        }
+    }, [user]);
 
     useEffect(() => {
         if (!user || tab !== "ELO рейтинг") return;
-        fetch(`${import.meta.env.VITE_API_URL}/api/elo/user/${user.id}`, {
-            credentials: "include",
-        })
+        fetch(`${VITE_API}/api/elo/user/${user.id}`, { credentials: "include" })
             .then((r) => r.json())
             .then(setElo)
             .catch(() => {});
-        fetch(`${import.meta.env.VITE_API_URL}/api/elo/history/${user.id}?limit=20`, {
-            credentials: "include",
-        })
+        fetch(`${VITE_API}/api/elo/history/${user.id}?limit=20`, { credentials: "include" })
             .then((r) => r.json())
             .then(setEloHistory)
             .catch(() => {});
@@ -92,14 +109,14 @@ export default function ProfilePage() {
         if (!newEmail) return;
         setEmailMessage("");
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/change-email`, {
+            const res = await fetch(`${VITE_API}/api/auth/change-email`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({ newEmail }),
             });
             if (res.ok) {
-                setEmailMessage("✓ Почта изменена");
+                setEmailMessage("Почта изменена");
                 if (user) setUser({ ...user, email: newEmail });
                 setNewEmail("");
             } else {
@@ -108,6 +125,50 @@ export default function ProfilePage() {
             }
         } catch {
             setEmailMessage("Ошибка сети");
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        setSaving(true);
+        setSaveMsg("");
+        try {
+            const res = await fetch(`${VITE_API}/api/users/me/profile`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(form),
+            });
+            if (res.ok) {
+                setSaveMsg("Профиль сохранён");
+                setEditing(false);
+                if (user) {
+                    setUser({
+                        ...user,
+                        displayName: form.displayName,
+                        surname: form.surname,
+                        patronymic: form.patronymic,
+                        phone: form.phone,
+                        dateOfBirth: form.dateOfBirth,
+                        email: form.email,
+                        profile: {
+                            ...user.profile,
+                            discord: form.discord,
+                            steam: form.steam,
+                            ea: form.ea,
+                            battleNet: form.battleNet,
+                            country: form.country,
+                            bio: form.bio,
+                        },
+                    });
+                }
+            } else {
+                const data = await res.json();
+                setSaveMsg(data.error || "Ошибка сохранения");
+            }
+        } catch {
+            setSaveMsg("Ошибка сети");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -122,6 +183,11 @@ export default function ProfilePage() {
     const initials = (user.displayName?.[0] || user.username?.[0] || "?").toUpperCase();
     const fullName = [user.displayName, user.surname, user.patronymic].filter(Boolean).join(" ");
 
+    const tabs: Tab[] = ["Профиль", "История входов", "Турниры", "Команды", "ELO рейтинг"];
+
+    const inputCls = "w-full bg-[#1e1e1e] border border-[#3a3a3a] text-xs text-gray-300 px-3 py-2 outline-none focus:border-[#FA6814] transition-colors";
+    const labelCls = "text-[10px] text-gray-500 block mb-1";
+
     return (
         <div className="max-w-3xl xl:max-w-5xl space-y-6">
             <h1 className="text-sm text-[#FA6814]" style={{ fontFamily: '"Press Start 2P", system-ui' }}>
@@ -132,7 +198,7 @@ export default function ProfilePage() {
                 {tabs.map((t) => (
                     <button
                         key={t}
-                        onClick={() => setTab(t)}
+                        onClick={() => { setTab(t); setEditing(false); setSaveMsg(""); }}
                         className={`px-4 py-2.5 text-xs font-medium transition-colors cursor-pointer ${
                             tab === t
                                 ? "text-[#FA6814] border-b-2 border-[#FA6814]"
@@ -158,9 +224,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="flex-1">
                             <h2 className="text-lg font-bold text-white">{fullName || user.username}</h2>
-                            {user.username && (
-                                <p className="text-xs text-gray-500 mt-1">@{user.username}</p>
-                            )}
+                            {user.username && <p className="text-xs text-gray-500 mt-1">@{user.username}</p>}
                             <div className="flex gap-2 mt-2 flex-wrap">
                                 {user.roles.map((r: { roleId: number; name: string; color: string | null }) => (
                                     <span
@@ -179,32 +243,44 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="p-4 space-y-3" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}>
-                        <h3 className="text-xs uppercase text-gray-400 mb-3">Личные данные</h3>
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-xs uppercase text-gray-400">Личные данные</h3>
+                            {!editing ? (
+                                <button onClick={() => setEditing(true)} className="text-[10px] text-[#FA6814] hover:text-[#FF7D30] transition-colors cursor-pointer">
+                                    Редактировать
+                                </button>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <button onClick={() => { setEditing(false); setSaveMsg(""); }} className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors cursor-pointer">
+                                        Отмена
+                                    </button>
+                                    <button onClick={handleSaveProfile} disabled={saving} className="text-[10px] px-3 py-1 bg-[#FA6814] text-white hover:bg-[#FF7D30] disabled:opacity-50 transition-colors cursor-pointer">
+                                        {saving ? "..." : "Сохранить"}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        {saveMsg && <p className="text-[10px] text-[#4CAF50]">{saveMsg}</p>}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <span className="text-[10px] text-gray-500 block">Имя</span>
-                                <span className="text-xs text-white">{user.displayName || "—"}</span>
-                            </div>
-                            <div>
-                                <span className="text-[10px] text-gray-500 block">Фамилия</span>
-                                <span className="text-xs text-white">{user.surname || "—"}</span>
-                            </div>
-                            <div>
-                                <span className="text-[10px] text-gray-500 block">Отчество</span>
-                                <span className="text-xs text-white">{user.patronymic || "—"}</span>
-                            </div>
-                            <div>
-                                <span className="text-[10px] text-gray-500 block">Дата рождения</span>
-                                <span className="text-xs text-white">{user.dateOfBirth || "—"}</span>
-                            </div>
-                            <div>
-                                <span className="text-[10px] text-gray-500 block">Телефон</span>
-                                <span className="text-xs text-white">{user.phone || "—"}</span>
-                            </div>
-                            <div>
-                                <span className="text-[10px] text-gray-500 block">Email</span>
-                                <span className="text-xs text-white">{user.email}</span>
-                            </div>
+                            {editing ? (
+                                <>
+                                    <div><span className={labelCls}>Имя</span><input className={inputCls} value={form.displayName} onChange={(e) => setForm({...form, displayName: e.target.value})} /></div>
+                                    <div><span className={labelCls}>Фамилия</span><input className={inputCls} value={form.surname} onChange={(e) => setForm({...form, surname: e.target.value})} /></div>
+                                    <div><span className={labelCls}>Отчество</span><input className={inputCls} value={form.patronymic} onChange={(e) => setForm({...form, patronymic: e.target.value})} /></div>
+                                    <div><span className={labelCls}>Дата рождения</span><input type="date" className={inputCls} value={form.dateOfBirth} onChange={(e) => setForm({...form, dateOfBirth: e.target.value})} /></div>
+                                    <div><span className={labelCls}>Телефон</span><input className={inputCls} value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} /></div>
+                                    <div><span className={labelCls}>Email</span><input type="email" className={inputCls} value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} /></div>
+                                </>
+                            ) : (
+                                <>
+                                    <div><span className="text-[10px] text-gray-500 block">Имя</span><span className="text-xs text-white">{user.displayName || "—"}</span></div>
+                                    <div><span className="text-[10px] text-gray-500 block">Фамилия</span><span className="text-xs text-white">{user.surname || "—"}</span></div>
+                                    <div><span className="text-[10px] text-gray-500 block">Отчество</span><span className="text-xs text-white">{user.patronymic || "—"}</span></div>
+                                    <div><span className="text-[10px] text-gray-500 block">Дата рождения</span><span className="text-xs text-white">{user.dateOfBirth || "—"}</span></div>
+                                    <div><span className="text-[10px] text-gray-500 block">Телефон</span><span className="text-xs text-white">{user.phone || "—"}</span></div>
+                                    <div><span className="text-[10px] text-gray-500 block">Email</span><span className="text-xs text-white">{user.email}</span></div>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -227,48 +303,41 @@ export default function ProfilePage() {
                             </button>
                         </div>
                         {emailMessage && (
-                            <p className={`text-[10px] ${emailMessage.includes("✓") ? "text-[#4CAF50]" : "text-[#D32F2F]"}`}>
+                            <p className={`text-[10px] ${emailMessage.includes("изменена") ? "text-[#4CAF50]" : "text-[#D32F2F]"}`}>
                                 {emailMessage}
                             </p>
                         )}
                     </div>
 
                     <div className="p-4 space-y-3" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}>
-                        <h3 className="text-xs uppercase text-gray-400 mb-3">Ссылки</h3>
-                        {user.profile?.discord && (
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-500">Discord</span>
-                                <span className="text-xs text-white">{user.profile.discord}</span>
+                        <h3 className="text-xs uppercase text-gray-400 mb-3">Ссылки и соцсети</h3>
+                        {editing ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div><span className={labelCls}>Discord</span><input className={inputCls} value={form.discord} onChange={(e) => setForm({...form, discord: e.target.value})} placeholder="username" /></div>
+                                <div><span className={labelCls}>Steam</span><input className={inputCls} value={form.steam} onChange={(e) => setForm({...form, steam: e.target.value})} placeholder="Steam ID / URL" /></div>
+                                <div><span className={labelCls}>EA</span><input className={inputCls} value={form.ea} onChange={(e) => setForm({...form, ea: e.target.value})} placeholder="EA ID" /></div>
+                                <div><span className={labelCls}>Battle.net</span><input className={inputCls} value={form.battleNet} onChange={(e) => setForm({...form, battleNet: e.target.value})} placeholder="BattleTag" /></div>
+                                <div><span className={labelCls}>Страна</span><input className={inputCls} value={form.country} onChange={(e) => setForm({...form, country: e.target.value})} placeholder="Страна" /></div>
+                                <div className="sm:col-span-2"><span className={labelCls}>О себе</span><textarea className={inputCls + " resize-none"} rows={3} value={form.bio} onChange={(e) => setForm({...form, bio: e.target.value})} placeholder="Расскажите о себе..." /></div>
                             </div>
-                        )}
-                        {user.profile?.steam && (
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-500">Steam</span>
-                                <span className="text-xs text-white">{user.profile.steam}</span>
-                            </div>
-                        )}
-                        {user.profile?.ea && (
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-500">EA</span>
-                                <span className="text-xs text-white">{user.profile.ea}</span>
-                            </div>
-                        )}
-                        {user.profile?.battleNet && (
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-500">Battle.net</span>
-                                <span className="text-xs text-white">{user.profile.battleNet}</span>
-                            </div>
-                        )}
-                        {user.profile?.country && (
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-500">Страна</span>
-                                <span className="text-xs text-white">{user.profile.country}</span>
-                            </div>
-                        )}
-                        {user.profile?.bio && (
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-500">О себе</span>
-                                <span className="text-xs text-white">{user.profile.bio}</span>
+                        ) : (
+                            <div className="space-y-2">
+                                {[
+                                    { label: "Discord", val: user.profile?.discord },
+                                    { label: "Steam", val: user.profile?.steam },
+                                    { label: "EA", val: user.profile?.ea },
+                                    { label: "Battle.net", val: user.profile?.battleNet },
+                                    { label: "Страна", val: user.profile?.country },
+                                    { label: "О себе", val: user.profile?.bio },
+                                ].filter(x => x.val).map((x) => (
+                                    <div key={x.label} className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-500">{x.label}</span>
+                                        <span className="text-xs text-white">{x.val}</span>
+                                    </div>
+                                ))}
+                                {!user.profile?.discord && !user.profile?.steam && !user.profile?.ea && !user.profile?.battleNet && !user.profile?.country && !user.profile?.bio && (
+                                    <p className="text-[10px] text-gray-600">Нажмите "Редактировать", чтобы заполнить</p>
+                                )}
                             </div>
                         )}
                     </div>
@@ -288,64 +357,25 @@ export default function ProfilePage() {
 
             {tab === "История входов" && (
                 <div className="space-y-2">
-                    {mockLoginHistory.map((entry, i) => (
-                        <div
-                            key={i}
-                            className="flex items-center justify-between p-3"
-                            style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}
-                        >
-                            <div className="flex items-center gap-4">
-                                <span className="text-xs text-white">{entry.date}</span>
-                                <span className="text-xs text-gray-500">{entry.ip}</span>
-                            </div>
-                            <span className="text-xs text-gray-400">{entry.device}</span>
-                        </div>
-                    ))}
+                    <div className="p-8 text-center" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}>
+                        <p className="text-xs text-gray-500">История входов пока не доступна</p>
+                    </div>
                 </div>
             )}
 
             {tab === "Турниры" && (
                 <div className="space-y-2">
-                    {mockTournaments.map((t, i) => (
-                        <div
-                            key={i}
-                            className="flex items-center justify-between p-3"
-                            style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}
-                        >
-                            <div>
-                                <span className="text-xs text-white">{t.name}</span>
-                                <span className="text-[10px] text-gray-500 ml-3">{t.role}</span>
-                            </div>
-                            <span
-                                className="text-[10px] px-2 py-0.5"
-                                style={{
-                                    color: t.status === "Идёт" ? "#3CB371" : "#A5A5A5",
-                                    background: t.status === "Идёт" ? "rgba(60,179,113,0.1)" : "transparent",
-                                    border: `1px solid ${t.status === "Идёт" ? "#3CB371" : "#3b3b3b"}`,
-                                }}
-                            >
-                                {t.status}
-                            </span>
-                        </div>
-                    ))}
+                    <div className="p-8 text-center" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}>
+                        <p className="text-xs text-gray-500">Ваши турниры появятся здесь</p>
+                    </div>
                 </div>
             )}
 
             {tab === "Команды" && (
                 <div className="space-y-2">
-                    {mockTeams.map((t, i) => (
-                        <div
-                            key={i}
-                            className="flex items-center justify-between p-3"
-                            style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}
-                        >
-                            <div>
-                                <span className="text-xs text-white">{t.name}</span>
-                                <span className="text-[10px] text-gray-500 ml-3">{t.game}</span>
-                            </div>
-                            <span className="text-[10px] text-[#FA6814]">{t.role}</span>
-                        </div>
-                    ))}
+                    <div className="p-8 text-center" style={{ background: "#2a2a2a", border: "1px solid #3b3b3b", borderRadius: 4 }}>
+                        <p className="text-xs text-gray-500">Ваши команды появятся здесь</p>
+                    </div>
                 </div>
             )}
 
@@ -381,17 +411,10 @@ export default function ProfilePage() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 mt-4">
-                                    <span
-                                        className="text-[10px] px-2 py-0.5 font-medium"
-                                        style={{ color: getEloColor(elo.elo), border: `1px solid ${getEloColor(elo.elo)}`, borderRadius: 2 }}
-                                    >
+                                    <span className="text-[10px] px-2 py-0.5 font-medium" style={{ color: getEloColor(elo.elo), border: `1px solid ${getEloColor(elo.elo)}`, borderRadius: 2 }}>
                                         {getEloRank(elo.elo)}
                                     </span>
-                                    {elo.rank && (
-                                        <span className="text-[10px] text-gray-500">
-                                            Ранг #{elo.rank}
-                                        </span>
-                                    )}
+                                    {elo.rank && <span className="text-[10px] text-gray-500">Ранг #{elo.rank}</span>}
                                 </div>
                             </div>
 
@@ -402,21 +425,12 @@ export default function ProfilePage() {
                                 ) : (
                                     <div className="space-y-1">
                                         {eloHistory.map((h) => (
-                                            <div
-                                                key={h.id}
-                                                className="flex items-center justify-between py-1.5"
-                                                style={{ borderBottom: "1px solid #2f2f2f" }}
-                                            >
+                                            <div key={h.id} className="flex items-center justify-between py-1.5" style={{ borderBottom: "1px solid #2f2f2f" }}>
                                                 <div className="flex items-center gap-3">
-                                                    <span
-                                                        className="text-[10px] font-medium"
-                                                        style={{ color: h.change > 0 ? "#4CAF50" : "#D32F2F", minWidth: 40 }}
-                                                    >
+                                                    <span className="text-[10px] font-medium" style={{ color: h.change > 0 ? "#4CAF50" : "#D32F2F", minWidth: 40 }}>
                                                         {h.change > 0 ? `+${h.change}` : h.change}
                                                     </span>
-                                                    <span className="text-[10px] text-gray-400">
-                                                        {h.oldElo} → {h.newElo}
-                                                    </span>
+                                                    <span className="text-[10px] text-gray-400">{h.oldElo} &rarr; {h.newElo}</span>
                                                     <span className="text-[10px] text-gray-600">
                                                         {h.reason === "tournament_bonus" ? "Бонус турнира" : "Матч"}
                                                     </span>

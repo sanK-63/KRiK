@@ -4,6 +4,7 @@ import { recipes, users } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 import { getIO } from "../socket";
+import { auditLog } from "../core/audit";
 
 const router = Router();
 
@@ -57,6 +58,7 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
 
     try { getIO().emit("recipe:created", enrichRecipe(result)); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "recipe.create", targetType: "recipe", targetId: result.id, details: { name }, ipAddress: req.ip });
     res.json(result);
 });
 
@@ -75,6 +77,7 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
 
     try { getIO().emit("recipe:deleted", { id }); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "recipe.delete", targetType: "recipe", targetId: id, details: { name: recipe.name }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 
@@ -101,6 +104,7 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
 
     try { getIO().emit("recipe:updated", enrichRecipe(updated)); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "recipe.update", targetType: "recipe", targetId: id, details: { name: name ?? recipe.name }, ipAddress: req.ip });
     res.json(enrichRecipe(updated));
 });
 

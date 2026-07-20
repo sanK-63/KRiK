@@ -4,6 +4,9 @@ import { users } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
 import { getIO } from "../socket";
+import { auditLog } from "../core/audit";
+import { validate } from "../middleware/validate";
+import { createPostSchema, createCommentSchema } from "../middleware/schemas";
 
 const router = Router();
 
@@ -80,7 +83,7 @@ router.get("/:id", (req, res) => {
 });
 
 // POST /api/forum — create post (with optional poll_options)
-router.post("/", authMiddleware, (req, res) => {
+router.post("/", authMiddleware, validate(createPostSchema), (req, res) => {
     const { title, content, category, pollOptions } = req.body;
     if (!title || !content) return res.status(400).json({ error: "Title and content required" });
     const userId = (req as any).userId;
@@ -90,6 +93,7 @@ router.post("/", authMiddleware, (req, res) => {
         .run(title, content, category || "Форум", userId, pollJson);
     const post = sqlite.prepare("SELECT * FROM forum_posts WHERE id = ?").get(result.lastInsertRowid);
     try { getIO().emit("forum:post_created", enrichPost(post, userId)); } catch {}
+    auditLog({ userId, action: "forum.post.create", targetType: "forum_post", targetId: result.lastInsertRowid as number, details: { title }, ipAddress: req.ip });
     res.status(201).json(enrichPost(post, userId));
 });
 
@@ -109,6 +113,7 @@ router.put("/:id", authMiddleware, (req, res) => {
 
     const updated = sqlite.prepare("SELECT * FROM forum_posts WHERE id = ?").get(post.id);
     try { getIO().emit("forum:post_updated", enrichPost(updated)); } catch {}
+    auditLog({ userId, action: "forum.post.update", targetType: "forum_post", targetId: post.id, details: { title: title ?? post.title }, ipAddress: req.ip });
     res.json(enrichPost(updated));
 });
 
@@ -124,11 +129,12 @@ router.delete("/:id", authMiddleware, (req, res) => {
 
     sqlite.prepare("DELETE FROM forum_posts WHERE id = ?").run(post.id);
     try { getIO().emit("forum:post_deleted", { id: post.id }); } catch {}
+    auditLog({ userId, action: "forum.post.delete", targetType: "forum_post", targetId: post.id, details: { title: post.title }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 
 // POST /api/forum/:id/comments — add comment
-router.post("/:id/comments", authMiddleware, (req, res) => {
+router.post("/:id/comments", authMiddleware, validate(createCommentSchema), (req, res) => {
     const post = sqlite.prepare("SELECT * FROM forum_posts WHERE id = ?").get(req.params.id) as any;
     if (!post) return res.status(404).json({ error: "Post not found" });
 
@@ -141,6 +147,7 @@ router.post("/:id/comments", authMiddleware, (req, res) => {
 
     const comment = sqlite.prepare("SELECT * FROM forum_comments WHERE id = ?").get(result.lastInsertRowid);
     try { getIO().emit("forum:comment_created", { postId: post.id, comment: enrichComment(comment) }); } catch {}
+    auditLog({ userId, action: "forum.comment.create", targetType: "forum_comment", targetId: result.lastInsertRowid as number, details: { postId: post.id }, ipAddress: req.ip });
     res.status(201).json(enrichComment(comment));
 });
 
@@ -156,6 +163,7 @@ router.delete("/comments/:id", authMiddleware, (req, res) => {
 
     sqlite.prepare("DELETE FROM forum_comments WHERE id = ?").run(comment.id);
     try { getIO().emit("forum:comment_deleted", { postId: comment.post_id, commentId: comment.id }); } catch {}
+    auditLog({ userId, action: "forum.comment.delete", targetType: "forum_comment", targetId: comment.id, details: { postId: comment.post_id }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 
@@ -174,6 +182,7 @@ router.post("/comments/:id/like", authMiddleware, (req, res) => {
 
     const likes = (sqlite.prepare("SELECT COUNT(*) as c FROM forum_likes WHERE comment_id = ?").get(comment.id) as any).c;
     try { getIO().emit("forum:comment_liked", { postId: comment.post_id, commentId: comment.id, likes, liked: !existing }); } catch {}
+    auditLog({ userId, action: existing ? "forum.comment.unlike" : "forum.comment.like", targetType: "forum_comment", targetId: comment.id, ipAddress: req.ip });
     res.json({ likes, liked: !existing });
 });
 
@@ -203,6 +212,7 @@ router.post("/:id/vote", authMiddleware, (req, res) => {
 
     const updated = sqlite.prepare("SELECT * FROM forum_posts WHERE id = ?").get(post.id);
     try { getIO().emit("forum:poll_voted", enrichPost(updated, userId)); } catch {}
+    auditLog({ userId, action: "forum.poll.vote", targetType: "forum_post", targetId: post.id, details: { optionIndex }, ipAddress: req.ip });
     res.json(enrichPost(updated, userId));
 });
 

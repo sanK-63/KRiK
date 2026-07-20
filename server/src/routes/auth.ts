@@ -3,10 +3,13 @@ import { register, login, getProfile, changeEmail, keyLogin } from "../auth";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 import { rateLimit } from "../middleware/rateLimit";
 import { getIO } from "../socket";
+import { auditLog } from "../core/audit";
+import { validate } from "../middleware/validate";
+import { registerSchema, loginSchema, keyLoginSchema, changeEmailSchema } from "../middleware/schemas";
 
 const router = Router();
 
-router.post("/register", rateLimit, async (req: Request, res: Response) => {
+router.post("/register", rateLimit, validate(registerSchema), async (req: Request, res: Response) => {
     try {
         const { email, password, username, displayName } = req.body;
         const result = await register(email, password, username, displayName);
@@ -17,13 +20,15 @@ router.post("/register", rateLimit, async (req: Request, res: Response) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: "/",
         });
+        auditLog({ userId: result.user.id, action: "auth.register.success", details: { username }, ipAddress: req.ip });
         res.status(201).json(result);
     } catch (error: any) {
+        auditLog({ action: "auth.register.failed", details: { email: req.body?.email, error: error.message }, ipAddress: req.ip });
         res.status(400).json({ error: error.message });
     }
 });
 
-router.post("/login", rateLimit, async (req: Request, res: Response) => {
+router.post("/login", rateLimit, validate(loginSchema), async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
         const result = await login(email, password);
@@ -34,13 +39,15 @@ router.post("/login", rateLimit, async (req: Request, res: Response) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: "/",
         });
+        auditLog({ userId: result.user.id, action: "auth.login.success", details: { email }, ipAddress: req.ip });
         res.json(result);
     } catch (error: any) {
+        auditLog({ action: "auth.login.failed", details: { email: req.body?.email, error: error.message }, ipAddress: req.ip });
         res.status(401).json({ error: error.message });
     }
 });
 
-router.post("/key-login", rateLimit, async (req: Request, res: Response) => {
+router.post("/key-login", rateLimit, validate(keyLoginSchema), async (req: Request, res: Response) => {
     try {
         const { key } = req.body;
         if (!key || typeof key !== "string") {
@@ -56,8 +63,10 @@ router.post("/key-login", rateLimit, async (req: Request, res: Response) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: "/",
         });
+        auditLog({ userId: result.user.id, action: "auth.key_login.success", ipAddress: req.ip });
         res.json(result);
     } catch (error: any) {
+        auditLog({ action: "auth.key_login.failed", details: { keyPrefix: (req.body?.key || "").substring(0, 8) + "..." }, ipAddress: req.ip });
         res.status(401).json({ error: error.message });
     }
 });
@@ -75,7 +84,7 @@ router.get("/me", authMiddleware, async (req: AuthRequest, res: Response) => {
     }
 });
 
-router.post("/change-email", authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post("/change-email", authMiddleware, validate(changeEmailSchema), async (req: AuthRequest, res: Response) => {
     try {
         const { newEmail } = req.body;
         if (!newEmail || typeof newEmail !== "string" || !newEmail.includes("@")) {

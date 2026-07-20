@@ -4,6 +4,7 @@ import { constitutionDocuments, constitutionVersions, users } from "../database/
 import { eq, desc } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 import { getIO } from "../socket";
+import { auditLog } from "../core/audit";
 import PDFDocument from "pdfkit";
 
 const router = Router();
@@ -222,6 +223,7 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
 
     try { getIO().emit("constitution:updated", { version: newVersionNum }); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "constitution.update", targetType: "constitution_version", targetId: version.id, details: { version: newVersionNum }, ipAddress: req.ip });
     res.json({ id: version.id, version: newVersionNum });
 });
 

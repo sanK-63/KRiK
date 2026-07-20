@@ -3,6 +3,7 @@ import { db } from "../database";
 import { games, gameModes, gameMaps, gamePlatforms, users } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { auditLog } from "../core/audit";
 
 const router = Router();
 
@@ -83,6 +84,7 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
         }
     }
 
+    auditLog({ userId: req.userId ?? undefined, action: "game.create", targetType: "game", targetId: game.id, details: { name, slug }, ipAddress: req.ip });
     res.status(201).json({ id: game.id, name: game.name, slug: game.slug });
 });
 
@@ -133,6 +135,7 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         }
     }
 
+    auditLog({ userId: req.userId ?? undefined, action: "game.update", targetType: "game", targetId: id, details: { name: name ?? game.name }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 
@@ -148,6 +151,7 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         return;
     }
     db.delete(games).where(eq(games.id, id)).run();
+    auditLog({ userId: req.userId ?? undefined, action: "game.delete", targetType: "game", targetId: id, details: { name: game.name }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 

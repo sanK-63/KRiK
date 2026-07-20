@@ -4,6 +4,9 @@ import { events, users } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 import { getIO } from "../socket";
+import { auditLog } from "../core/audit";
+import { validate } from "../middleware/validate";
+import { createEventSchema } from "../middleware/schemas";
 
 const router = Router();
 
@@ -35,7 +38,7 @@ router.get("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     res.json(enrichEvent(event));
 });
 
-router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
+router.post("/", authMiddleware, validate(createEventSchema), (req: AuthRequest, res: Response) => {
     if (!req.userId) {
         res.status(401).json({ error: "Unauthorized" });
         return;
@@ -59,10 +62,11 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
 
     try { getIO().emit("event:created", enrichEvent(result)); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "event.create", targetType: "event", targetId: result.id, details: { title }, ipAddress: req.ip });
     res.json(result);
 });
 
-router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
+router.put("/:id", authMiddleware, validate(createEventSchema), (req: AuthRequest, res: Response) => {
     if (!req.userId) {
         res.status(401).json({ error: "Unauthorized" });
         return;
@@ -91,6 +95,7 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
 
     try { getIO().emit("event:updated", enrichEvent(updated)); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "event.update", targetType: "event", targetId: id, details: { title: title ?? event.title }, ipAddress: req.ip });
     res.json(updated);
 });
 
@@ -109,6 +114,7 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
 
     try { getIO().emit("event:deleted", { id }); } catch {}
 
+    auditLog({ userId: req.userId ?? undefined, action: "event.delete", targetType: "event", targetId: id, details: { title: event.title }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 

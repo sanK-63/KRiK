@@ -5,6 +5,7 @@ import { users, userRoles, roles, profiles } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 import { broadcast } from "../socket";
+import { auditLog } from "../core/audit";
 
 const router = Router();
 
@@ -95,7 +96,60 @@ router.get("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     });
 });
 
-// ─── PUT update user profile fields ──────────────
+// ─── PUT update own profile (self-service) ────────
+router.put("/me/profile", authMiddleware, (req: AuthRequest, res: Response) => {
+    if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const { displayName, surname, patronymic, phone, dateOfBirth, email, discord, steam, ea, battleNet, country, bio } = req.body;
+
+    const existing = db.select().from(users).where(eq(users.id, req.userId)).get();
+    if (!existing) return res.status(404).json({ error: "User not found" });
+
+    db.update(users)
+        .set({
+            displayName: displayName ?? existing.displayName,
+            surname: surname ?? existing.surname,
+            patronymic: patronymic ?? existing.patronymic,
+            phone: phone ?? existing.phone,
+            dateOfBirth: dateOfBirth ?? existing.dateOfBirth,
+            email: email ?? existing.email,
+            updatedAt: new Date().toISOString(),
+        })
+        .where(eq(users.id, req.userId))
+        .run();
+
+    const existingProfile = db.select().from(profiles).where(eq(profiles.userId, req.userId)).get();
+    if (existingProfile) {
+        db.update(profiles)
+            .set({
+                discord: discord !== undefined ? discord : existingProfile.discord,
+                steam: steam !== undefined ? steam : existingProfile.steam,
+                ea: ea !== undefined ? ea : existingProfile.ea,
+                battleNet: battleNet !== undefined ? battleNet : existingProfile.battleNet,
+                country: country !== undefined ? country : existingProfile.country,
+                bio: bio !== undefined ? bio : existingProfile.bio,
+            })
+            .where(eq(profiles.userId, req.userId))
+            .run();
+    } else {
+        db.insert(profiles)
+            .values({
+                userId: req.userId,
+                discord: discord || null,
+                steam: steam || null,
+                ea: ea || null,
+                battleNet: battleNet || null,
+                country: country || null,
+                bio: bio || null,
+            })
+            .run();
+    }
+
+    auditLog({ userId: req.userId, action: "user.profile.self_update", targetType: "user", targetId: req.userId, ipAddress: req.ip });
+    res.json({ ok: true });
+});
+
+// ─── PUT update user profile fields (admin) ──────
 router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
     const admin = sqlite.prepare("SELECT username FROM users WHERE id = ?").get(req.userId) as any;
@@ -119,6 +173,7 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         .where(eq(users.id, id))
         .run();
 
+    auditLog({ userId: req.userId ?? undefined, action: "user.profile.update", targetType: "user", targetId: id, details: { displayName }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 
@@ -154,6 +209,7 @@ router.put("/:id/roles", authMiddleware, (req: AuthRequest, res: Response) => {
 
     broadcast("user:role_changed", { userId: id, roles: updatedRoles });
 
+    auditLog({ userId: req.userId ?? undefined, action: "user.roles.update", targetType: "user", targetId: id, details: { roleIds }, ipAddress: req.ip });
     res.json({ ok: true, roles: updatedRoles });
 });
 
@@ -180,6 +236,7 @@ router.put("/:id/status", authMiddleware, (req: AuthRequest, res: Response) => {
 
     broadcast("user:banned", { userId: id, status });
 
+    auditLog({ userId: req.userId ?? undefined, action: "user.status.update", targetType: "user", targetId: id, details: { status, previousStatus: existing.status }, ipAddress: req.ip });
     res.json({ ok: true, status });
 });
 

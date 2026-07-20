@@ -8,6 +8,7 @@ import { db } from "../database";
 import { docTemplates, users } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { auditLog } from "../core/audit";
 
 const router = Router();
 
@@ -67,6 +68,7 @@ router.post("/", authMiddleware, upload.single("template"), (req: AuthRequest, r
             uploadedBy: req.userId,
         }).returning().get();
 
+        auditLog({ userId: req.userId ?? undefined, action: "template.create", targetType: "doc_template", targetId: result.id, details: { name }, ipAddress: req.ip });
         res.json({
             id: result.id,
             name: result.name,
@@ -108,6 +110,7 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     }
 
     db.delete(docTemplates).where(eq(docTemplates.id, id)).run();
+    auditLog({ userId: req.userId ?? undefined, action: "template.delete", targetType: "doc_template", targetId: id, details: { name: tmpl.name }, ipAddress: req.ip });
     res.json({ ok: true });
 });
 

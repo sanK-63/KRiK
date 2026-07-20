@@ -12,6 +12,7 @@ import {
 import { db } from "../database";
 import { users } from "../database/schema";
 import { eq } from "drizzle-orm";
+import { auditLog } from "../core/audit";
 
 const router = Router();
 
@@ -48,6 +49,7 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
         sendEmailFlag || false
     );
 
+    auditLog({ userId: req.userId ?? undefined, action: "notification.create", targetType: "notification", targetId: notification.id, details: { targetUserId: userId, title }, ipAddress: req.ip });
     res.json(notification);
 });
 
@@ -62,6 +64,7 @@ router.post("/bulk-email", authMiddleware, (req: AuthRequest, res: Response) => 
     }
 
     const result = sendBulkEmail(userIds, title, body || "");
+    auditLog({ userId: req.userId ?? undefined, action: "notification.bulk_email", targetType: "notification", details: { recipientCount: userIds.length, title }, ipAddress: req.ip });
     res.json(result);
 });
 
@@ -75,6 +78,7 @@ router.post("/send-to-all", authMiddleware, (req: AuthRequest, res: Response) =>
     const allUsers = db.select().from(users).all();
     const userIds = allUsers.map((u) => u.id);
     const result = sendBulkEmail(userIds, title, body || "");
+    auditLog({ userId: req.userId ?? undefined, action: "notification.send_to_all", targetType: "notification", details: { recipientCount: userIds.length, title }, ipAddress: req.ip });
     res.json(result);
 });
 
@@ -83,6 +87,7 @@ router.patch("/:id/read", authMiddleware, (req: AuthRequest, res: Response) => {
     const id = Number(req.params.id);
     const result = markAsRead(id, req.userId);
     if (!result) { res.status(404).json({ error: "Не найдено" }); return; }
+    auditLog({ userId: req.userId ?? undefined, action: "notification.mark_read", targetType: "notification", targetId: id, ipAddress: req.ip });
     res.json(result);
 });
 
@@ -97,6 +102,7 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     const id = Number(req.params.id);
     const result = deleteNotification(id, req.userId);
     if (!result) { res.status(404).json({ error: "Не найдено" }); return; }
+    auditLog({ userId: req.userId ?? undefined, action: "notification.delete", targetType: "notification", targetId: id, ipAddress: req.ip });
     res.json({ ok: true });
 });
 
