@@ -4,6 +4,7 @@ import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar";
 import BottomNav from "../components/BottomNav";
 import ChatAssistant from "../components/ChatAssistant/ChatAssistant";
+import CommandPalette from "../components/CommandPalette";
 
 function useScreenWidth() {
     const [width, setWidth] = useState(window.innerWidth);
@@ -57,6 +58,7 @@ export default function MainLayout() {
             </div>
             {!isMessenger && <BottomNav />}
             <ChatAssistant />
+            <CommandPalette />
         </div>
     );
 }
