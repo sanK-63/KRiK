@@ -1,10 +1,15 @@
 import { Router, Response } from "express";
 import { db } from "../database";
-import { games, gameModes, gameMaps, gamePlatforms } from "../database/schema";
+import { games, gameModes, gameMaps, gamePlatforms, users } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 
 const router = Router();
+
+const isAdmin = (userId: number): boolean => {
+    const user = db.select().from(users).where(eq(users.id, userId)).get() as any;
+    return user?.username === "tunev";
+};
 
 router.get("/", authMiddleware, (_req: AuthRequest, res: Response) => {
     const all = db.select().from(games).all();
@@ -41,6 +46,10 @@ router.get("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
+    if (!req.userId || !isAdmin(req.userId)) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+    }
     const { name, slug, logo, cover, description, platforms, maps, modes } = req.body;
 
     if (!name || !slug) {
@@ -78,6 +87,10 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
+    if (!req.userId || !isAdmin(req.userId)) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+    }
     const id = Number(req.params.id);
     const game = db.select().from(games).where(eq(games.id, id)).get();
     if (!game) {
@@ -124,6 +137,10 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
+    if (!req.userId || !isAdmin(req.userId)) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+    }
     const id = Number(req.params.id);
     const game = db.select().from(games).where(eq(games.id, id)).get();
     if (!game) {

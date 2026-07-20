@@ -41,7 +41,6 @@ const links: [string, string, LucideIcon][] = [
     ["/research", "Исследования", FlaskConical],
     ["/library", "Библиотека", BookMarked],
     ["/archive", "Архив", Archive],
-    ["/messages", "Сообщения", Mail],
 ];
 
 export default function Sidebar() {

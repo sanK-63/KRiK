@@ -8,14 +8,14 @@ let io: Server;
 export function initSocket(httpServer: HttpServer): Server {
     io = new Server(httpServer, {
         cors: {
-            origin: "*",
+            origin: ["https://krik.knm.pp.ua", "http://localhost:5173", "http://localhost:5000"],
             methods: ["GET", "POST"],
         },
         path: "/socket.io",
         pingTimeout: 60000,
         pingInterval: 25000,
         transports: ["websocket", "polling"],
-        allowEIO3: true,
+        allowEIO3: false,
     });
 
     io.use((socket: Socket, next) => {
@@ -39,8 +39,7 @@ export function initSocket(httpServer: HttpServer): Server {
         }
 
         if (!token) {
-            socket.data.user = null;
-            return next();
+            return next(new Error("Authentication required"));
         }
 
         try {
@@ -48,8 +47,7 @@ export function initSocket(httpServer: HttpServer): Server {
             socket.data.user = decoded;
             next();
         } catch {
-            socket.data.user = null;
-            next();
+            return next(new Error("Invalid token"));
         }
     });
 

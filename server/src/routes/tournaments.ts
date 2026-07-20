@@ -361,6 +361,12 @@ router.patch("/:id/registrations/:regId/approve", authMiddleware, (req: AuthRequ
         res.status(404).json({ error: "Registration not found" });
         return;
     }
+    const tournamentId = Number(req.params.id);
+    const t = db.select().from(tournaments).where(eq(tournaments.id, tournamentId)).get();
+    if (t && t.createdBy !== req.userId) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+    }
     db.update(registrations).set({ status: "approved" }).where(eq(registrations.id, regId)).run();
     res.json({ ok: true, status: "approved" });
 });
@@ -370,6 +376,12 @@ router.patch("/:id/registrations/:regId/reject", authMiddleware, (req: AuthReque
     const reg = db.select().from(registrations).where(eq(registrations.id, regId)).get();
     if (!reg) {
         res.status(404).json({ error: "Registration not found" });
+        return;
+    }
+    const tournamentId = Number(req.params.id);
+    const t = db.select().from(tournaments).where(eq(tournaments.id, tournamentId)).get();
+    if (t && t.createdBy !== req.userId) {
+        res.status(403).json({ error: "Forbidden" });
         return;
     }
     db.update(registrations).set({ status: "rejected" }).where(eq(registrations.id, regId)).run();
@@ -405,6 +417,13 @@ router.get("/:id/stats", authMiddleware, (req: AuthRequest, res: Response) => {
 router.patch("/:tournamentId/matches/:matchId", authMiddleware, (req: AuthRequest, res: Response) => {
     const matchId = Number(req.params.matchId);
     const tournamentId = Number(req.params.tournamentId);
+
+    const t = db.select().from(tournaments).where(eq(tournaments.id, tournamentId)).get();
+    if (t && t.createdBy !== req.userId) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+    }
+
     const { score1, score2, winnerTeamId, status, judgeId } = req.body;
 
     const match = db.select().from(matches).where(eq(matches.id, matchId)).get();
@@ -577,6 +596,10 @@ router.post("/:id/generate-bracket", authMiddleware, (req: AuthRequest, res: Res
     const t = db.select().from(tournaments).where(eq(tournaments.id, tournamentId)).get();
     if (!t) {
         res.status(404).json({ error: "Tournament not found" });
+        return;
+    }
+    if (t.createdBy !== req.userId) {
+        res.status(403).json({ error: "Forbidden" });
         return;
     }
 

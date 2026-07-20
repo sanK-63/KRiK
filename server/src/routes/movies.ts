@@ -7,6 +7,11 @@ import { getIO } from "../socket";
 
 const router = Router();
 
+const isAdmin = (userId: number): boolean => {
+    const user = db.select().from(users).where(eq(users.id, userId)).get() as any;
+    return user?.username === "tunev";
+};
+
 function enrichMovie(m: any) {
     const author = db.select().from(users).where(eq(users.id, m.addedBy || 0)).get();
     return {
@@ -102,6 +107,10 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     const movie = db.select().from(movies).where(eq(movies.id, id)).get();
     if (!movie) {
         res.status(404).json({ error: "Фильм не найден" });
+        return;
+    }
+    if (movie.addedBy !== req.userId && !isAdmin(req.userId!)) {
+        res.status(403).json({ error: "Forbidden" });
         return;
     }
     db.delete(movies).where(eq(movies.id, id)).run();

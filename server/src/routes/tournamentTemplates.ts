@@ -1,10 +1,15 @@
 import { Router, Response } from "express";
 import { db } from "../database";
-import { tournamentTemplates, games } from "../database/schema";
+import { tournamentTemplates, games, users } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 
 const router = Router();
+
+const isAdmin = (userId: number): boolean => {
+    const user = db.select().from(users).where(eq(users.id, userId)).get() as any;
+    return user?.username === "tunev";
+};
 
 router.get("/", authMiddleware, (_req: AuthRequest, res: Response) => {
     const all = db.select().from(tournamentTemplates).all();
@@ -56,6 +61,10 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         res.status(404).json({ error: "Template not found" });
         return;
     }
+    if (!req.userId || !isAdmin(req.userId)) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+    }
 
     const { gameId, name, description, config } = req.body;
     db.update(tournamentTemplates)
@@ -76,6 +85,10 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     const t = db.select().from(tournamentTemplates).where(eq(tournamentTemplates.id, id)).get();
     if (!t) {
         res.status(404).json({ error: "Template not found" });
+        return;
+    }
+    if (!req.userId || !isAdmin(req.userId)) {
+        res.status(403).json({ error: "Forbidden" });
         return;
     }
     db.delete(tournamentTemplates).where(eq(tournamentTemplates.id, id)).run();

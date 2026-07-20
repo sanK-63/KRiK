@@ -1,6 +1,8 @@
 import { Router } from "express";
+import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
+router.use(authMiddleware);
 const TMDB_TOKEN = process.env.TMDB_API_KEY || "";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 

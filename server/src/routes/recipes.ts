@@ -7,6 +7,11 @@ import { getIO } from "../socket";
 
 const router = Router();
 
+const isAdmin = (userId: number): boolean => {
+    const user = db.select().from(users).where(eq(users.id, userId)).get() as any;
+    return user?.username === "tunev";
+};
+
 function enrichRecipe(r: any) {
     const author = db.select().from(users).where(eq(users.id, r.authorId || 0)).get();
     return {
@@ -62,6 +67,10 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         res.status(404).json({ error: "Рецепт не найден" });
         return;
     }
+    if (recipe.authorId !== req.userId && !isAdmin(req.userId!)) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+    }
     db.delete(recipes).where(eq(recipes.id, id)).run();
 
     try { getIO().emit("recipe:deleted", { id }); } catch {}
@@ -74,6 +83,10 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     const recipe = db.select().from(recipes).where(eq(recipes.id, id)).get();
     if (!recipe) {
         res.status(404).json({ error: "Рецепт не найден" });
+        return;
+    }
+    if (recipe.authorId !== req.userId && !isAdmin(req.userId!)) {
+        res.status(403).json({ error: "Forbidden" });
         return;
     }
     const { name, description, ingredients, instructions, category, image } = req.body;

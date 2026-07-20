@@ -36,6 +36,13 @@ export function authMiddleware(req: AuthRequest, res: Response, next: NextFuncti
         const decoded = jwt.verify(token, config.jwtSecret) as { id: number };
         req.userId = decoded.id;
 
+        // Check if user is still active
+        const user = db.select().from(users).where(eq(users.id, decoded.id)).get();
+        if (!user || user.status !== "active") {
+            res.status(401).json({ error: "Account disabled" });
+            return;
+        }
+
         db.update(users)
             .set({ lastActive: new Date().toISOString() })
             .where(eq(users.id, decoded.id))

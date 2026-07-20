@@ -8,6 +8,11 @@ import PDFDocument from "pdfkit";
 
 const router = Router();
 
+const isAdmin = (userId: number): boolean => {
+    const user = db.select().from(users).where(eq(users.id, userId)).get() as any;
+    return user?.username === "tunev";
+};
+
 function ensureDoc() {
     let doc = db.select().from(constitutionDocuments).limit(1).get();
     if (!doc) {
@@ -177,6 +182,10 @@ router.get("/:versionId", authMiddleware, (req: AuthRequest, res: Response) => {
 router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
     if (!req.userId) {
         res.status(401).json({ error: "Unauthorized" });
+        return;
+    }
+    if (!isAdmin(req.userId)) {
+        res.status(403).json({ error: "Forbidden" });
         return;
     }
 

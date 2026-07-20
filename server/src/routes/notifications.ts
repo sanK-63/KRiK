@@ -11,8 +11,14 @@ import {
 } from "../services/notifications";
 import { db } from "../database";
 import { users } from "../database/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
+
+const isAdmin = (userId: number): boolean => {
+    const user = db.select().from(users).where(eq(users.id, userId)).get() as any;
+    return user?.username === "tunev";
+};
 
 router.get("/", authMiddleware, (req: AuthRequest, res: Response) => {
     if (!req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
@@ -28,6 +34,7 @@ router.get("/unread-count", authMiddleware, (req: AuthRequest, res: Response) =>
 
 router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
     if (!req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    if (!isAdmin(req.userId)) { res.status(403).json({ error: "Forbidden" }); return; }
     const { userId, title, body, type, sendEmail: sendEmailFlag } = req.body;
 
     if (!title) { res.status(400).json({ error: "title обязателен" }); return; }
@@ -46,6 +53,7 @@ router.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
 
 router.post("/bulk-email", authMiddleware, (req: AuthRequest, res: Response) => {
     if (!req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    if (!isAdmin(req.userId)) { res.status(403).json({ error: "Forbidden" }); return; }
     const { userIds, title, body } = req.body;
 
     if (!userIds?.length || !title) {
@@ -59,6 +67,7 @@ router.post("/bulk-email", authMiddleware, (req: AuthRequest, res: Response) => 
 
 router.post("/send-to-all", authMiddleware, (req: AuthRequest, res: Response) => {
     if (!req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    if (!isAdmin(req.userId)) { res.status(403).json({ error: "Forbidden" }); return; }
     const { title, body } = req.body;
 
     if (!title) { res.status(400).json({ error: "title обязателен" }); return; }

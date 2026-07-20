@@ -1,9 +1,16 @@
 import { Router } from "express";
-import { sqlite } from "../database";
+import { db, sqlite } from "../database";
+import { users } from "../database/schema";
+import { eq } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth";
 import { getIO } from "../socket";
 
 const router = Router();
+
+const isAdmin = (userId: number): boolean => {
+    const user = db.select().from(users).where(eq(users.id, userId)).get() as any;
+    return user?.username === "tunev";
+};
 
 function enrichPost(post: any, userId?: number) {
     if (!post) return null;
@@ -91,6 +98,11 @@ router.put("/:id", authMiddleware, (req, res) => {
     const post = sqlite.prepare("SELECT * FROM forum_posts WHERE id = ?").get(req.params.id) as any;
     if (!post) return res.status(404).json({ error: "Post not found" });
 
+    const userId = (req as any).userId;
+    if (post.author_id !== userId && !isAdmin(userId)) {
+        return res.status(403).json({ error: "Forbidden" });
+    }
+
     const { title, content, category, pinned } = req.body;
     sqlite.prepare("UPDATE forum_posts SET title = ?, content = ?, category = ?, pinned = ? WHERE id = ?")
         .run(title ?? post.title, content ?? post.content, category ?? post.category, pinned ?? post.pinned, post.id);
@@ -104,6 +116,12 @@ router.put("/:id", authMiddleware, (req, res) => {
 router.delete("/:id", authMiddleware, (req, res) => {
     const post = sqlite.prepare("SELECT * FROM forum_posts WHERE id = ?").get(req.params.id) as any;
     if (!post) return res.status(404).json({ error: "Post not found" });
+
+    const userId = (req as any).userId;
+    if (post.author_id !== userId && !isAdmin(userId)) {
+        return res.status(403).json({ error: "Forbidden" });
+    }
+
     sqlite.prepare("DELETE FROM forum_posts WHERE id = ?").run(post.id);
     try { getIO().emit("forum:post_deleted", { id: post.id }); } catch {}
     res.json({ ok: true });
@@ -130,6 +148,12 @@ router.post("/:id/comments", authMiddleware, (req, res) => {
 router.delete("/comments/:id", authMiddleware, (req, res) => {
     const comment = sqlite.prepare("SELECT * FROM forum_comments WHERE id = ?").get(req.params.id) as any;
     if (!comment) return res.status(404).json({ error: "Comment not found" });
+
+    const userId = (req as any).userId;
+    if (comment.user_id !== userId && !isAdmin(userId)) {
+        return res.status(403).json({ error: "Forbidden" });
+    }
+
     sqlite.prepare("DELETE FROM forum_comments WHERE id = ?").run(comment.id);
     try { getIO().emit("forum:comment_deleted", { postId: comment.post_id, commentId: comment.id }); } catch {}
     res.json({ ok: true });

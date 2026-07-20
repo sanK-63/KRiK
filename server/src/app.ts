@@ -30,10 +30,18 @@ import archiveRoutes from "./routes/archive";
 
 const app = express();
 
+const ALLOWED_ORIGINS = [
+    "https://krik.knm.pp.ua",
+    "http://localhost:5173",
+    "http://localhost:5000",
+];
+
 app.use((req, res, next) => {
     if (req.url.startsWith("/socket.io")) return next();
-    const origin = req.headers.origin || "http://localhost:5173";
-    res.setHeader("Access-Control-Allow-Origin", origin);
+    const origin = req.headers.origin || "";
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+    }
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
@@ -62,7 +70,7 @@ app.use((req, res, next) => {
 });
 app.use((req, res, next) => {
     if (req.url.startsWith("/socket.io")) return next();
-    express.json()(req, res, next);
+    express.json({ limit: "1mb" })(req, res, next);
 });
 app.use((req, res, next) => {
     if (req.url.startsWith("/socket.io")) return next();
@@ -94,7 +102,7 @@ app.use("/api/memes", memesRoutes);
 app.use("/api/tmdb", tmdbRoutes);
 app.use("/api/forum", forumRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/messages", messagesRoutes);
+// app.use("/api/messages", messagesRoutes); // Disabled — in development
 app.use("/api/search", searchRoutes);
 app.use("/api/violations", violationsRoutes);
 app.use("/api/logs", logsRoutes);

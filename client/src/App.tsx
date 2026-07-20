@@ -82,8 +82,8 @@ function App() {
                         <Route path="/logs" element={<LogsPage />} />
                         <Route path="/admin" element={<AdminPage />} />
                         <Route path="/search" element={<SearchPage />} />
-                        <Route path="/messages" element={<MessagesPage />} />
-                        <Route path="/messages/:id" element={<MessagesPage />} />
+                        {/* <Route path="/messages" element={<MessagesPage />} />
+                        <Route path="/messages/:id" element={<MessagesPage />} /> */}
                         <Route path="/research" element={<ResearchPage />} />
                         <Route path="/menu" element={<MenuPage />} />
                         <Route path="/profile" element={<ProfilePage />} />

@@ -7,6 +7,11 @@ import { getIO } from "../socket";
 
 const router = Router();
 
+const isAdmin = (userId: number): boolean => {
+    const user = db.select().from(users).where(eq(users.id, userId)).get() as any;
+    return user?.username === "tunev";
+};
+
 function enrichEvent(e: any) {
     const author = db.select().from(users).where(eq(users.id, e.authorId || 0)).get();
     return {
@@ -94,6 +99,10 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     const event = db.select().from(events).where(eq(events.id, id)).get();
     if (!event) {
         res.status(404).json({ error: "Ивент не найден" });
+        return;
+    }
+    if (event.authorId !== req.userId && !isAdmin(req.userId!)) {
+        res.status(403).json({ error: "Forbidden" });
         return;
     }
     db.delete(events).where(eq(events.id, id)).run();

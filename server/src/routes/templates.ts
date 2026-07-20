@@ -5,11 +5,16 @@ import fs from "fs";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import { db } from "../database";
-import { docTemplates } from "../database/schema";
+import { docTemplates, users } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 
 const router = Router();
+
+const isAdmin = (userId: number): boolean => {
+    const user = db.select().from(users).where(eq(users.id, userId)).get() as any;
+    return user?.username === "tunev";
+};
 
 const TEMPLATES_DIR = path.resolve(__dirname, "../../data/templates");
 if (!fs.existsSync(TEMPLATES_DIR)) {
@@ -90,6 +95,10 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     const tmpl = db.select().from(docTemplates).where(eq(docTemplates.id, id)).get();
     if (!tmpl) {
         res.status(404).json({ error: "Шаблон не найден" });
+        return;
+    }
+    if (tmpl.uploadedBy !== req.userId && !isAdmin(req.userId!)) {
+        res.status(403).json({ error: "Forbidden" });
         return;
     }
 

@@ -1,18 +1,19 @@
 import { Router, Request, Response } from "express";
 import { register, login, getProfile, changeEmail, keyLogin } from "../auth";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { rateLimit } from "../middleware/rateLimit";
 import { getIO } from "../socket";
 
 const router = Router();
 
-router.post("/register", async (req: Request, res: Response) => {
+router.post("/register", rateLimit, async (req: Request, res: Response) => {
     try {
         const { email, password, username, displayName } = req.body;
         const result = await register(email, password, username, displayName);
         res.cookie("token", result.token, {
             httpOnly: true,
-            secure: false,
-            sameSite: "lax",
+            secure: true,
+            sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: "/",
         });
@@ -22,14 +23,14 @@ router.post("/register", async (req: Request, res: Response) => {
     }
 });
 
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", rateLimit, async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
         const result = await login(email, password);
         res.cookie("token", result.token, {
             httpOnly: true,
-            secure: false,
-            sameSite: "lax",
+            secure: true,
+            sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: "/",
         });
@@ -39,7 +40,7 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 });
 
-router.post("/key-login", async (req: Request, res: Response) => {
+router.post("/key-login", rateLimit, async (req: Request, res: Response) => {
     try {
         const { key } = req.body;
         if (!key || typeof key !== "string") {
@@ -50,8 +51,8 @@ router.post("/key-login", async (req: Request, res: Response) => {
         try { getIO().emit("user:online", { userId: result.user.id, username: result.user.username, displayName: result.user.displayName }); } catch {}
         res.cookie("token", result.token, {
             httpOnly: true,
-            secure: false,
-            sameSite: "lax",
+            secure: true,
+            sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: "/",
         });

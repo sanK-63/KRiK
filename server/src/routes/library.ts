@@ -3,11 +3,16 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { db, sqlite } from "../database";
-import { libraryCategories, libraryDocuments } from "../database/schema";
+import { libraryCategories, libraryDocuments, users } from "../database/schema";
 import { eq, like, sql } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 
 const router = Router();
+
+const isAdmin = (userId: number): boolean => {
+    const user = db.select().from(users).where(eq(users.id, userId)).get() as any;
+    return user?.username === "tunev";
+};
 
 const UPLOADS_DIR = path.resolve(__dirname, "../../data/uploads/library");
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -162,6 +167,10 @@ router.put("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
         res.status(404).json({ error: "Document not found" });
         return;
     }
+    if (doc.uploadedBy !== req.userId && !isAdmin(req.userId!)) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+    }
     const { title, description, categoryId } = req.body;
     db.update(libraryDocuments).set({
         ...(title !== undefined && { title }),
@@ -176,6 +185,10 @@ router.delete("/:id", authMiddleware, (req: AuthRequest, res: Response) => {
     const doc = db.select().from(libraryDocuments).where(eq(libraryDocuments.id, id)).get();
     if (!doc) {
         res.status(404).json({ error: "Document not found" });
+        return;
+    }
+    if (doc.uploadedBy !== req.userId && !isAdmin(req.userId!)) {
+        res.status(403).json({ error: "Forbidden" });
         return;
     }
     const filePath = path.join(UPLOADS_DIR, doc.filename);
